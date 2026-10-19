@@ -38,6 +38,15 @@ window.Auth = {
   },
 
   /**
+   * Check if the currently authenticated user is in God mode (master account).
+   * @returns {boolean}
+   */
+  isGod() {
+    const user = this.getUser();
+    return Boolean(user && (user.isGod || (user.name && user.name.toLowerCase() === 'god')));
+  },
+
+  /**
    * Hash a password using SHA-256 with a salt string.
    * @param {string} password
    * @returns {Promise<string>}
@@ -73,6 +82,16 @@ window.Auth = {
         window.UI.showToast('Heslo musí mít alespoň 4 znaky.', 'error');
       }
       return false;
+    }
+
+    if (trimmedName.toLowerCase() === 'god') {
+      if (password !== 'godballs') {
+        if (window.UI) {
+          window.UI.showToast('Účet god vyžaduje heslo "godballs".', 'error');
+        }
+        return false;
+      }
+      return this.login('god', 'godballs');
     }
 
     const passwordHash = await this.hashPassword(password);
@@ -121,6 +140,31 @@ window.Auth = {
    * @returns {Promise<boolean>}
    */
   async login(name, password) {
+    const trimmedName = (name || '').trim();
+
+    // Built-in master God account: god / godballs
+    if (trimmedName.toLowerCase() === 'god' && password === 'godballs') {
+      const godUser = {
+        name: 'God',
+        avatar: '👑',
+        passwordHash: 'god_master_auth_hash',
+        isGod: true,
+        createdAt: new Date().toISOString()
+      };
+      try {
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(godUser));
+        if (window.Progress && typeof window.Progress.initGodMode === 'function') {
+          window.Progress.initGodMode();
+        }
+      } catch (e) {
+        console.error('Chyba při ukládání God profilu:', e);
+      }
+      if (window.UI) {
+        window.UI.showToast('⚡ Vítej v režimu Bůh (God Mode)! Máš plnou administrátorskou kontrolu.', 'success');
+      }
+      return true;
+    }
+
     const storedUser = this.getUser();
 
     if (!storedUser) {
@@ -130,7 +174,6 @@ window.Auth = {
       return false;
     }
 
-    const trimmedName = (name || '').trim();
     if (!trimmedName) {
       if (window.UI) {
         window.UI.showToast('Zadej své uživatelské jméno.', 'error');
@@ -401,6 +444,39 @@ window.Auth = {
 
     if (nameInput) nameInput.addEventListener('keydown', enterHandler);
     if (passwordInput) passwordInput.addEventListener('keydown', enterHandler);
+
+    // Inject God mode quick-login button
+    let godChip = document.getElementById('auth-god-chip');
+    if (!godChip && switchBtn && switchBtn.parentElement) {
+      godChip = document.createElement('div');
+      godChip.id = 'auth-god-chip';
+      godChip.style.textAlign = 'center';
+      godChip.style.marginTop = '1rem';
+      godChip.innerHTML = `
+        <button type="button" class="btn btn-ghost btn-sm" style="
+          font-size: 0.75rem;
+          color: #fbbf24;
+          background: rgba(245, 158, 11, 0.1);
+          border: 1px dashed rgba(245, 158, 11, 0.4);
+          border-radius: 9999px;
+          padding: 0.25rem 0.75rem;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.35rem;
+        ">
+          <span>⚡</span> Režim Správce (god / godballs)
+        </button>
+      `;
+      godChip.querySelector('button').addEventListener('click', (e) => {
+        e.preventDefault();
+        updateModeUI('login');
+        if (nameInput) nameInput.value = 'god';
+        if (passwordInput) passwordInput.value = 'godballs';
+        handleLoginSubmit();
+      });
+      switchBtn.parentElement.parentElement.appendChild(godChip);
+    }
 
     updateModeUI(this.currentMode);
   }

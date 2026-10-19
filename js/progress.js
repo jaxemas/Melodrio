@@ -10,7 +10,8 @@ const RANKS = [
   { name: 'Muzikant', icon: '🍺', stage: 'Hospoda', minXP: 1500, color: '#8B5CF6' },
   { name: 'Hráč', icon: '🎪', stage: 'Klub', minXP: 3000, color: '#F59E0B' },
   { name: 'Umělec', icon: '🎭', stage: 'Koncertní sál', minXP: 5000, color: '#EC4899' },
-  { name: 'Mistr', icon: '🏟️', stage: 'Stadion', minXP: 8000, color: '#10B981' }
+  { name: 'Mistr', icon: '🏟️', stage: 'Stadion', minXP: 8000, color: '#10B981' },
+  { name: 'Bůh kytary', icon: '👑', stage: 'Olymp', minXP: 10000, color: '#F59E0B' }
 ];
 
 const BADGES = [
@@ -97,7 +98,21 @@ window.Progress = {
     return { ...RANKS[0], nextRank: RANKS[1] };
   },
 
+  isGodMode() {
+    return Boolean(window.Auth && typeof window.Auth.isGod === 'function' && window.Auth.isGod());
+  },
+
   getRank() {
+    if (this.isGodMode()) {
+      return {
+        name: 'Bůh kytary',
+        icon: '👑',
+        stage: 'Olymp',
+        minXP: 10000,
+        color: '#F59E0B',
+        nextRank: null
+      };
+    }
     return this._getRankByXP(this.getXP());
   },
 
@@ -188,7 +203,15 @@ window.Progress = {
   },
 
   getStreak() {
-    return this._getdata().streak;
+    const data = this._getdata();
+    if (!data || !data.streak) return 0;
+    if (typeof data.streak === 'number') return data.streak;
+    return typeof data.streak.current === 'number' ? data.streak.current : 0;
+  },
+
+  getStreakData() {
+    const data = this._getdata();
+    return data.streak || { current: 0, lastDate: null, best: 0 };
   },
 
   updateStreak() {
@@ -325,6 +348,40 @@ window.Progress = {
     }
   },
 
+  unlockBadge(badgeId) {
+    this._checkAndAwardBadge(badgeId);
+  },
+
+  initGodMode() {
+    const data = this._getdata();
+    data.totalXP = Math.max(data.totalXP, 10000);
+    // Complete all 15 lessons
+    data.completedLessons = Array.from({ length: 15 }, (_, i) => i + 1);
+    // Unlock all badges
+    data.earnedBadges = BADGES.map(b => b.id);
+    data.isGod = true;
+    if (!data.streak || data.streak.current < 99) {
+      data.streak = { current: 99, lastDate: new Date().toISOString().split('T')[0], best: 99 };
+    }
+    this._save(data);
+    if (window.App && typeof window.App.renderSidebar === 'function') {
+      window.App.renderSidebar();
+    }
+    if (window.App && typeof window.App.renderDashboard === 'function') {
+      window.App.renderDashboard();
+    }
+  },
+
+  resetProgress() {
+    this.initializeForNewUser();
+    if (window.App && typeof window.App.renderSidebar === 'function') {
+      window.App.renderSidebar();
+    }
+    if (window.App && typeof window.App.renderDashboard === 'function') {
+      window.App.renderDashboard();
+    }
+  },
+
   renderProfile() {
     const profileContainer = document.getElementById('profile-content');
     if (!profileContainer) {
@@ -439,9 +496,14 @@ window.Progress = {
             <span class="text-base">🔥</span>
           </div>
           <div class="text-3xl font-extrabold text-white mb-2">
-            ${data.streak.current} ${data.streak.current === 1 ? 'den' : (data.streak.current < 5 ? 'dny' : 'dní')}
+            ${(() => {
+              const count = (data.streak && typeof data.streak.current === 'number') ? data.streak.current : (typeof data.streak === 'number' ? data.streak : 0);
+              if (count === 1) return '1 den';
+              if (count >= 2 && count <= 4) return `${count} dny`;
+              return `${count} dní`;
+            })()}
           </div>
-          <div class="text-xs text-muted">Nejlepší série v kuse: <strong>${data.streak.best} dní</strong></div>
+          <div class="text-xs text-muted">Nejlepší série v kuse: <strong>${(data.streak && data.streak.best) || 0} dní</strong></div>
         </div>
 
         <div class="stat-card card p-4 bg-surface-2 border border-surface-border">

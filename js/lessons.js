@@ -1675,6 +1675,7 @@ window.Lessons = {
     listContainer.classList.remove('hidden');
 
     const completedIds = window.Progress ? window.Progress.getCompletedLessons() : [];
+    const isGod = Boolean(window.Auth && typeof window.Auth.isGod === 'function' && window.Auth.isGod());
 
     const stages = [
       { id: 1, name: 'Garáž', emoji: '🏠', subtitle: 'Lekce 1–8: Seznámení s nástrojem a první mollové akordy' },
@@ -1711,8 +1712,8 @@ window.Lessons = {
       stageLessons.forEach(lesson => {
         const isCompleted = completedIds.includes(lesson.id);
         const prevCompleted = lesson.id === 1 || completedIds.includes(lesson.id - 1);
-        const isUnlocked = isCompleted || prevCompleted;
-        const isCurrent = !isCompleted && isUnlocked;
+        const isUnlocked = isGod || isCompleted || prevCompleted;
+        const isCurrent = !isGod && !isCompleted && isUnlocked;
 
         let statusClass = 'locked';
         let statusBadge = '<span class="badge locked">🔒 Zamčeno</span>';
@@ -1731,6 +1732,12 @@ window.Lessons = {
           statusBadge = '<span class="badge" style="background: rgba(59, 130, 246, 0.25); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4);">🎯 Na řadě</span>';
           buttonText = 'Spustit lekci →';
           buttonClass = 'btn btn-primary btn-sm';
+          disabledAttr = '';
+        } else if (isGod) {
+          statusClass = 'current god-unlocked active';
+          statusBadge = '<span class="badge" style="background: rgba(245, 158, 11, 0.25); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.5);">⚡ Odemčeno (Bůh)</span>';
+          buttonText = 'Spustit lekci ⚡';
+          buttonClass = 'btn btn-secondary btn-sm';
           disabledAttr = '';
         }
 
@@ -1770,7 +1777,7 @@ window.Lessons = {
     listContainer.querySelectorAll('.lesson-card').forEach(card => {
       const lessonId = Number(card.dataset.lessonId);
       const isCompleted = completedIds.includes(lessonId);
-      const isUnlocked = lessonId === 1 || isCompleted || completedIds.includes(lessonId - 1);
+      const isUnlocked = isGod || lessonId === 1 || isCompleted || completedIds.includes(lessonId - 1);
 
       if (isUnlocked) {
         card.addEventListener('click', (e) => {
