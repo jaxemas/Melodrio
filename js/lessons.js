@@ -1684,15 +1684,16 @@ window.Lessons = {
 
     let html = '';
 
-    stages.forEach(stage => {
+    stages.forEach((stage, stageIndex) => {
       const stageLessons = this.getLessonsByStage(stage.id);
       if (stageLessons.length === 0) return;
 
       const stageCompletedCount = stageLessons.filter(l => completedIds.includes(l.id)).length;
+      const stageSpacingStyle = stageIndex > 0 ? 'margin-top: 4.5rem; margin-bottom: 3.5rem;' : 'margin-bottom: 3.5rem;';
 
       html += `
-        <div class="stage-section my-6">
-          <div class="stage-header flex justify-between items-center mb-4">
+        <div class="stage-section" style="${stageSpacingStyle}">
+          <div class="stage-header flex justify-between items-center mb-6" style="margin-bottom: 1.75rem;">
             <div>
               <h2 class="text-2xl font-bold flex items-center gap-2">
                 <span>${stage.emoji}</span>

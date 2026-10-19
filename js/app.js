@@ -805,8 +805,9 @@ window.App = {
         Array.from({ length: stage.lessons[1] - stage.lessons[0] + 1 }, (_, i) => stage.lessons[0] + i)
           .every(id => completed.includes(id));
 
+      const storyStageSpacing = stageId > 1 ? 'margin-top: 4.5rem; margin-bottom: 3.5rem;' : 'margin-bottom: 3.5rem;';
       html += `
-        <div class="stage-section" style="margin-bottom: 3.5rem;">
+        <div class="stage-section" style="${storyStageSpacing}">
           <!-- Stage Header -->
           <div class="stage-header" style="
             background: linear-gradient(135deg, rgba(30, 41, 59, 0.85) 0%, rgba(15, 23, 42, 0.9) 100%);

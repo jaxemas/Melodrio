@@ -1194,6 +1194,16 @@ img, svg {
 /* --------------------------------------------------------------------------
    8. Lessons List View
    -------------------------------------------------------------------------- */
+.stage-section {
+  margin-bottom: 3.5rem;
+}
+
+.stage-section + .stage-section {
+  margin-top: 4.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
 .lessons-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));

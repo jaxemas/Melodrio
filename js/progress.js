@@ -507,9 +507,6 @@ window.Progress = {
       <!-- 1. Karta uživatele -->
       <div class="card p-6 mb-6 flex flex-wrap items-center justify-between gap-6 animate-slideInUp bg-surface-2 border border-surface-border">
         <div class="flex items-center gap-5">
-          <div class="user-avatar w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-bold bg-primary text-white shadow-lg border-2 border-primary/50">
-            ${userName.charAt(0).toUpperCase()}
-          </div>
           <div>
             <div class="flex items-center gap-3">
               <h2 class="text-2xl font-extrabold text-white mb-0">${userName}</h2>
