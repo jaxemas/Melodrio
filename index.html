@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Melodrio — Nauč se hrát na kytaru</title>
+  <meta name="description" content="Melodrio - interaktivní aplikace pro učení hry na kytaru">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/animations.css">
+</head>
+<body>
+  <div id="app">
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" class="screen active">
+      <!-- Animated background glow spheres -->
+      <div class="login-bg-glow glow-1"></div>
+      <div class="login-bg-glow glow-2"></div>
+      <div class="login-bg-glow glow-3"></div>
+
+      <!-- Floating music note particles -->
+      <div class="particles-container" id="login-particles" aria-hidden="true">
+        <span class="particle" style="--x: 8%; --delay: 0s; --duration: 14s; --size: 1.8rem;">🎵</span>
+        <span class="particle" style="--x: 18%; --delay: 2.5s; --duration: 18s; --size: 1.4rem;">🎶</span>
+        <span class="particle" style="--x: 27%; --delay: 1.2s; --duration: 16s; --size: 2rem;">🎸</span>
+        <span class="particle" style="--x: 39%; --delay: 4.8s; --duration: 20s; --size: 1.2rem;">🎼</span>
+        <span class="particle" style="--x: 52%; --delay: 0.8s; --duration: 15s; --size: 1.6rem;">♩</span>
+        <span class="particle" style="--x: 64%; --delay: 3.3s; --duration: 17s; --size: 2.2rem;">♫</span>
+        <span class="particle" style="--x: 73%; --delay: 5.1s; --duration: 19s; --size: 1.5rem;">♬</span>
+        <span class="particle" style="--x: 84%; --delay: 1.9s; --duration: 13s; --size: 1.9rem;">𝄞</span>
+        <span class="particle" style="--x: 92%; --delay: 3.8s; --duration: 21s; --size: 1.3rem;">🎵</span>
+        <span class="particle" style="--x: 14%; --delay: 6.2s; --duration: 16s; --size: 1.7rem;">🎶</span>
+        <span class="particle" style="--x: 46%; --delay: 7.5s; --duration: 18s; --size: 1.5rem;">🎸</span>
+        <span class="particle" style="--x: 60%; --delay: 8.1s; --duration: 14s; --size: 2rem;">🎼</span>
+        <span class="particle" style="--x: 79%; --delay: 6.9s; --duration: 15s; --size: 1.6rem;">♩</span>
+        <span class="particle" style="--x: 33%; --delay: 9.4s; --duration: 22s; --size: 1.4rem;">♫</span>
+        <span class="particle" style="--x: 88%; --delay: 10.2s; --duration: 17s; --size: 1.8rem;">♬</span>
+      </div>
+
+      <!-- Decorative guitar SVG background silhouette -->
+      <div class="login-decor-silhouette" aria-hidden="true">
+        <svg viewBox="0 0 400 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M200 40C200 40 215 90 215 130C215 170 205 210 205 260C205 290 230 330 250 365C280 415 295 470 295 530C295 650 250 740 200 740C150 740 105 650 105 530C105 470 120 415 150 365C170 330 195 290 195 260C195 210 185 170 185 130C185 90 200 40 200 40Z" stroke="rgba(139, 92, 246, 0.12)" stroke-width="2.5"/>
+          <circle cx="200" cy="510" r="48" stroke="rgba(59, 130, 246, 0.15)" stroke-width="2"/>
+          <line x1="190" y1="40" x2="190" y2="700" stroke="rgba(255, 255, 255, 0.05)" stroke-width="1.5"/>
+          <line x1="195" y1="40" x2="195" y2="700" stroke="rgba(255, 255, 255, 0.05)" stroke-width="1.5"/>
+          <line x1="200" y1="40" x2="200" y2="700" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1.5"/>
+          <line x1="205" y1="40" x2="205" y2="700" stroke="rgba(255, 255, 255, 0.05)" stroke-width="1.5"/>
+          <line x1="210" y1="40" x2="210" y2="700" stroke="rgba(255, 255, 255, 0.05)" stroke-width="1.5"/>
+        </svg>
+      </div>
+
+      <!-- Login Card Container -->
+      <div class="login-container">
+        <div class="login-card">
+          <!-- Logo & Header -->
+          <div class="login-header">
+            <div class="login-logo-badge">
+              <span class="login-logo-icon">🎸</span>
+            </div>
+            <h1 class="login-title">Melodrio</h1>
+            <p class="login-subtitle">Tvá interaktivní cesta za mistrovstvím na kytaru</p>
+          </div>
+
+          <!-- Mode Switcher Tabs -->
+          <div class="auth-tabs" id="auth-tabs" role="tablist">
+            <button type="button" class="auth-tab active" id="tab-register" role="tab" aria-selected="true" data-mode="register">
+              Registrace
+            </button>
+            <button type="button" class="auth-tab" id="tab-login" role="tab" aria-selected="false" data-mode="login">
+              Přihlášení
+            </button>
+          </div>
+
+          <!-- Auth Form -->
+          <form class="auth-form" id="auth-form" onsubmit="return false;" novalidate>
+            <!-- User Name Input -->
+            <div class="form-group">
+              <label for="auth-name" class="form-label">Tvé jméno nebo přezdívka</label>
+              <div class="input-wrapper">
+                <span class="input-icon">👤</span>
+                <input
+                  type="text"
+                  id="auth-name"
+                  name="username"
+                  class="form-input"
+                  placeholder="Tvé jméno"
+                  autocomplete="username"
+                  required
+                >
+              </div>
+            </div>
+
+            <!-- Password Input -->
+            <div class="form-group">
+              <label for="auth-password" class="form-label">Heslo</label>
+              <div class="input-wrapper">
+                <span class="input-icon">🔒</span>
+                <input
+                  type="password"
+                  id="auth-password"
+                  name="password"
+                  class="form-input"
+                  placeholder="Heslo"
+                  autocomplete="current-password"
+                  required
+                >
+              </div>
+            </div>
+
+            <!-- Avatar Selection (Register Mode) -->
+            <div class="form-group auth-avatar-group" id="auth-avatar-group">
+              <label for="auth-avatar" class="form-label">Vyber si svého hudebního avatara</label>
+              
+              <!-- Hidden/Accessible Native Select -->
+              <select id="auth-avatar" name="avatar" class="auth-avatar-select">
+                <option value="🎸" selected>🎸 Kytarista</option>
+                <option value="🎵">🎵 Melodik</option>
+                <option value="🎶">🎶 Písničkář</option>
+                <option value="🎤">🎤 Zpěvák</option>
+                <option value="🎼">🎼 Skladatel</option>
+                <option value="🎹">🎹 Klávesista</option>
+                <option value="🥁">🥁 Bubeník</option>
+                <option value="🎷">🎷 Saxofonista</option>
+              </select>
+
+              <!-- Interactive Clickable Avatar Grid -->
+              <div class="avatar-picker-grid" id="avatar-picker-grid" role="radiogroup" aria-label="Výběr avatara">
+                <button type="button" class="avatar-option selected" data-avatar="🎸" aria-label="Kytarista" title="Kytarista">
+                  <span class="avatar-emoji">🎸</span>
+                </button>
+                <button type="button" class="avatar-option" data-avatar="🎵" aria-label="Melodik" title="Melodik">
+                  <span class="avatar-emoji">🎵</span>
+                </button>
+                <button type="button" class="avatar-option" data-avatar="🎶" aria-label="Písničkář" title="Písničkář">
+                  <span class="avatar-emoji">🎶</span>
+                </button>
+                <button type="button" class="avatar-option" data-avatar="🎤" aria-label="Zpěvák" title="Zpěvák">
+                  <span class="avatar-emoji">🎤</span>
+                </button>
+                <button type="button" class="avatar-option" data-avatar="🎼" aria-label="Skladatel" title="Skladatel">
+                  <span class="avatar-emoji">🎼</span>
+                </button>
+                <button type="button" class="avatar-option" data-avatar="🎹" aria-label="Klávesista" title="Klávesista">
+                  <span class="avatar-emoji">🎹</span>
+                </button>
+                <button type="button" class="avatar-option" data-avatar="🥁" aria-label="Bubeník" title="Bubeník">
+                  <span class="avatar-emoji">🥁</span>
+                </button>
+                <button type="button" class="avatar-option" data-avatar="🎷" aria-label="Saxofonista" title="Saxofonista">
+                  <span class="avatar-emoji">🎷</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="auth-actions">
+              <button type="button" id="btn-register" class="btn btn-primary btn-block btn-lg">
+                <span class="btn-text">Začít cestu</span>
+                <span class="btn-icon-right">🚀</span>
+              </button>
+              <button type="button" id="btn-login" class="btn btn-primary btn-block btn-lg" style="display: none;">
+                <span class="btn-text">Přihlásit se</span>
+                <span class="btn-icon-right">✨</span>
+              </button>
+            </div>
+
+            <!-- Mode Switch Toggle Hint -->
+            <div class="auth-switch-hint">
+              <span id="auth-switch-text">Už máš svůj účet?</span>
+              <button type="button" id="auth-switch-btn" class="btn-link">Přihlásit se</button>
+            </div>
+          </form>
+
+          <!-- Login Footer Info -->
+          <div class="login-footer">
+            <span class="footer-badge">🎸 offline kytarová škola</span>
+            <span class="footer-copy">Školní projekt 2026</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN APP (hidden until login) -->
+    <div id="main-app" class="screen">
+      <!-- SIDEBAR NAVIGATION -->
+      <nav id="sidebar">
+        <!-- App logo/name at top -->
+        <div class="sidebar-logo">
+          <span class="logo-icon">🎸</span>
+          <span class="logo-text">Melodrio</span>
+        </div>
+        
+        <!-- User info card -->
+        <div class="sidebar-user" id="sidebar-user">
+          <div class="user-avatar-wrap">
+            <span class="user-avatar" id="sidebar-user-avatar">🎸</span>
+          </div>
+          <div class="user-info">
+            <div class="user-name" id="sidebar-user-name">Kytarista</div>
+            <div class="user-rank-wrap">
+              <span class="rank-badge rank-novacek" id="sidebar-user-rank">Nováček</span>
+            </div>
+          </div>
+          <div class="sidebar-xp-container">
+            <div class="sidebar-xp-labels">
+              <span class="xp-title">Zkušenosti</span>
+              <span class="xp-val" id="sidebar-user-xp">0 XP</span>
+            </div>
+            <div class="xp-bar mini">
+              <div class="xp-bar-fill" id="sidebar-xp-fill" style="width: 0%;"></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Nav items -->
+        <ul class="sidebar-nav">
+          <li><a href="#/dashboard" class="sidebar-item active" data-view="dashboard"><span class="nav-icon">🏠</span><span class="nav-text">Dashboard</span></a></li>
+          <li><a href="#/lessons" class="sidebar-item" data-view="lessons"><span class="nav-icon">📚</span><span class="nav-text">Lekce</span></a></li>
+          <li><a href="#/songs" class="sidebar-item locked" data-view="songs"><span class="nav-icon">🎵</span><span class="nav-text">Písničky</span><span class="coming-soon">Brzy</span></a></li>
+          <li><a href="#/practice" class="sidebar-item locked" data-view="practice"><span class="nav-icon">🎸</span><span class="nav-text">Cvičení</span><span class="coming-soon">Brzy</span></a></li>
+          <li><a href="#/tuner" class="sidebar-item locked" data-view="tuner"><span class="nav-icon">🔧</span><span class="nav-text">Ladička</span><span class="coming-soon">Brzy</span></a></li>
+          <li><a href="#/metronome" class="sidebar-item locked" data-view="metronome"><span class="nav-icon">⏱️</span><span class="nav-text">Metronom</span><span class="coming-soon">Brzy</span></a></li>
+          <li><a href="#/profile" class="sidebar-item" data-view="profile"><span class="nav-icon">👤</span><span class="nav-text">Profil</span></a></li>
+        </ul>
+
+        <!-- Streak & daily info at bottom -->
+        <div class="sidebar-footer" id="sidebar-streak">
+          <div class="streak-card">
+            <div class="streak-icon-wrap">
+              <span class="streak-flame animate-pulse">🔥</span>
+            </div>
+            <div class="streak-text-wrap">
+              <span class="streak-days" id="sidebar-streak-days">1 den</span>
+              <span class="streak-label">Aktivní série</span>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <!-- MAIN CONTENT AREA -->
+      <main id="content">
+        <!-- DASHBOARD VIEW -->
+        <section id="view-dashboard" class="view active">
+          <!-- Welcome header: "Ahoj, [name]! 👋" with rank and XP -->
+          <div class="dashboard-header" id="dashboard-header"></div>
+          
+          <!-- Quick stats row: 4 stat cards (XP, Level, Streak, Completed Lessons) -->
+          <div class="dashboard-stats" id="dashboard-stats"></div>
+          
+          <!-- Story Map: Vertical path with stage nodes -->
+          <div class="story-map" id="story-map">
+            <!-- Rendered by JS: vertical path with connected lesson nodes -->
+            <!-- Each stage has a header (location name + icon) and lesson nodes below it -->
+          </div>
+        </section>
+
+        <!-- LESSONS LIST VIEW -->
+        <section id="view-lessons" class="view">
+          <div class="view-header">
+            <h1>📚 Lekce</h1>
+            <p class="view-subtitle">Tvoje cesta k mistrovství na kytaře</p>
+          </div>
+          <div id="lessons-list" class="lessons-container">
+            <!-- Rendered by JS -->
+          </div>
+        </section>
+
+        <!-- LESSON DETAIL VIEW (single lesson) -->
+        <section id="view-lesson-detail" class="view">
+          <div class="lesson-detail" id="lesson-detail">
+            <!-- Rendered by JS: lesson title, step cards, quiz -->
+          </div>
+        </section>
+
+        <!-- SONGS VIEW (placeholder for Output 2) -->
+        <section id="view-songs" class="view">
+          <div class="coming-soon-page">
+            <div class="coming-soon-icon animate-float">🎵</div>
+            <h2>Písničky</h2>
+            <p>Knihovna písniček bude dostupná v další aktualizaci!</p>
+            <p class="coming-soon-subtitle">27 písniček od začátečníků po pokročilé</p>
+          </div>
+        </section>
+
+        <!-- PRACTICE VIEW (placeholder for Output 2) -->
+        <section id="view-practice" class="view">
+          <div class="coming-soon-page">
+            <div class="coming-soon-icon animate-float">🎸</div>
+            <h2>Cvičení</h2>
+            <p>Interaktivní cvičení a chord quiz budou dostupné brzy!</p>
+          </div>
+        </section>
+
+        <!-- TUNER VIEW (placeholder for Output 3) -->
+        <section id="view-tuner" class="view">
+          <div class="coming-soon-page">
+            <div class="coming-soon-icon animate-float">🔧</div>
+            <h2>Ladička</h2>
+            <p>Chromatická ladička s detekcí tónů přijde v další aktualizaci!</p>
+          </div>
+        </section>
+
+        <!-- METRONOME VIEW (placeholder for Output 2) -->
+        <section id="view-metronome" class="view">
+          <div class="coming-soon-page">
+            <div class="coming-soon-icon animate-float">⏱️</div>
+            <h2>Metronom</h2>
+            <p>Vestavěný metronom bude dostupný brzy!</p>
+          </div>
+        </section>
+
+        <!-- PROFILE VIEW -->
+        <section id="view-profile" class="view">
+          <div class="view-header">
+            <h1>👤 Profil</h1>
+          </div>
+          <div id="profile-content">
+            <!-- Rendered by JS -->
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- TOAST CONTAINER -->
+    <div id="toast-container" aria-live="polite"></div>
+    
+    <!-- MODAL OVERLAY -->
+    <div id="modal-overlay" class="modal-overlay" role="dialog" aria-modal="true">
+      <div class="modal" id="modal">
+        <div class="modal-header" id="modal-header"></div>
+        <div class="modal-body" id="modal-body"></div>
+        <div class="modal-footer" id="modal-footer"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS Modules (order matters!) -->
+  <script src="js/sounds.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/progress.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/lessons.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

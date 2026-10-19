@@ -1,0 +1,5 @@
+# Melodrio gitignore
+*.orig
+*.log
+.DS_Store
+Thumbs.db
