@@ -2146,6 +2146,9 @@ window.Lessons = {
     if (window.Progress) {
       window.Progress.addXP(totalEarnedXP);
       window.Progress.markLessonComplete(lesson.id);
+      if (typeof window.Progress.recordPracticeActivity === 'function') {
+        window.Progress.recordPracticeActivity();
+      }
 
       if (isPerfect) {
         window.Progress.recordPerfectQuiz();

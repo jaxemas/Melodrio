@@ -50,7 +50,20 @@ window.App = {
    * e.g. 0 dní, 1 den, 2 dny, 3 dny, 4 dny, 5 dní...
    */
   formatStreak(count) {
-    const s = Math.max(0, parseInt(count, 10) || 0);
+    let s = 0;
+    if (typeof count === 'number' && !isNaN(count)) {
+      s = count;
+    } else if (typeof count === 'object' && count !== null) {
+      if (typeof count.current === 'number') s = count.current;
+      else s = parseInt(count.current, 10) || 0;
+    } else if (typeof count === 'string') {
+      if (count === '[object Object]' || count.includes('object')) {
+        s = 0;
+      } else {
+        s = parseInt(count, 10) || 0;
+      }
+    }
+    s = Math.max(0, s);
     if (s === 0) return '0 dní';
     if (s === 1) return '1 den';
     if (s >= 2 && s <= 4) return `${s} dny`;
@@ -265,9 +278,22 @@ window.App = {
       const stored = localStorage.getItem('melodrio_xp');
       if (stored) xp = parseInt(stored, 10) || 0;
     }
-    if (typeof streak !== 'number') {
-      const stored = localStorage.getItem('melodrio_streak');
-      if (stored !== null) streak = parseInt(stored, 10) || 0;
+    if (typeof streak !== 'number' || isNaN(streak)) {
+      try {
+        const stored = localStorage.getItem('melodrio_streak');
+        if (stored) {
+          if (stored.startsWith('{')) {
+            const parsed = JSON.parse(stored);
+            streak = Number(parsed.current) || 0;
+          } else if (stored !== '[object Object]') {
+            streak = parseInt(stored, 10) || 0;
+          } else {
+            streak = 0;
+          }
+        }
+      } catch (e) {
+        streak = 0;
+      }
     }
     if (typeof streak === 'object' && streak !== null) {
       streak = Number(streak.current) || 0;
@@ -1281,6 +1307,9 @@ window.App = {
       if (window.Progress && typeof window.Progress.addXP === 'function') {
         window.Progress.addXP(info.xp || 50);
       }
+      if (window.Progress && typeof window.Progress.recordPracticeActivity === 'function') {
+        window.Progress.recordPracticeActivity();
+      }
     }
 
     if (window.Sounds) {
@@ -2221,22 +2250,29 @@ window.App = {
   answerPracticeQuiz(index) {
     const q = this._quizState.questions[this._quizState.index];
     const box = document.getElementById('quiz-feedback-box');
-    if (!box) return;
 
-    box.style.display = 'block';
     if (index === q.correct) {
       this._quizState.score += 25;
-      box.style.background = 'rgba(16, 185, 129, 0.2)';
-      box.style.border = '1px solid rgba(16, 185, 129, 0.4)';
-      box.style.color = '#a7f3d0';
-      box.innerHTML = `<strong>✅ Správně! (+25 XP)</strong> ${q.tip}`;
+      if (box) {
+        box.style.display = 'block';
+        box.style.background = 'rgba(16, 185, 129, 0.2)';
+        box.style.border = '1px solid rgba(16, 185, 129, 0.4)';
+        box.style.color = '#a7f3d0';
+        box.innerHTML = `<strong>✅ Správně! (+25 XP)</strong> ${q.tip}`;
+      }
       if (window.Sounds) window.Sounds.playComplete();
       if (window.UI) window.UI.showConfetti();
+      if (window.Progress && typeof window.Progress.recordPracticeActivity === 'function') {
+        window.Progress.recordPracticeActivity();
+      }
     } else {
-      box.style.background = 'rgba(239, 68, 68, 0.2)';
-      box.style.border = '1px solid rgba(239, 68, 68, 0.4)';
-      box.style.color = '#fca5a5';
-      box.innerHTML = `<strong>❌ Zkus to znovu!</strong> ${q.tip}`;
+      if (box) {
+        box.style.display = 'block';
+        box.style.background = 'rgba(239, 68, 68, 0.2)';
+        box.style.border = '1px solid rgba(239, 68, 68, 0.4)';
+        box.style.color = '#fca5a5';
+        box.innerHTML = `<strong>❌ Zkus to znovu!</strong> ${q.tip}`;
+      }
       if (window.Sounds) window.Sounds.playError();
     }
   },

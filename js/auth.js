@@ -116,7 +116,7 @@ window.Auth = {
           localStorage.setItem('melodrio_xp', '0');
         }
         if (!localStorage.getItem('melodrio_streak')) {
-          localStorage.setItem('melodrio_streak', '0');
+          localStorage.setItem('melodrio_streak', JSON.stringify({ current: 0, lastDate: null, best: 0 }));
         }
         if (!localStorage.getItem('melodrio_completed_lessons')) {
           localStorage.setItem('melodrio_completed_lessons', '[]');

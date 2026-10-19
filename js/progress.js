@@ -44,12 +44,27 @@ window.Progress = {
       if (stored) {
         const parsed = JSON.parse(stored);
         let s = parsed.streak;
-        if (typeof s === 'number') s = { current: s, lastDate: null, best: s };
+        if (typeof s === 'number' && !isNaN(s)) {
+          s = { current: Math.max(0, s), lastDate: null, best: Math.max(0, s) };
+        } else if (typeof s === 'string') {
+          if (s === '[object Object]' || s.includes('object')) {
+            s = { current: 0, lastDate: null, best: 0 };
+          } else {
+            const num = Math.max(0, parseInt(s, 10) || 0);
+            s = { current: num, lastDate: null, best: num };
+          }
+        } else if (!s || typeof s !== 'object') {
+          s = { current: 0, lastDate: null, best: 0 };
+        } else {
+          if (typeof s.current !== 'number' || isNaN(s.current)) s.current = 0;
+          if (typeof s.best !== 'number' || isNaN(s.best)) s.best = s.current;
+        }
+
         return {
           totalXP: parsed.totalXP || 0,
           completedLessons: Array.isArray(parsed.completedLessons) ? parsed.completedLessons : [],
           earnedBadges: Array.isArray(parsed.earnedBadges) ? parsed.earnedBadges : ['first_login'],
-          streak: s || { current: 1, lastDate: null, best: 1 },
+          streak: s,
           perfectQuizzes: parsed.perfectQuizzes || 0,
           perfectStreak: parsed.perfectStreak || 0,
           totalQuizzes: parsed.totalQuizzes || 0,
@@ -65,7 +80,7 @@ window.Progress = {
       totalXP: 0,
       completedLessons: [],
       earnedBadges: ['first_login'],
-      streak: { current: 1, lastDate: null, best: 1 },
+      streak: { current: 0, lastDate: null, best: 0 },
       perfectQuizzes: 0,
       perfectStreak: 0,
       totalQuizzes: 0,
@@ -205,34 +220,72 @@ window.Progress = {
   getStreak() {
     const data = this._getdata();
     if (!data || !data.streak) return 0;
-    if (typeof data.streak === 'number') return data.streak;
-    return typeof data.streak.current === 'number' ? data.streak.current : 0;
+    if (typeof data.streak === 'number' && !isNaN(data.streak)) return Math.max(0, data.streak);
+    if (typeof data.streak === 'object' && typeof data.streak.current === 'number' && !isNaN(data.streak.current)) {
+      return Math.max(0, data.streak.current);
+    }
+    return 0;
   },
 
   getStreakData() {
     const data = this._getdata();
-    return data.streak || { current: 0, lastDate: null, best: 0 };
+    if (data && data.streak && typeof data.streak === 'object' && typeof data.streak.current === 'number') {
+      return data.streak;
+    }
+    return { current: 0, lastDate: null, best: 0 };
   },
 
+  /**
+   * Zkontroluje stav denní série při startu (pasivní kontrola).
+   * Pokud uživatel zmeškal předchozí den, série se vynuluje na 0.
+   * Nikdy nezvyšuje sérii sama o sobě – ke zvýšení dochází až aktivitou (cvičením).
+   */
   updateStreak() {
     const data = this._getdata();
+    if (!data || !data.streak || typeof data.streak !== 'object') return;
+    if (!data.streak.lastDate || data.streak.current === 0) return;
+
     const now = new Date();
     const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-
     const yesterday = new Date(now.getTime() - 86400000);
     const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
 
-    if (!data.streak) {
+    if (data.streak.lastDate !== todayStr && data.streak.lastDate !== yesterdayStr) {
+      data.streak.current = 0;
+      this._save(data);
+      try {
+        localStorage.setItem('melodrio_streak', JSON.stringify(data.streak));
+      } catch (e) {}
+    }
+  },
+
+  /**
+   * Zaznamená splnění cvičení nebo lekce a zvýší denní sérii.
+   * Pokud byla série 0, zvýší se na 1 pro dnešní den.
+   */
+  recordPracticeActivity() {
+    const data = this._getdata();
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const yesterday = new Date(now.getTime() - 86400000);
+    const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+
+    if (!data.streak || typeof data.streak !== 'object') {
       data.streak = { current: 1, lastDate: todayStr, best: 1 };
+    } else if (data.streak.current === 0 || !data.streak.lastDate) {
+      // První cvičení: z 0 se zvýší na 1!
+      data.streak.current = 1;
+      data.streak.lastDate = todayStr;
+      data.streak.best = Math.max(data.streak.best || 0, 1);
     } else if (data.streak.lastDate === todayStr) {
-      // Dnes již započítáno
-      return;
+      // Dnes již cvičil, streak zůstává
     } else if (data.streak.lastDate === yesterdayStr) {
-      // Pokračování série ze včerejška
+      // Cvičil včera: pokračování série +1
       data.streak.current += 1;
       data.streak.lastDate = todayStr;
+      data.streak.best = Math.max(data.streak.best || 0, data.streak.current);
     } else {
-      // Přerušení série nebo první záznam
+      // Přerušení: nová série od 1
       data.streak.current = 1;
       data.streak.lastDate = todayStr;
     }
@@ -246,8 +299,16 @@ window.Progress = {
     if (data.streak.current >= 7) this._checkAndAwardBadge('streak_7');
     if (data.streak.current >= 30) this._checkAndAwardBadge('streak_30');
 
-    this.checkTimeBadges();
     this._save(data);
+    try {
+      localStorage.setItem('melodrio_streak', JSON.stringify(data.streak));
+    } catch (e) {}
+
+    // Aktualizace UI
+    if (window.App) {
+      if (typeof window.App.renderDashboard === 'function') window.App.renderDashboard();
+      if (typeof window.App.renderSidebar === 'function') window.App.renderSidebar();
+    }
   },
 
   getCompletedLessons() {
@@ -261,6 +322,9 @@ window.Progress = {
   markLessonComplete(id) {
     const numId = Number(id);
     const data = this._getdata();
+
+    // Zaznamenáme aktivitu cvičení (zvýší denní sérii z 0 na 1)
+    this.recordPracticeActivity();
 
     if (!data.completedLessons.includes(numId)) {
       data.completedLessons.push(numId);
@@ -360,8 +424,8 @@ window.Progress = {
     // Unlock all badges
     data.earnedBadges = BADGES.map(b => b.id);
     data.isGod = true;
-    if (!data.streak || data.streak.current < 99) {
-      data.streak = { current: 99, lastDate: new Date().toISOString().split('T')[0], best: 99 };
+    if (!data.streak || typeof data.streak !== 'object') {
+      data.streak = { current: 0, lastDate: null, best: 0 };
     }
     this._save(data);
     if (window.App && typeof window.App.renderSidebar === 'function') {
@@ -695,13 +759,12 @@ window.Progress = {
 
   initializeForNewUser() {
     const now = new Date();
-    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
     const initialData = {
       totalXP: 0,
       completedLessons: [],
       earnedBadges: ['first_login'],
-      streak: { current: 1, lastDate: todayStr, best: 1 },
+      streak: { current: 0, lastDate: null, best: 0 },
       perfectQuizzes: 0,
       perfectStreak: 0,
       totalQuizzes: 0,
@@ -709,6 +772,9 @@ window.Progress = {
       joinDate: now.toISOString()
     };
     this._save(initialData);
+    try {
+      localStorage.setItem('melodrio_streak', JSON.stringify({ current: 0, lastDate: null, best: 0 }));
+    } catch (e) {}
   },
 
   initUserData() {
