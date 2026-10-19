@@ -47,7 +47,8 @@ window.App = {
 
   /**
    * Helper to format streak count with Czech declension.
-   * e.g. 0 dní, 1 den, 2 dny, 3 dny, 4 dny, 5 dní...
+   * Striktně binární streak (0 dní nebo 1 den):
+   * Výchozí je 0, po splnění cvičení je 1, výš už to nejde (stačí 0 a 1).
    */
   formatStreak(count) {
     let s = 0;
@@ -63,17 +64,58 @@ window.App = {
         s = parseInt(count, 10) || 0;
       }
     }
-    s = Math.max(0, s);
-    if (s === 0) return '0 dní';
-    if (s === 1) return '1 den';
-    if (s >= 2 && s <= 4) return `${s} dny`;
-    return `${s} dní`;
+    return (s >= 1) ? '1 den' : '0 dní';
+  },
+
+  /**
+   * Self-healing: vyčistí případné staré nevalidní záznamy [object Object] z localStorage.
+   */
+  cleanCorruptedStorage() {
+    try {
+      const rawStreak = localStorage.getItem('melodrio_streak');
+      if (rawStreak) {
+        if (rawStreak === '[object Object]' || rawStreak.includes('object')) {
+          localStorage.setItem('melodrio_streak', JSON.stringify({ current: 0, lastDate: null, best: 0 }));
+        } else {
+          try {
+            const parsed = JSON.parse(rawStreak);
+            if (!parsed || typeof parsed !== 'object' || typeof parsed.current !== 'number' || isNaN(parsed.current)) {
+              localStorage.setItem('melodrio_streak', JSON.stringify({ current: 0, lastDate: null, best: 0 }));
+            } else if (parsed.current > 1) {
+              localStorage.setItem('melodrio_streak', JSON.stringify({ current: 1, lastDate: parsed.lastDate || null, best: 1 }));
+            }
+          } catch (e) {
+            localStorage.setItem('melodrio_streak', JSON.stringify({ current: 0, lastDate: null, best: 0 }));
+          }
+        }
+      }
+
+      const rawProgress = localStorage.getItem('melodrio_progress');
+      if (rawProgress) {
+        try {
+          const prog = JSON.parse(rawProgress);
+          if (prog && (prog.streak === '[object Object]' || typeof prog.streak !== 'object' || prog.streak === null)) {
+            prog.streak = { current: 0, lastDate: null, best: 0 };
+            localStorage.setItem('melodrio_progress', JSON.stringify(prog));
+          } else if (prog && prog.streak && typeof prog.streak.current === 'number' && prog.streak.current > 1) {
+            prog.streak.current = 1;
+            prog.streak.best = 1;
+            localStorage.setItem('melodrio_progress', JSON.stringify(prog));
+          }
+        } catch (e) {}
+      }
+    } catch (err) {
+      console.warn('Storage cleanup notice:', err);
+    }
   },
 
   /**
    * Application entry point.
    */
   init() {
+    // 0. Auto-healing storage cleanup
+    this.cleanCorruptedStorage();
+
     // 1. Audio unlock on first user gesture
     const unlockAudio = () => {
       if (window.Sounds) {
@@ -298,7 +340,7 @@ window.App = {
     if (typeof streak === 'object' && streak !== null) {
       streak = Number(streak.current) || 0;
     }
-    streak = Math.max(0, Number(streak) || 0);
+    streak = (streak >= 1) ? 1 : 0;
 
     if (!completed || completed.length === 0) {
       try {
@@ -647,8 +689,8 @@ window.App = {
             <button class="btn btn-secondary btn-sm" onclick="App.godUnlockBadges()" style="border-color: rgba(59, 130, 246, 0.5); color: #bfdbfe;">
               🏆 Odemknout všech 16 odznaků
             </button>
-            <button class="btn btn-secondary btn-sm" onclick="App.godAddStreak()" style="border-color: rgba(239, 68, 68, 0.5); color: #fca5a5;">
-              🔥 Přidat +5 ke streak (+5 dní)
+            <button class="btn btn-secondary btn-sm" onclick="App.godToggleStreak()" style="border-color: rgba(239, 68, 68, 0.5); color: #fca5a5;">
+              🔥 Přepnout streak (0 ↔ 1 den)
             </button>
             <button class="btn btn-secondary btn-sm" onclick="App.godResetProgress()" style="border-color: rgba(148, 163, 184, 0.4); color: #cbd5e1;">
               🔄 Resetovat postup (pro testy)
@@ -1104,26 +1146,27 @@ window.App = {
     }
 
     // Update #sidebar-streak
-    const sidebarStreak = document.getElementById('sidebar-streak');
-    if (sidebarStreak) {
-      const streakCount = typeof streak === 'number' ? streak : (streak && streak.current ? streak.current : 0);
-      sidebarStreak.innerHTML = `
-        <div style="
-          display: inline-flex;
-          align-items: center;
-          gap: 0.4rem;
-          background: rgba(239, 68, 68, 0.15);
-          border: 1px solid rgba(239, 68, 68, 0.3);
-          color: #fca5a5;
-          padding: 0.35rem 0.75rem;
-          border-radius: 9999px;
-          font-size: 0.85rem;
-          font-weight: 700;
-        ">
-          <span>🔥</span>
-          <span>${this.formatStreak(streakCount)}</span>
-        </div>
-      `;
+    const streakDaysEl = document.getElementById('sidebar-streak-days');
+    const streakCount = typeof streak === 'number' ? streak : (streak && streak.current ? streak.current : 0);
+    const formattedStreak = this.formatStreak(streakCount);
+
+    if (streakDaysEl) {
+      streakDaysEl.textContent = formattedStreak;
+    } else {
+      const sidebarStreak = document.getElementById('sidebar-streak');
+      if (sidebarStreak) {
+        sidebarStreak.innerHTML = `
+          <div class="streak-card">
+            <div class="streak-icon-wrap">
+              <span class="streak-flame animate-pulse">🔥</span>
+            </div>
+            <div class="streak-text-wrap">
+              <span class="streak-days" id="sidebar-streak-days">${formattedStreak}</span>
+              <span class="streak-label">Aktivní série</span>
+            </div>
+          </div>
+        `;
+      }
     }
 
     // If God mode, unlock sidebar tool items (songs, practice, tuner, metronome)
@@ -1619,29 +1662,43 @@ window.App = {
   },
 
   /**
-   * God Mode / Admin Action: Add +5 to streak
+   * God Mode / Admin Action: Toggle streak (0 ↔ 1 den)
    */
-  godAddStreak() {
-    let currentStreak = 0;
-    try {
-      const s = JSON.parse(localStorage.getItem('melodrio_streak') || '{}');
-      currentStreak = typeof s.current === 'number' ? s.current : 0;
-    } catch (e) {}
-    const newStreak = currentStreak + 5;
+  godToggleStreak() {
+    let current = 0;
+    if (window.Progress && typeof window.Progress.getStreak === 'function') {
+      current = window.Progress.getStreak();
+    } else {
+      const s = this.getProgressData().streak;
+      current = typeof s === 'number' ? s : 0;
+    }
+    const targetStreak = current === 0 ? 1 : 0;
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const streakObj = {
-      current: newStreak,
-      lastDate: new Date().toISOString().slice(0, 10),
-      best: Math.max(newStreak, 10)
+      current: targetStreak,
+      lastDate: targetStreak === 1 ? todayStr : null,
+      best: targetStreak
     };
-    localStorage.setItem('melodrio_streak', JSON.stringify(streakObj));
-    if (window.Progress && window.Progress.state) {
-      window.Progress.state.streak = streakObj;
+    try {
+      localStorage.setItem('melodrio_streak', JSON.stringify(streakObj));
+    } catch (e) {}
+
+    if (window.Progress) {
+      const pData = window.Progress._getdata();
+      pData.streak = streakObj;
+      window.Progress._save(pData);
     }
-    if (window.UI) {
-      window.UI.showToast(`🔥 Přidáno +5 ke streak! Aktuálně: ${newStreak} dní`, 'success');
-    }
+
     this.renderDashboard();
     this.renderSidebar();
+    if (window.UI) {
+      window.UI.showToast(`🔥 Denní série přepnuta na: ${this.formatStreak(targetStreak)}`, 'success');
+    }
+  },
+
+  godAddStreak() {
+    this.godToggleStreak();
   },
 
   /**

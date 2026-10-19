@@ -44,27 +44,45 @@ window.Progress = {
       if (stored) {
         const parsed = JSON.parse(stored);
         let s = parsed.streak;
+        let currentStreak = 0;
+        let lastDate = null;
+        let bestStreak = 0;
+
         if (typeof s === 'number' && !isNaN(s)) {
-          s = { current: Math.max(0, s), lastDate: null, best: Math.max(0, s) };
+          currentStreak = s >= 1 ? 1 : 0;
+          bestStreak = currentStreak;
         } else if (typeof s === 'string') {
           if (s === '[object Object]' || s.includes('object')) {
-            s = { current: 0, lastDate: null, best: 0 };
+            currentStreak = 0;
           } else {
-            const num = Math.max(0, parseInt(s, 10) || 0);
-            s = { current: num, lastDate: null, best: num };
+            const num = parseInt(s, 10) || 0;
+            currentStreak = num >= 1 ? 1 : 0;
+            bestStreak = currentStreak;
           }
-        } else if (!s || typeof s !== 'object') {
-          s = { current: 0, lastDate: null, best: 0 };
-        } else {
-          if (typeof s.current !== 'number' || isNaN(s.current)) s.current = 0;
-          if (typeof s.best !== 'number' || isNaN(s.best)) s.best = s.current;
+        } else if (s && typeof s === 'object') {
+          const rawCurrent = s.current;
+          if (typeof rawCurrent === 'number') {
+            currentStreak = rawCurrent >= 1 ? 1 : 0;
+          } else if (typeof rawCurrent === 'string' && rawCurrent !== '[object Object]' && !rawCurrent.includes('object')) {
+            currentStreak = (parseInt(rawCurrent, 10) || 0) >= 1 ? 1 : 0;
+          } else {
+            currentStreak = 0;
+          }
+          lastDate = s.lastDate || null;
+          bestStreak = currentStreak;
         }
+
+        const cleanStreak = {
+          current: currentStreak,
+          lastDate: lastDate,
+          best: bestStreak
+        };
 
         return {
           totalXP: parsed.totalXP || 0,
           completedLessons: Array.isArray(parsed.completedLessons) ? parsed.completedLessons : [],
           earnedBadges: Array.isArray(parsed.earnedBadges) ? parsed.earnedBadges : ['first_login'],
-          streak: s,
+          streak: cleanStreak,
           perfectQuizzes: parsed.perfectQuizzes || 0,
           perfectStreak: parsed.perfectStreak || 0,
           totalQuizzes: parsed.totalQuizzes || 0,
@@ -93,7 +111,19 @@ window.Progress = {
 
   _save(data) {
     try {
+      if (data && data.streak) {
+        if (typeof data.streak === 'object' && data.streak !== null) {
+          data.streak.current = (data.streak.current >= 1) ? 1 : 0;
+          data.streak.best = data.streak.current;
+        } else {
+          const num = Number(data.streak) || 0;
+          data.streak = { current: num >= 1 ? 1 : 0, lastDate: null, best: num >= 1 ? 1 : 0 };
+        }
+      }
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
+      if (data && data.streak) {
+        localStorage.setItem('melodrio_streak', JSON.stringify(data.streak));
+      }
     } catch (e) {
       console.error('[Progress] Chyba při ukládání dat do localStorage:', e);
     }
@@ -220,9 +250,9 @@ window.Progress = {
   getStreak() {
     const data = this._getdata();
     if (!data || !data.streak) return 0;
-    if (typeof data.streak === 'number' && !isNaN(data.streak)) return Math.max(0, data.streak);
+    if (typeof data.streak === 'number' && !isNaN(data.streak)) return data.streak >= 1 ? 1 : 0;
     if (typeof data.streak === 'object' && typeof data.streak.current === 'number' && !isNaN(data.streak.current)) {
-      return Math.max(0, data.streak.current);
+      return data.streak.current >= 1 ? 1 : 0;
     }
     return 0;
   },
@@ -230,79 +260,52 @@ window.Progress = {
   getStreakData() {
     const data = this._getdata();
     if (data && data.streak && typeof data.streak === 'object' && typeof data.streak.current === 'number') {
-      return data.streak;
+      const isOne = data.streak.current >= 1 ? 1 : 0;
+      return {
+        current: isOne,
+        lastDate: data.streak.lastDate || null,
+        best: isOne
+      };
     }
     return { current: 0, lastDate: null, best: 0 };
   },
 
   /**
    * Zkontroluje stav denní série při startu (pasivní kontrola).
-   * Pokud uživatel zmeškal předchozí den, série se vynuluje na 0.
-   * Nikdy nezvyšuje sérii sama o sobě – ke zvýšení dochází až aktivitou (cvičením).
+   * Pokud uživatel dnes ještě necvičil, série je 0.
+   * Pokud dnes již cvičil, série je 1 (výš už to nejde, stačí 0 a 1).
    */
   updateStreak() {
     const data = this._getdata();
     if (!data || !data.streak || typeof data.streak !== 'object') return;
-    if (!data.streak.lastDate || data.streak.current === 0) return;
 
     const now = new Date();
     const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    const yesterday = new Date(now.getTime() - 86400000);
-    const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
 
-    if (data.streak.lastDate !== todayStr && data.streak.lastDate !== yesterdayStr) {
+    if (data.streak.lastDate === todayStr && data.streak.current >= 1) {
+      data.streak.current = 1;
+      data.streak.best = 1;
+    } else {
       data.streak.current = 0;
-      this._save(data);
-      try {
-        localStorage.setItem('melodrio_streak', JSON.stringify(data.streak));
-      } catch (e) {}
     }
+    this._save(data);
   },
 
   /**
-   * Zaznamená splnění cvičení nebo lekce a zvýší denní sérii.
-   * Pokud byla série 0, zvýší se na 1 pro dnešní den.
+   * Zaznamená splnění cvičení nebo lekce a nastaví denní sérii na 1.
+   * Podle zadání je streak striktně binární: 0 (dnes necvičil) nebo 1 (dnes cvičil).
+   * Výš už to nejde (stačí 0 a 1).
    */
   recordPracticeActivity() {
     const data = this._getdata();
     const now = new Date();
     const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    const yesterday = new Date(now.getTime() - 86400000);
-    const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
 
-    if (!data.streak || typeof data.streak !== 'object') {
-      data.streak = { current: 1, lastDate: todayStr, best: 1 };
-    } else if (data.streak.current === 0 || !data.streak.lastDate) {
-      // První cvičení: z 0 se zvýší na 1!
-      data.streak.current = 1;
-      data.streak.lastDate = todayStr;
-      data.streak.best = Math.max(data.streak.best || 0, 1);
-    } else if (data.streak.lastDate === todayStr) {
-      // Dnes již cvičil, streak zůstává
-    } else if (data.streak.lastDate === yesterdayStr) {
-      // Cvičil včera: pokračování série +1
-      data.streak.current += 1;
-      data.streak.lastDate = todayStr;
-      data.streak.best = Math.max(data.streak.best || 0, data.streak.current);
-    } else {
-      // Přerušení: nová série od 1
-      data.streak.current = 1;
-      data.streak.lastDate = todayStr;
-    }
-
-    if (data.streak.current > (data.streak.best || 0)) {
-      data.streak.best = data.streak.current;
-    }
-
-    // Kontrola odznaků za streak
-    if (data.streak.current >= 3) this._checkAndAwardBadge('streak_3');
-    if (data.streak.current >= 7) this._checkAndAwardBadge('streak_7');
-    if (data.streak.current >= 30) this._checkAndAwardBadge('streak_30');
+    data.streak.current = 1;
+    data.streak.lastDate = todayStr;
+    data.streak.best = 1;
 
     this._save(data);
-    try {
-      localStorage.setItem('melodrio_streak', JSON.stringify(data.streak));
-    } catch (e) {}
 
     // Aktualizace UI
     if (window.App) {
@@ -323,13 +326,16 @@ window.Progress = {
     const numId = Number(id);
     const data = this._getdata();
 
-    // Zaznamenáme aktivitu cvičení (zvýší denní sérii z 0 na 1)
-    this.recordPracticeActivity();
+    // Splnění lekce je aktivita cvičení -> streak na 1
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    data.streak.current = 1;
+    data.streak.lastDate = todayStr;
+    data.streak.best = 1;
 
     if (!data.completedLessons.includes(numId)) {
       data.completedLessons.push(numId);
       data.completedLessons.sort((a, b) => a - b);
-      this._save(data);
 
       // Kontrola odznaků za počet dokončených lekcí
       const count = data.completedLessons.length;
@@ -350,10 +356,14 @@ window.Progress = {
       if (stage2Completed) {
         this._checkAndAwardBadge('all_stage2');
       }
+    }
+    this._save(data);
 
-      if (window.App && typeof window.App.renderSidebar === 'function') {
-        window.App.renderSidebar();
-      }
+    if (window.App && typeof window.App.renderSidebar === 'function') {
+      window.App.renderSidebar();
+    }
+    if (window.App && typeof window.App.renderDashboard === 'function') {
+      window.App.renderDashboard();
     }
   },
 
@@ -562,12 +572,10 @@ window.Progress = {
           <div class="text-3xl font-extrabold text-white mb-2">
             ${(() => {
               const count = (data.streak && typeof data.streak.current === 'number') ? data.streak.current : (typeof data.streak === 'number' ? data.streak : 0);
-              if (count === 1) return '1 den';
-              if (count >= 2 && count <= 4) return `${count} dny`;
-              return `${count} dní`;
+              return count >= 1 ? '1 den' : '0 dní';
             })()}
           </div>
-          <div class="text-xs text-muted">Nejlepší série v kuse: <strong>${(data.streak && data.streak.best) || 0} dní</strong></div>
+          <div class="text-xs text-muted">Aktivní dnes: <strong>${((data.streak && data.streak.current >= 1) ? 'Ano (1 den)' : 'Zatím ne (0 dní)')}</strong></div>
         </div>
 
         <div class="stat-card card p-4 bg-surface-2 border border-surface-border">

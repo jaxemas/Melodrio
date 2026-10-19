@@ -2053,6 +2053,10 @@ window.Lessons = {
             this._quizState.correct++;
           }
 
+          if (window.Progress && typeof window.Progress.recordPracticeActivity === 'function') {
+            window.Progress.recordPracticeActivity();
+          }
+
           if (window.Sounds && typeof window.Sounds.playSuccess === 'function') {
             window.Sounds.playSuccess();
           }
