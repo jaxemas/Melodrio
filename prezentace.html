@@ -79,6 +79,7 @@
       align-items: center;
       gap: 0.4rem;
       transition: all 0.15s ease;
+      text-decoration: none;
     }
     .ctrl-btn:hover {
       background: #334155;
@@ -214,10 +215,10 @@
       gap: 0.55rem;
     }
     .slide-card li::before {
-      content: "▶";
+      content: "-";
       color: var(--cyan);
-      font-size: 0.75rem;
-      margin-top: 0.25rem;
+      font-weight: bold;
+      margin-right: 0.25rem;
       flex-shrink: 0;
     }
 
@@ -271,35 +272,6 @@
       color: #E2E8F0;
     }
 
-    /* Speaker Notes Drawer */
-    .notes-drawer {
-      background: #0B0F19;
-      border-top: 1px solid var(--card-border);
-      padding: 1.25rem 2rem;
-      display: none;
-    }
-    .notes-drawer.open {
-      display: block;
-    }
-    .notes-title {
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: #38BDF8;
-      font-weight: 800;
-      margin-bottom: 0.5rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .notes-content {
-      color: #CBD5E1;
-      font-size: 0.95rem;
-      line-height: 1.6;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
     /* Footer Nav */
     footer.pres-footer {
       background: rgba(15, 23, 42, 0.9);
@@ -344,8 +316,7 @@
     <div class="pres-controls">
       <div class="timer-badge" id="timerBadge">⏱ 00:00</div>
       <button class="ctrl-btn" id="timerToggleBtn">▶ Start časovače</button>
-      <button class="ctrl-btn" id="notesToggleBtn">🗣 Tahák pro řečníka</button>
-      <a href="prezentace_melodrio_faze1.pptx" download class="ctrl-btn" style="text-decoration:none;">📥 Stáhnout .PPTX</a>
+      <a href="prezentace_melodrio_faze1.pptx" download class="ctrl-btn">📥 Stáhnout .PPTX</a>
       <button class="ctrl-btn" id="fullscreenBtn">⛶ Celá obrazovka</button>
     </div>
   </header>
@@ -371,14 +342,6 @@
     </div>
   </main>
 
-  <!-- Speaker Notes -->
-  <section class="notes-drawer" id="notesDrawer">
-    <div class="notes-title">🗣 CO ŘÍCT K TOMUTO SLIDU (TAHÁK NA 5–10 MINUT):</div>
-    <div class="notes-content" id="notesContent">
-      <!-- Injected notes -->
-    </div>
-  </section>
-
   <!-- Bottom Nav -->
   <footer class="pres-footer">
     <button class="ctrl-btn" id="prevBtn">◀ Předchozí (←)</button>
@@ -387,362 +350,10 @@
   </footer>
 
   <script>
-    // Speaker notes and detailed scripts for all 10 slides
-    const SLIDES_DATA = [
-      {
-        num: 1,
-        pill: "ÚVODNÍ PREZENTACE",
-        pillColor: "#4F46E5",
-        title: "MELODRIO",
-        subtitle: "Interaktivní kytarová akademie nové generace",
-        type: "hero",
-        heroTagline: "Prezentace projektu po 1. FÁZI VÝVOJE",
-        heroDesc: "Moderní webová aplikace kombinující didaktiku kytary, psychologii návyku a herní výzvy pro samouky.",
-        badges: ["🎸 1. Fáze ze 3", "⏱ Rozsah: 5–10 minut", "🎯 10 klíčových slidů", "👤 Autor: Matěj Šedivý"],
-        speechNotes: `
-          <b>Úvod (0:00 - 0:45):</b><br>
-          „Dobrý den všem. Dnes vám představuji projekt <b>Melodrio</b> – interaktivní kytarovou akademii, jejímž cílem je zpřístupnit výuku hry na kytaru moderní a zábavnou formou.<br>
-          Tato prezentace shrnuje <b>první fázi vývoje</b> z celkových tří plánovaných. Během následujících 5 až 8 minut vám ukážu, z čeho jsme čerpali inspiraci, co všechno uživatel v aplikaci může dělat, jaké technické výzvy jsme překonali a kam bude projekt směřovat dál.“
-        `
-      },
-      {
-        num: 2,
-        pill: "PRODUKTOVÁ DNA",
-        pillColor: "#059669",
-        title: "Vize aplikace: Fúze tří špičkových konceptů",
-        subtitle: "Řešíme problém, proč 90 % začátečníků na kytaru skončí do prvních 3 měsíců",
-        type: "cards3",
-        cards: [
-          {
-            title: "1. DUOLINGO (Návyk)",
-            color: "#10B981",
-            bullets: [
-              "Mikro-lekce stravitelné během pár minut",
-              "Denní série (Streak) pro psychologii zvyku",
-              "Sbírání XP bodů a postup po úrovních (Level 1–100)",
-              "Systém 16 odznaků a okamžité odměny"
-            ]
-          },
-          {
-            title: "2. SIMPLY GUITAR (Didaktika)",
-            color: "#38BDF8",
-            bullets: [
-              "Ověřená kytarová metodika pro samouky",
-              "Interaktivní akordové diagramy s prstoklady",
-              "Integrovaná přesná chromatická ladička",
-              "Zvukový metronom pro trénink přesného tempa"
-            ]
-          },
-          {
-            title: "3. HAXAGON (Výzvy a Mise)",
-            color: "#818CF8",
-            bullets: [
-              "Struktura postupného odemykání obsahu",
-              "Praktické hands-on úkoly pro postup dál",
-              "Písně navázané na splněné prerekvizity lekcí",
-              "God / Admin mód pro evaluaci a testing"
-            ]
-          }
-        ],
-        speechNotes: `
-          <b>Filozofie (0:45 - 1:45):</b><br>
-          „Většina lidí, kteří si koupí kytaru, ji do tří měsíců odloží do kouta. Důvodem je suchá teorie z učebnic a nulová okamžitá zpětná vazba.<br>
-          Proto jsme Melodrio postavili jako hybrid tří světově osvědčených systémů:<br>
-          1. <b>Duolingo</b> nám dalo psychologii návyku – denní streak, sbírání XP a odznaky.<br>
-          2. <b>Simply Guitar</b> poskytlo hudební metodiku – vizuální akordy, ladičku a metronom.<br>
-          3. <b>Haxagon</b> inspiroval herní strukturu výzev – student postupně odemyká mise a písničky plněním praktických úkolů.“
-        `
-      },
-      {
-        num: 3,
-        pill: "STRATEGICKÁ ROADMAPA",
-        pillColor: "#D97706",
-        title: "Důležitý kontext: Jsme v 1. FÁZI ZE 3",
-        subtitle: "Projekt je koncipován jako třífázový vývojový cyklus – dnes hodnotíme první pilíř",
-        type: "cards3",
-        cards: [
-          {
-            title: "FÁZE 1: ZÁKLAD (HOTOVO)",
-            color: "#10B981",
-            bullets: [
-              "✓ Plné didaktické jádro a čisté rozhraní",
-              "✓ 16 strukturovaných lekcí (Fáze 1 a 2)",
-              "✓ Repertoár 25 skladeb s popup odemykáním",
-              "✓ Odemčená ladička a metronom pro všechny",
-              "✓ Profil studenta a administrátorský God Mode"
-            ]
-          },
-          {
-            title: "FÁZE 2: AUDIO ENGINE (DALŠÍ KROK)",
-            color: "#F59E0B",
-            bullets: [
-              "▶ Detekce tónů mikrofonem v reálném čase",
-              "▶ Web Audio API + YIN pitch detection algoritmus",
-              "▶ Interaktivní běžící tabulatura s hodnocením",
-              "▶ Automatická kontrola čistoty zahraných akordů",
-              "▶ Doprovodná kapela (backing tracks)"
-            ]
-          },
-          {
-            title: "FÁZE 3: MULTIPLAYER (BUDOUCNOST)",
-            color: "#818CF8",
-            bullets: [
-              "✦ Kytarové ligy a týdenní žebříčky",
-              "✦ Kytarové duely přátel 1 na 1",
-              "✦ Komunitní tvorba vlastních tabulatur",
-              "✦ Mobilní PWA aplikace do kapsy",
-              "✦ Certifikáty o absolvování kurzů"
-            ]
-          }
-        ],
-        speechNotes: `
-          <b>Fázování projektu (1:45 - 2:30):</b><br>
-          „Je zásadní zdůraznit, že <b>toto je teprve 1. fáze ze tří</b>.<br>
-          V této 1. fázi jsme vytvořili kompletní stabilní základy: UI, interaktivní strom 16 lekcí, knihovnu písní, cvičební nástroje a gamifikaci.<br>
-          Ve <b>Fázi 2</b> napojíme mikrofon a reálný poslech hry v prohlížeči.<br>
-          Ve <b>Fázi 3</b> přidáme multiplayerové souboje a ligy přátel.“
-        `
-      },
-      {
-        num: 4,
-        pill: "UŽIVATELSKÝ ZÁŽITEK",
-        pillColor: "#4F46E5",
-        title: "Co vše může uživatel v aplikaci dělat",
-        subtitle: "Kompletní cvičební prostředí navržené pro maximální efektivitu začátečníka",
-        type: "cards2",
-        card1: {
-          title: "16 Strukturovaných lekcí (Fáze 1 a 2)",
-          color: "#6366F1",
-          bullets: [
-            "Fáze 1 (Základy): Anatomie kytary, držení trsátka, ladění, tóny a akordy Em, Am, C",
-            "Fáze 2 (Rytmus): Akordy G, D, rytmické vzorce a plynulé přechody mezi akordy",
-            "Přehledný časový strom lekcí s čistým vizuálním oddělením mezi fázemi",
-            "Každá lekce obsahuje srozumitelnou teorii, diagramy i testovací cvičení"
-          ]
-        },
-        card2: {
-          title: "Dashboard & Cvičební nástroje",
-          color: "#38BDF8",
-          bullets: [
-            "Nový dvousloupcový responzivní dashboard: vlevo výuka, vpravo kompaktní nástroje",
-            "Kompaktní fixní (sticky) boční panel zůstává po ruce i při posouvání dolů",
-            "Integrovaná chromatická ladička s vizuální a zvukovou odezvou (E A D G B E)",
-            "Přesný digitální metronom s nastavitelným tempem BPM a vizuálním kyvadlem"
-          ]
-        },
-        speechNotes: `
-          <b>Uživatelský zážitek (2:30 - 3:30):</b><br>
-          „Jak aplikace reálně funguje pro studenta? Po přihlášení ho přivítá moderní dvousloupcový Dashboard.<br>
-          Na levé straně prochází 16 lekcemi rozdělenými do dvou fází – od prvního dotyku strun až po přechody mezi akordy.<br>
-          Na pravé straně má kompaktní panel s rychlým přístupem: denní cíl, statistiky, a hlavně <b>chromatickou ladičku a metronom</b>, které jsou nyní plně dostupné pro každého běžného uživatele.“
-        `
-      },
-      {
-        num: 5,
-        pill: "KNIHOVNA SKLADEB",
-        pillColor: "#059669",
-        title: "Repertoár 25 písní & Inteligentní odemykání",
-        subtitle: "Učení hrou na skutečné hudbě – žádná suchá cvičení, ale legendární hity",
-        type: "cards2",
-        card1: {
-          title: "25 Světových hitů od 60. let po současnost",
-          color: "#10B981",
-          bullets: [
-            "Ikonické skladby: Knockin' on Heaven's Door, Wonderwall, Stand By Me, Sweet Child O' Mine...",
-            "Žánrová pestrost: Rock, Pop, Folk, Akustika i Hard Rock",
-            "Přehledné karty písní s informacemi o tempu (BPM), žánru a potřebných akordech",
-            "Odemčené skladby nabízejí přehled akordových tabulatur a rytmických doprovodů"
-          ]
-        },
-        card2: {
-          title: "Systém zámků & Asistenční popup modal",
-          color: "#F59E0B",
-          bullets: [
-            "Písně jsou zamčené, dokud student neprojde lekcí s potřebnými akordy",
-            "Zabraňuje frustraci ze skladeb, na které student zatím technicky nemá",
-            "Informativní popup: Kliknutí zobrazí: 'Odemkne se po Lekci X: <Název lekce>'",
-            "Jedním klikem: Tlačítko 'Přejít do Lekce X' okamžitě otevře požadovanou lekci"
-          ]
-        },
-        speechNotes: `
-          <b>Repertoár písniček (3:30 - 4:30):</b><br>
-          „Nikdo se nechce učit hrát jen stupnice. V Melodriu má student k dispozici katalog 25 slavných světových písní.<br>
-          Abychom předešli frustraci, písničky se odemykají postupně. Když student klikne na zamčenou píseň, nezobrazí se jen slepá ulička, ale elegantní <b>popup modal</b>, který mu řekne: <i>Tuto píseň odemkneš v Lekci 8: Akord G</i> – a rovnou mu nabídne tlačítko pro spuštění této lekce.“
-        `
-      },
-      {
-        num: 6,
-        pill: "MOTIVAČNÍ ENGINE",
-        pillColor: "#8B5CF6",
-        title: "Gamifikace: Psychologie udržení pozornosti",
-        subtitle: "Ověřené principy z Duolinga a Haxagonu, které udrží studenta hrát každý den",
-        type: "cards2",
-        card1: {
-          title: "Přísný Daily Streak & Oddělené statistiky",
-          color: "#A855F7",
-          bullets: [
-            "Přísná logika série: Výchozí 0 dní, přesně 1 den po dokončení denního cvičení",
-            "Žádná falešná čísla – streak buduje skutečný každodenní tréninkový návyk",
-            "Oddělené statistiky v profilu: Celkové XP body, level progres, celkový postup",
-            "Detailní přehled: Dokončení Fáze 1 (8/8) a Fáze 2 (8/8) pro okamžitou zpětnou vazbu"
-          ]
-        },
-        card2: {
-          title: "16 Aspiračních odznaků za milníky",
-          color: "#EC4899",
-          bullets: [
-            "Trofeje za konkrétní úspěchy: První tón, Mistr akordů, Rytmický mág, Písničkář...",
-            "Jasný vizuální kontrast mezi získanými a zatím zamčenými odznaky",
-            "Aspirační efekt: Uživatel zřetelně vidí cíle, kterých chce v budoucnu dosáhnout",
-            "Každý odznak má detailní popis podmínek potřebných k jeho získání"
-          ]
-        },
-        speechNotes: `
-          <b>Gamifikace a motivace (4:30 - 5:30):</b><br>
-          „Gamifikace je motorem úspěchu. V profilu studenta jsme oddělili klíčové statistiky – XP body, úroveň, Fázi 1 i Fázi 2.<br>
-          Zavedli jsme přísně hlídaný <b>Daily Streak</b> (0 nebo 1 den), který uživatele nutí vzít kytaru do ruky alespoň na 5 minut denně.<br>
-          A systém <b>16 aspiračních odznaků</b> funguje přesně jako v moderních hrách – vidíte, co ještě nemáte, a chcete to získat.“
-        `
-      },
-      {
-        num: 7,
-        pill: "ADMINISTRACE & TESTING",
-        pillColor: "#D97706",
-        title: "God Mode: Plná kontrola pro zkoušejícího",
-        subtitle: "Speciální administrátorský účet pro okamžitou prezentaci a evaluační testování",
-        type: "cards2",
-        card1: {
-          title: "Přístup a Pravomoci",
-          color: "#F59E0B",
-          bullets: [
-            "Přihlašovací údaje: jméno 'god', heslo 'godballs'",
-            "Okamžitý přístup ke všem funkcím bez nutnosti odklikávat 16 lekcí",
-            "Plně odemčené všechny písně, cvičení, nástroje i budoucí moduly",
-            "Izolovaný stav: Běžný uživatel má reálný postup, God účet je nezávislý a plně připraven"
-          ]
-        },
-        card2: {
-          title: "Královský zlatý profil pro Boha",
-          color: "#FBBF24",
-          bullets: [
-            "Prestižní statistiky: 10 000 XP & maximální Level 100",
-            "Dokončeno všech 16/16 lekcí (100 % celkový postup)",
-            "Nekonečný streak: Symbol '∞ dní' (pouze a jedine pro God mód)",
-            "Všech 16 odznaků je odemčených se statusem 'Získáno'",
-            "Královský zlatý vizuál: Zlaté karty, zlaté ukazatele a zářivé efekty (#F59E0B)"
-          ]
-        },
-        speechNotes: `
-          <b>God Mode (5:30 - 6:30):</b><br>
-          „Pro účely evaluace a prezentace jsme vytvořili speciální režim <b>God Mode</b>.<br>
-          Pod přihlášením 'god' a heslem 'godballs' získá hodnotitel okamžitý přístup k úplně všemu.<br>
-          Profil boha má exkluzivní <b>zlaté téma</b>, 10 000 XP, hotových všech 16 lekcí, nekonečný streak ∞ dní a všechny odznaky. Přitom běžný uživatel má stále svá reálná data a standardní design.“
-        `
-      },
-      {
-        num: 8,
-        pill: "INŽENÝRSKÉ LEKCE",
-        pillColor: "#EF4444",
-        title: "Výzvy a překážky: Co jsme museli vyřešit",
-        subtitle: "Upřímný pohled pod kapotu – reálné technické a vizuální problémy při vývoji",
-        type: "cards2",
-        card1: {
-          title: "Datové a Logické překážky",
-          color: "#F87171",
-          bullets: [
-            "Bug '[object Object]' u streaku: Serializační chyba ukládání objektu místo čísla; vyřešeno striktní normalizací na 0 nebo 1",
-            "Synchronizace stavu: Oddělení stavu běžného uživatele od God módu bez kolizí",
-            "Podmíněná logika odemykání: Správné navázání 25 písniček na příslušné lekce"
-          ]
-        },
-        card2: {
-          title: "Vizuální a UX vylepšení",
-          color: "#FB923C",
-          bullets: [
-            "Zbloudilé písmeno v profilu: Odstraněn nežádoucí znak před zvoleným jménem uživatele",
-            "Chybějící mezera mezi fázemi: Lekce Fáze 1 se lepily na Fázi 2; přidán vzdušný přechod",
-            "Nevyvážený dashboard: Prázdná pravá polovina obrazovky vyřešena dvousloupcovým layoutem se sticky panelem"
-          ]
-        },
-        speechNotes: `
-          <b>Výzvy a řešení (6:30 - 7:30):</b><br>
-          „Žádný reálný software nevzniká bez chyb. Tady jsou konkrétní problémy, které jsme během 1. fáze vyřešili:<br>
-          1. <b>Bug se streakem</b>, kde se zobrazovalo [object Object] kvůli chybě v serializaci objektu – opraveno a striktně zafixováno na 0 nebo 1.<br>
-          2. <b>Vizuální artefakt</b> v profilu, kde se před jménem zobrazovalo malé písmeno.<br>
-          3. <b>Nevyvážený layout</b> – pravá strana dashboardu byla prázdná, což jsme vyřešili přechodem na responzivní dvousloupcový grid s kompaktními kartami.“
-        `
-      },
-      {
-        num: 9,
-        pill: "TECHNOLOGIE & KÓD",
-        pillColor: "#6366F1",
-        title: "Technická architektura a Verzování v Gitu",
-        subtitle: "Robustní, bleskurychlý a udržitelný webový základ bez zbytečných balastů",
-        type: "cards2",
-        card1: {
-          title: "Moderní čistý webový stack",
-          color: "#818CF8",
-          bullets: [
-            "Vanilla JavaScript (ES6+): Okamžitý náběh aplikace v řádu milisekund",
-            "Čisté CSS3: Flexbox, CSS Grid a dynamické CSS proměnné pro light/dark/gold režimy",
-            "Žádné obří knihovny třetích stran: 100% přenositelnost a fungování i offline",
-            "Web Audio API: Nativní zvukové jádro pro ladičku i metronom, připraveno pro Fázi 2"
-          ]
-        },
-        card2: {
-          title: "Verzování v Gitu & Bezpečnost",
-          color: "#38BDF8",
-          bullets: [
-            "Větvení projektu: Stabilní větev 'main' a experimentální větev 'god-mode'",
-            "Verzovací tagy: Tag 'v-god-mode' zaručuje bezpečný snapshot funkčního stavu",
-            "Možnost kdykoliv se vrátit do původní verze nebo naopak přepnout na plný admin",
-            "Automatizované headless ověření pro každý nový commit v repozitáři"
-          ]
-        },
-        speechNotes: `
-          <b>Technické řešení (7:30 - 8:30):</b><br>
-          „Po technické stránce jsme zvolili čistý Vanilla JavaScript a moderní CSS. Žádné těžkopádné balíky nebo závislosti. Aplikace se načte okamžitě v jakémkoliv prohlížeči.<br>
-          Projekt důsledně verzujeme v Gitu – máme oddělenou větev 'main', větev 'god-mode' i stálý tag 'v-god-mode', takže máme 100% jistotu bezpečné historie a možnosti rollbacku.“
-        `
-      },
-      {
-        num: 10,
-        pill: "ZÁVĚR & DISKUSE",
-        pillColor: "#10B981",
-        title: "Závěr, Roadmapa Fáze 2 a Prostor pro Otázky",
-        subtitle: "1. Fáze je úspěšně dokončena. Pevný základ je postaven – co bude dál?",
-        type: "cards2",
-        card1: {
-          title: "Roadmapa pro Fázi 2 (Další krok)",
-          color: "#34D399",
-          bullets: [
-            "1. Živý poslech hry přes mikrofon (algoritmus YIN pro výpočet frekvence tónu)",
-            "2. Běžící interaktivní tabulatura s okamžitým hodnocením čistoty akordu",
-            "3. Reálné doprovodné audio stopy (backing tracks) ke všem 25 skladbám",
-            "4. Pokročilejší rytmická cvičení a vybrnkávání prsty (fingerpicking)"
-          ]
-        },
-        card2: {
-          title: "Odpovědi na předpokládané otázky (Q&A)",
-          color: "#FBBF24",
-          bullets: [
-            "Otázka: 'Proč web místo mobilní aplikace?' -> Web funguje ihned na PC i tabletu, který má kytarista pohodlně na stole.",
-            "Otázka: 'Je Web Audio API dostatečně rychlé?' -> Ano, moderní prohlížeče zvládají latenci pod 15 ms, což je pro hudbu skvělé.",
-            "DĚKUJEME ZA POZORNOST! MÁTE NA NÁS NĚJAKÉ OTÁZKY?"
-          ]
-        },
-        speechNotes: `
-          <b>Závěr a Q&A (8:30 - 10:00):</b><br>
-          „Abych to shrnul: 1. fáze Melodria položila pevný základ. Máme funkční didaktiku, 25 skladeb, cvičební nástroje, gamifikaci i administraci.<br>
-          Ve 2. fázi oživíme mikrofon pro poslech hry v reálném čase.<br>
-          Děkuji vám za pozornost a nyní rád zodpovím jakékoliv vaše dotazy.“
-        `
-      }
-    ];
-
     let currentSlide = 1;
     let timerSeconds = 0;
     let timerInterval = null;
+    let slidesData = [];
 
     const slideStage = document.getElementById('slideStage');
     const slideGlow = document.getElementById('slideGlow');
@@ -751,75 +362,86 @@
     const slideTitle = document.getElementById('slideTitle');
     const slideSubtitle = document.getElementById('slideSubtitle');
     const slideBody = document.getElementById('slideBody');
-    const notesContent = document.getElementById('notesContent');
-    const notesDrawer = document.getElementById('notesDrawer');
     const dotsContainer = document.getElementById('dotsContainer');
     const timerBadge = document.getElementById('timerBadge');
     const timerToggleBtn = document.getElementById('timerToggleBtn');
 
-    // Init Dots
-    for (let i = 1; i <= 10; i++) {
-      const dot = document.createElement('div');
-      dot.className = `dot ${i === 1 ? 'active' : ''}`;
-      dot.title = `Přejít na slide ${i}`;
-      dot.onclick = () => renderSlide(i);
-      dotsContainer.appendChild(dot);
+    // Fetch clean JSON
+    fetch('slides_data.json')
+      .then(res => res.json())
+      .then(data => {
+        slidesData = data;
+        initDots();
+        renderSlide(1);
+      })
+      .catch(err => {
+        console.error("Failed to load slides_data.json", err);
+      });
+
+    function initDots() {
+      dotsContainer.innerHTML = '';
+      for (let i = 1; i <= slidesData.length; i++) {
+        const dot = document.createElement('div');
+        dot.className = `dot ${i === 1 ? 'active' : ''}`;
+        dot.title = `Přejít na slide ${i}`;
+        dot.onclick = () => renderSlide(i);
+        dotsContainer.appendChild(dot);
+      }
     }
 
     function renderSlide(index) {
-      if (index < 1 || index > 10) return;
+      if (!slidesData || slidesData.length === 0) return;
+      if (index < 1 || index > slidesData.length) return;
       currentSlide = index;
-      const data = SLIDES_DATA[index - 1];
+      const data = slidesData[index - 1];
 
-      // Update meta
-      slideGlow.style.background = data.pillColor;
-      slidePill.textContent = data.pill;
-      slidePill.style.background = data.pillColor;
-      slideNum.textContent = `Slide ${data.num} / 10`;
+      // Update header
+      slideGlow.style.background = '#' + data.badgeColor;
+      slidePill.textContent = data.badgeText;
+      slidePill.style.background = '#' + data.badgeColor;
+      slideNum.textContent = `Slide ${data.slideNum} / ${slidesData.length}`;
 
       slideTitle.textContent = data.title;
       slideSubtitle.textContent = data.subtitle;
 
       // Update body
-      if (data.type === "hero") {
+      if (data.type === "title") {
         slideBody.innerHTML = `
           <div class="hero-layout">
-            <div class="hero-logo">MELODRIO</div>
-            <div class="hero-tagline">${data.heroTagline}</div>
-            <div class="hero-desc">${data.heroDesc}</div>
+            <div class="hero-logo">${data.title}</div>
+            <div class="hero-tagline">${data.subtitle}</div>
+            <div class="hero-desc">${data.tagline}</div>
             <div class="hero-badges">
-              ${data.badges.map(b => `<div class="hero-badge-item">${b}</div>`).join('')}
+              <div class="hero-badge-item">${data.inspiration}</div>
             </div>
+            <div style="color: #94A3B8; font-size: 0.9rem; margin-top: 0.5rem;">${data.meta}</div>
           </div>
         `;
-      } else if (data.type === "cards3") {
+      } else if (data.type === "threeCard") {
         slideBody.innerHTML = data.cards.map(c => `
           <div class="slide-card">
-            <div class="slide-card-title" style="color: ${c.color}">${c.title}</div>
+            <div class="slide-card-title" style="color: #${c.color}">${c.title}</div>
             <ul>
               ${c.bullets.map(b => `<li>${b}</li>`).join('')}
             </ul>
           </div>
         `).join('');
-      } else if (data.type === "cards2") {
+      } else if (data.type === "twoCard") {
         slideBody.innerHTML = `
           <div class="slide-card">
-            <div class="slide-card-title" style="color: ${data.card1.color}">${data.card1.title}</div>
+            <div class="slide-card-title" style="color: #${data.card1.color}">${data.card1.title}</div>
             <ul>
               ${data.card1.bullets.map(b => `<li>${b}</li>`).join('')}
             </ul>
           </div>
           <div class="slide-card">
-            <div class="slide-card-title" style="color: ${data.card2.color}">${data.card2.title}</div>
+            <div class="slide-card-title" style="color: #${data.card2.color}">${data.card2.title}</div>
             <ul>
               ${data.card2.bullets.map(b => `<li>${b}</li>`).join('')}
             </ul>
           </div>
         `;
       }
-
-      // Update notes
-      notesContent.innerHTML = data.speechNotes;
 
       // Update dots
       document.querySelectorAll('.dot').forEach((dot, idx) => {
@@ -845,20 +467,14 @@
           timerSeconds++;
           timerBadge.textContent = `⏱ ${formatTime(timerSeconds)}`;
           if (timerSeconds > 600) {
-            timerBadge.style.color = '#EF4444'; // Red if over 10 mins
+            timerBadge.style.color = '#EF4444';
           } else if (timerSeconds > 300) {
-            timerBadge.style.color = '#F59E0B'; // Amber between 5-10 mins
+            timerBadge.style.color = '#F59E0B';
           }
         }, 1000);
         timerToggleBtn.textContent = "⏸ Pozastavit časovač";
         timerToggleBtn.classList.add('active');
       }
-    };
-
-    // Notes toggle
-    document.getElementById('notesToggleBtn').onclick = () => {
-      notesDrawer.classList.toggle('open');
-      document.getElementById('notesToggleBtn').classList.toggle('active');
     };
 
     // Fullscreen
@@ -882,13 +498,8 @@
         renderSlide(currentSlide - 1);
       } else if (e.key === "f" || e.key === "F") {
         document.getElementById('fullscreenBtn').click();
-      } else if (e.key === "n" || e.key === "N") {
-        document.getElementById('notesToggleBtn').click();
       }
     });
-
-    // Initial render
-    renderSlide(1);
   </script>
 </body>
 </html>
