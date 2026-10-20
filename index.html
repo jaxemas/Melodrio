@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="cs">
 <head>
   <meta charset="UTF-8">
@@ -248,12 +248,24 @@
           <div class="dashboard-header" id="dashboard-header"></div>
           
           <!-- Quick stats row: 4 stat cards (XP, Level, Streak, Completed Lessons) -->
-          <div class="dashboard-stats" id="dashboard-stats"></div>
+          <!-- Two-column Dashboard Grid Layout -->
+          <div class="dashboard-grid">
+            <!-- Left Primary Column: Quick Stats & Music Story Map -->
+            <div class="dashboard-main-col">
+              <!-- Quick stats row: 4 stat cards (XP, Level, Streak, Completed Lessons) -->
+              <div class="dashboard-stats" id="dashboard-stats"></div>
           
-          <!-- Story Map: Vertical path with stage nodes -->
-          <div class="story-map" id="story-map">
+              <!-- Story Map: Vertical path with stage nodes -->
+              <div class="story-map" id="story-map">
             <!-- Rendered by JS: vertical path with connected lesson nodes -->
-            <!-- Each stage has a header (location name + icon) and lesson nodes below it -->
+                <!-- Each stage has a header (location name + icon) and lesson nodes below it -->
+              </div>
+            </div>
+
+            <!-- Right Companion Column: Active Streak, Next Badge, Daily Tip, Quick Tools -->
+            <aside class="dashboard-side-col" id="dashboard-sidebar">
+              <!-- Rendered by JS -->
+            </aside>
           </div>
         </section>
 

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Melodrio - Kytarová škola (Progress Module)
  * Spravuje XP, úrovně, tituly (ranky), odznaky (badges) a denní sérii (streak).
  * Veškerá data jsou perzistována v localStorage pod klíčem 'melodrio_progress'.
@@ -456,6 +456,41 @@ window.Progress = {
     }
   },
 
+  currentBadgeFilter: 'all',
+
+  filterBadges(filter) {
+    this.currentBadgeFilter = filter;
+
+    const buttons = document.querySelectorAll('.badge-filter-btn');
+    buttons.forEach(btn => {
+      if (btn.getAttribute('data-filter') === filter) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    const cards = document.querySelectorAll('.badge-card-v2');
+    cards.forEach(card => {
+      const status = card.getAttribute('data-badge-status');
+      if (filter === 'all' || status === filter) {
+        card.style.display = 'flex';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+
+    const categories = document.querySelectorAll('.badge-category-section');
+    categories.forEach(cat => {
+      const allCards = cat.querySelectorAll('.badge-card-v2');
+      let anyVisible = false;
+      allCards.forEach(c => {
+        if (c.style.display !== 'none') anyVisible = true;
+      });
+      cat.style.display = anyVisible ? 'block' : 'none';
+    });
+  },
+
   renderProfile() {
     const profileContainer = document.getElementById('profile-content');
     if (!profileContainer) {
@@ -498,15 +533,137 @@ window.Progress = {
     const savedVolume = localStorage.getItem('melodrio_volume') || '80';
     const soundEnabled = localStorage.getItem('melodrio_sound_enabled') !== 'false';
 
+    // 1. Skupina: Kytarový pokrok & Úroveň
+    const stage1Done = data.completedLessons.filter(id => id >= 1 && id <= 8).length;
+    const stage1Percent = Math.round((stage1Done / 8) * 100);
+    const stage2Done = data.completedLessons.filter(id => id >= 9 && id <= 16).length;
+    const stage2Percent = Math.round((stage2Done / 8) * 100);
+    const totalLessonsDone = data.completedLessons.length;
+    const totalCoursePercent = Math.min(100, Math.round((totalLessonsDone / 16) * 100));
+
+    // 2. Skupina: Aktivita, Vytrvalost & Mistrovství (Striktně 0 nebo 1)
+    const streakRaw = (data.streak && typeof data.streak.current === 'number') ? data.streak.current : (typeof data.streak === 'number' ? data.streak : 0);
+    const streakCount = streakRaw >= 1 ? 1 : 0;
+    const streakDisplay = streakCount === 1 ? '1 den' : '0 dní';
+    const streakActive = (streakCount >= 1);
+
+    const totalQuizzes = data.totalQuizzes || 0;
+    const perfectQuizzes = data.perfectQuizzes || 0;
+    const estimatedMinutes = Math.max(10, (totalLessonsDone * 12) + (totalQuizzes * 5));
+    const badgePercent = Math.round((earnedCount / badges.length) * 100);
+
+    // 3. Skupina: Kategoriální rozdělení odznaků
+    const categories = [
+      {
+        id: 'journey',
+        name: 'Cesta žáka (Lekce & Postup)',
+        icon: '📚',
+        badgeIds: ['first_lesson', 'five_lessons', 'ten_lessons', 'all_stage1', 'all_stage2']
+      },
+      {
+        id: 'xp',
+        name: 'Zkušenosti & Úrovně (XP)',
+        icon: '⭐',
+        badgeIds: ['xp_500', 'xp_1000', 'xp_5000']
+      },
+      {
+        id: 'mastery',
+        name: 'Kvízy & Mistrovství',
+        icon: '🎯',
+        badgeIds: ['perfect_quiz', 'three_perfect']
+      },
+      {
+        id: 'habit',
+        name: 'Vytrvalost & Speciální výzvy',
+        icon: '🔥',
+        badgeIds: ['first_login', 'streak_3', 'streak_7', 'streak_30', 'night_owl', 'early_bird']
+      }
+    ];
+
+    // Helper pro výpočet cíle a postupu odznaku
+    const getBadgeGoalInfo = (badge) => {
+      let cur = 0, tgt = 1, unit = '', goalHint = '';
+      if (badge.id === 'first_lesson') {
+        cur = totalLessonsDone; tgt = 1; unit = 'lekce';
+        goalHint = cur >= tgt ? 'Splněno!' : 'Dokonči 1. lekci kurzu';
+      } else if (badge.id === 'five_lessons') {
+        cur = totalLessonsDone; tgt = 5; unit = 'lekcí';
+        goalHint = cur >= tgt ? 'Splněno!' : `Zbývá dokončit: ${Math.max(0, 5 - cur)} lekcí`;
+      } else if (badge.id === 'ten_lessons') {
+        cur = totalLessonsDone; tgt = 10; unit = 'lekcí';
+        goalHint = cur >= tgt ? 'Splněno!' : `Zbývá dokončit: ${Math.max(0, 10 - cur)} lekcí`;
+      } else if (badge.id === 'all_stage1') {
+        cur = stage1Done; tgt = 8; unit = 'v Garáži';
+        goalHint = cur >= tgt ? 'Splněno!' : `Zbývá: ${8 - cur} lekcí v Garáži`;
+      } else if (badge.id === 'all_stage2') {
+        cur = stage2Done; tgt = 8; unit = 'na Scéně';
+        goalHint = cur >= tgt ? 'Splněno!' : `Zbývá: ${8 - cur} lekcí na Scéně`;
+      } else if (badge.id === 'xp_500') {
+        cur = data.totalXP; tgt = 500; unit = 'XP';
+        goalHint = cur >= tgt ? 'Splněno!' : `Chybí ještě: ${Math.max(0, 500 - cur)} XP`;
+      } else if (badge.id === 'xp_1000') {
+        cur = data.totalXP; tgt = 1000; unit = 'XP';
+        goalHint = cur >= tgt ? 'Splněno!' : `Chybí ještě: ${Math.max(0, 1000 - cur)} XP`;
+      } else if (badge.id === 'xp_5000') {
+        cur = data.totalXP; tgt = 5000; unit = 'XP';
+        goalHint = cur >= tgt ? 'Splněno!' : `Chybí ještě: ${Math.max(0, 5000 - cur)} XP`;
+      } else if (badge.id === 'perfect_quiz') {
+        cur = perfectQuizzes; tgt = 1; unit = 'kvíz';
+        goalHint = cur >= tgt ? 'Splněno!' : 'Zvládni libovolný kvíz na 100 %';
+      } else if (badge.id === 'three_perfect') {
+        cur = data.perfectStreak || 0; tgt = 3; unit = 'v řadě';
+        goalHint = cur >= tgt ? 'Splněno!' : `Zbývá: ${Math.max(0, 3 - cur)} bezchybné kvízy v řadě`;
+      } else if (badge.id === 'first_login') {
+        cur = 1; tgt = 1; unit = 'vstup';
+        goalHint = 'První přihlášení do aplikace';
+      } else if (badge.id === 'streak_3') {
+        cur = streakCount; tgt = 3; unit = 'dny';
+        goalHint = cur >= tgt ? 'Splněno!' : `Zbývá: ${Math.max(0, 3 - cur)} dny denní série`;
+      } else if (badge.id === 'streak_7') {
+        cur = streakCount; tgt = 7; unit = 'dní';
+        goalHint = cur >= tgt ? 'Splněno!' : `Zbývá: ${Math.max(0, 7 - cur)} dní denní série`;
+      } else if (badge.id === 'streak_30') {
+        cur = streakCount; tgt = 30; unit = 'dní';
+        goalHint = cur >= tgt ? 'Splněno!' : `Zbývá: ${Math.max(0, 30 - cur)} dní denní série`;
+      } else if (badge.id === 'night_owl') {
+        cur = badge.earned ? 1 : 0; tgt = 1; unit = 'noc';
+        goalHint = badge.earned ? 'Splněno!' : 'Procvič lekci mezi 00:00 a 05:00';
+      } else if (badge.id === 'early_bird') {
+        cur = badge.earned ? 1 : 0; tgt = 1; unit = 'ráno';
+        goalHint = badge.earned ? 'Splněno!' : 'Procvič lekci ráno mezi 05:00 a 07:00';
+      } else {
+        cur = badge.earned ? 1 : 0; tgt = 1; unit = '';
+        goalHint = badge.description;
+      }
+
+      if (badge.earned) {
+        cur = tgt;
+      }
+      const pct = Math.min(100, Math.round((cur / tgt) * 100));
+      return { cur, tgt, unit, pct, goalHint };
+    };
+
     profileContainer.innerHTML = `
       <div class="view-header animate-fadeIn mb-6">
         <h1>Tvůj profil kytaristy</h1>
-        <p class="text-muted">Sleduj své úspěchy, získané odznaky, odehrané kvízy a spravuj nastavení aplikace.</p>
+        <p class="text-muted">Přehled hudebních milníků, kytarových dovedností, získaných trofejí a nastavení.</p>
       </div>
 
       <!-- 1. Karta uživatele -->
-      <div class="card p-6 mb-6 flex flex-wrap items-center justify-between gap-6 animate-slideInUp bg-surface-2 border border-surface-border">
+      <div class="card p-6 mb-8 flex flex-wrap items-center justify-between gap-6 animate-slideInUp bg-surface-2 border border-surface-border" style="border-radius: 18px;">
         <div class="flex items-center gap-5">
+          <div style="
+            width: 76px; height: 76px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(59, 130, 246, 0.2) 100%);
+            border: 2px solid rgba(139, 92, 246, 0.5);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.5rem;
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+            flex-shrink: 0;
+          ">
+            🎸
+          </div>
           <div>
             <div class="flex items-center gap-3">
               <h2 class="text-2xl font-extrabold text-white mb-0">${userName}</h2>
@@ -515,7 +672,7 @@ window.Progress = {
               </span>
             </div>
             <p class="text-sm text-muted mt-1 mb-1">${userEmail}</p>
-            <div class="text-xs text-muted flex items-center gap-2">
+            <div class="text-xs text-muted flex items-center gap-2 flex-wrap">
               <span>📅 Členem od: <strong>${formattedJoinDate}</strong></span>
               <span>•</span>
               <span>Aktuální fáze: <strong style="color: ${rank.color};">${rank.stage}</strong></span>
@@ -536,102 +693,263 @@ window.Progress = {
         </div>
       </div>
 
-      <!-- 2. Přehled statistik (Stats Grid) -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-        <div class="stat-card card p-4 bg-surface-2 border border-surface-border">
-          <div class="flex items-center justify-between text-muted text-xs font-bold uppercase mb-2">
-            <span>Celkem zkušeností</span>
-            <span class="text-base">⭐</span>
-          </div>
-          <div class="text-3xl font-extrabold text-accent mb-2">${data.totalXP} XP</div>
-          <div class="text-xs text-muted">Získaných procházením lekcí a kvízů</div>
-        </div>
-
-        <div class="stat-card card p-4 bg-surface-2 border border-surface-border">
-          <div class="flex items-center justify-between text-muted text-xs font-bold uppercase mb-2">
-            <span>Úroveň (Level)</span>
-            <span class="text-base">🏆</span>
-          </div>
-          <div class="flex items-baseline justify-between mb-1">
-            <span class="text-3xl font-extrabold text-white">Level ${level}</span>
-            <span class="text-xs text-muted font-semibold">${levelProgress} / 100 XP</span>
-          </div>
-          <div class="xp-bar mt-2">
-            <div class="xp-bar-fill" style="width: ${levelProgress}%"></div>
-          </div>
-        </div>
-
-        <div class="stat-card card p-4 bg-surface-2 border border-surface-border">
-          <div class="flex items-center justify-between text-muted text-xs font-bold uppercase mb-2">
-            <span>Denní série cvičení</span>
-            <span class="text-base">🔥</span>
-          </div>
-          <div class="text-3xl font-extrabold text-white mb-2">
-            ${(() => {
-              const count = (data.streak && typeof data.streak.current === 'number') ? data.streak.current : (typeof data.streak === 'number' ? data.streak : 0);
-              return count >= 1 ? '1 den' : '0 dní';
-            })()}
-          </div>
-          <div class="text-xs text-muted">Aktivní dnes: <strong>${((data.streak && data.streak.current >= 1) ? 'Ano (1 den)' : 'Zatím ne (0 dní)')}</strong></div>
-        </div>
-
-        <div class="stat-card card p-4 bg-surface-2 border border-surface-border">
-          <div class="flex items-center justify-between text-muted text-xs font-bold uppercase mb-2">
-            <span>Dokončené lekce</span>
-            <span class="text-base">📖</span>
-          </div>
-          <div class="text-3xl font-extrabold text-white mb-2">${data.completedLessons.length} / 15</div>
-          <div class="text-xs text-muted">Absolvováno ${Math.round((data.completedLessons.length / 15) * 100)} % dostupných lekcí</div>
-        </div>
-
-        <div class="stat-card card p-4 bg-surface-2 border border-surface-border">
-          <div class="flex items-center justify-between text-muted text-xs font-bold uppercase mb-2">
-            <span>Odehrané kvízy</span>
-            <span class="text-base">💯</span>
-          </div>
-          <div class="text-3xl font-extrabold text-white mb-2">${data.totalQuizzes}</div>
-          <div class="text-xs text-muted">Bezchybných kvízů: <strong>${data.perfectQuizzes}</strong></div>
-        </div>
-
-        <div class="stat-card card p-4 bg-surface-2 border border-surface-border">
-          <div class="flex items-center justify-between text-muted text-xs font-bold uppercase mb-2">
-            <span>Získané odznaky</span>
-            <span class="text-base">🎖️</span>
-          </div>
-          <div class="text-3xl font-extrabold text-primary mb-2">${earnedCount} / ${badges.length}</div>
-          <div class="text-xs text-muted">Odemčeno ${Math.round((earnedCount / badges.length) * 100)} % všech trofejí</div>
-        </div>
-      </div>
-
-      <!-- 3. Sekce odznaků -->
-      <div class="badges-section mb-8">
-        <div class="flex justify-between items-center mb-4">
+      <!-- 2. ROZDĚLENÉ STATISTIKY - SKUPINA 1: Kytarový pokrok & Úroveň -->
+      <section class="profile-stats-group animate-slideInUp">
+        <div class="profile-group-header">
           <div>
-            <h2 class="text-xl font-bold text-white flex items-center gap-2">
-              <span>🎖️</span> Odznaky a úspěchy (${earnedCount} / ${badges.length})
-            </h2>
-            <p class="text-xs text-muted mt-1">Plň úkoly a odemykej speciální ocenění pro kytaristy.</p>
+            <h3 class="profile-group-title">
+              <span>🎸</span>
+              <span>Kytarový pokrok & Úroveň</span>
+            </h3>
+            <p class="profile-group-desc">Tvůj postup kurzem, získané zkušenosti a postup na vyšší úroveň.</p>
+          </div>
+          <span class="companion-card-badge" style="font-size: 0.75rem;">Level ${level}</span>
+        </div>
+
+        <!-- Hero Card: Úroveň a XP -->
+        <div class="profile-hero-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+              <div style="
+                width: 56px; height: 56px;
+                border-radius: 16px;
+                background: linear-gradient(135deg, #8B5CF6 0%, #3B82F6 100%);
+                display: flex; align-items: center; justify-content: center;
+                font-size: 1.6rem;
+                font-weight: 800;
+                color: #ffffff;
+                box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+              ">
+                ${level}
+              </div>
+              <div>
+                <div style="font-size: 1.2rem; font-weight: 800; color: #ffffff;">
+                  Úroveň ${level} • ${rank.name}
+                </div>
+                <div style="font-size: 0.8rem; color: #94a3b8;">
+                  Nasbíráno celkem <strong style="color: #fbbf24;">${data.totalXP} XP</strong>
+                </div>
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <span style="font-size: 0.85rem; font-weight: 700; color: #a78bfa;">
+                ${levelProgress} / 100 XP (${levelProgress}%)
+              </span>
+              <div style="font-size: 0.75rem; color: #64748b;">Do další úrovně chybí ${100 - levelProgress} XP</div>
+            </div>
+          </div>
+
+          <!-- XP Bar -->
+          <div class="xp-bar" style="height: 10px; background: rgba(15, 23, 42, 0.6); border-radius: 9999px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.08);">
+            <div class="xp-bar-fill" style="width: ${levelProgress}%; height: 100%; background: linear-gradient(90deg, #8B5CF6, #3B82F6); border-radius: 9999px; transition: width 0.6s ease;"></div>
           </div>
         </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          ${badges.map(b => `
-            <div class="badge-card card p-4 text-center transition-all ${b.earned ? 'earned bg-surface-2 border-accent/40 shadow-sm' : 'locked opacity-50 bg-surface-1 border-surface-border'}" title="${b.description}">
-              <div class="badge-icon-box w-14 h-14 mx-auto rounded-2xl flex items-center justify-center text-3xl mb-2 ${b.earned ? 'bg-accent/20 border border-accent/40' : 'bg-surface-3 grayscale'}">
-                ${b.earned ? b.icon : '🔒'}
-              </div>
-              <h4 class="text-sm font-bold text-white mb-1">${b.name}</h4>
-              <p class="text-xs text-muted leading-tight mb-2">${b.description}</p>
-              <span class="badge ${b.earned ? 'earned' : 'locked'} text-[10px] py-0.5 px-2">
-                ${b.earned ? '✓ Získáno' : 'Zamčeno'}
-              </span>
+        <!-- 3 Podrobné karty postupu kurzem -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- 1. etapa -->
+          <div class="stat-card card p-4 bg-surface-2 border border-surface-border">
+            <div class="flex items-center justify-between text-muted text-xs font-bold uppercase mb-2">
+              <span>1. Fáze: Garáž</span>
+              <span class="text-base">🏠</span>
             </div>
-          `).join('')}
-        </div>
-      </div>
+            <div class="flex items-baseline justify-between mb-1">
+              <span class="text-2xl font-extrabold text-white">${stage1Done} / 8 lekcí</span>
+              <span class="text-xs text-accent font-semibold">${stage1Percent}%</span>
+            </div>
+            <div class="badge-progress-bar mt-2">
+              <div class="badge-progress-bar-fill" style="width: ${stage1Percent}%;"></div>
+            </div>
+            <div class="text-xs text-muted mt-2">Základní akordy, rytmus a úchop</div>
+          </div>
 
-      <!-- 4. Sekce nastavení a správy účtu -->
-      <div class="card p-6 bg-surface-2 border border-surface-border mb-8">
+          <!-- 2. etapa -->
+          <div class="stat-card card p-4 bg-surface-2 border border-surface-border">
+            <div class="flex items-center justify-between text-muted text-xs font-bold uppercase mb-2">
+              <span>2. Fáze: Otevřená scéna</span>
+              <span class="text-base">🎤</span>
+            </div>
+            <div class="flex items-baseline justify-between mb-1">
+              <span class="text-2xl font-extrabold text-white">${stage2Done} / 8 lekcí</span>
+              <span class="text-xs text-accent font-semibold">${stage2Percent}%</span>
+            </div>
+            <div class="badge-progress-bar mt-2">
+              <div class="badge-progress-bar-fill" style="width: ${stage2Percent}%;"></div>
+            </div>
+            <div class="text-xs text-muted mt-2">Písničky, barre akordy a vybrnkávání</div>
+          </div>
+
+          <!-- Celkový kurz -->
+          <div class="stat-card card p-4 bg-surface-2 border border-surface-border">
+            <div class="flex items-center justify-between text-muted text-xs font-bold uppercase mb-2">
+              <span>Celkový postup výukou</span>
+              <span class="text-base">📖</span>
+            </div>
+            <div class="flex items-baseline justify-between mb-1">
+              <span class="text-2xl font-extrabold text-white">${totalLessonsDone} / 16 lekcí</span>
+              <span class="text-xs text-success font-semibold">${totalCoursePercent}%</span>
+            </div>
+            <div class="badge-progress-bar mt-2">
+              <div class="badge-progress-bar-fill" style="width: ${totalCoursePercent}%; background: linear-gradient(90deg, #10B981, #059669);"></div>
+            </div>
+            <div class="text-xs text-muted mt-2">Kompletní akademie hry na kytaru</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. ROZDĚLENÉ STATISTIKY - SKUPINA 2: Aktivita, Vytrvalost & Mistrovství -->
+      <section class="profile-stats-group animate-slideInUp" style="animation-delay: 50ms;">
+        <div class="profile-group-header">
+          <div>
+            <h3 class="profile-group-title">
+              <span>⚡</span>
+              <span>Aktivita, Vytrvalost & Kvízy</span>
+            </h3>
+            <p class="profile-group-desc">Sledování pravidelnosti cvičení, přesnosti odpovědí a kytarové praxe.</p>
+          </div>
+          <span class="companion-card-badge ${streakActive ? 'streak-done' : ''}">
+            ${streakActive ? '🔥 Série aktivní' : '⏳ Připraveno ke cvičení'}
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Denní série -->
+          <div class="stat-card card p-4 bg-surface-2 border border-surface-border">
+            <div class="flex items-center justify-between text-muted text-xs font-bold uppercase mb-2">
+              <span>Denní série</span>
+              <span class="text-base">🔥</span>
+            </div>
+            <div class="text-3xl font-extrabold text-white mb-1" style="color: ${streakActive ? '#f59e0b' : '#ffffff'};">
+              ${streakDisplay}
+            </div>
+            <div class="text-xs text-muted">
+              Dnes aktivní: <strong style="color: ${streakActive ? '#34d399' : '#94a3b8'};">${streakActive ? 'Ano (1 den)' : 'Zatím ne (0 dní)'}</strong>
+            </div>
+          </div>
+
+          <!-- Kvízy -->
+          <div class="stat-card card p-4 bg-surface-2 border border-surface-border">
+            <div class="flex items-center justify-between text-muted text-xs font-bold uppercase mb-2">
+              <span>Odehrané kvízy</span>
+              <span class="text-base">💯</span>
+            </div>
+            <div class="text-3xl font-extrabold text-white mb-1">${totalQuizzes}</div>
+            <div class="text-xs text-muted">
+              Bezchybných: <strong style="color: #34d399;">${perfectQuizzes}</strong> (100%)
+            </div>
+          </div>
+
+          <!-- Kytarová praxe -->
+          <div class="stat-card card p-4 bg-surface-2 border border-surface-border">
+            <div class="flex items-center justify-between text-muted text-xs font-bold uppercase mb-2">
+              <span>Čas praxe</span>
+              <span class="text-base">⏱️</span>
+            </div>
+            <div class="text-3xl font-extrabold text-white mb-1">~${estimatedMinutes} min</div>
+            <div class="text-xs text-muted">Odehraný čas u cvičení a lekcí</div>
+          </div>
+
+          <!-- Trofeje -->
+          <div class="stat-card card p-4 bg-surface-2 border border-surface-border">
+            <div class="flex items-center justify-between text-muted text-xs font-bold uppercase mb-2">
+              <span>Trofeje & Odznaky</span>
+              <span class="text-base">🎖️</span>
+            </div>
+            <div class="text-3xl font-extrabold text-accent mb-1">${earnedCount} / ${badges.length}</div>
+            <div class="text-xs text-muted">Odemčeno <strong>${badgePercent}%</strong> ocenění</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. ROZDĚLENÉ A MOTIVUJÍCÍ ODZNAKY (Aspirational Badges) -->
+      <section class="badges-section mb-8 animate-slideInUp" style="animation-delay: 100ms;">
+        <div class="profile-group-header">
+          <div>
+            <h3 class="profile-group-title">
+              <span>🎖️</span>
+              <span>Kytarové odznaky a milníky</span>
+            </h3>
+            <p class="profile-group-desc">Sleduj svůj postup a odemykej speciální ocenění pro kytaristy.</p>
+          </div>
+          <span class="companion-card-badge" style="font-size: 0.8rem; padding: 4px 12px;">
+            ${earnedCount} získáno • ${badges.length - earnedCount} zbývá
+          </span>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="badge-filter-bar">
+          <button class="badge-filter-btn active" data-filter="all" onclick="Progress.filterBadges('all')">
+            🌟 Všechny (${badges.length})
+          </button>
+          <button class="badge-filter-btn" data-filter="earned" onclick="Progress.filterBadges('earned')">
+            ✨ Získané (${earnedCount})
+          </button>
+          <button class="badge-filter-btn" data-filter="locked" onclick="Progress.filterBadges('locked')">
+            🎯 K odemčení (${badges.length - earnedCount})
+          </button>
+        </div>
+
+        <!-- Kategoriální zobrazení odznaků -->
+        <div class="badge-categories-container">
+          ${categories.map(cat => {
+            const catBadges = badges.filter(b => cat.badgeIds.includes(b.id));
+            const catEarned = catBadges.filter(b => b.earned).length;
+
+            return `
+              <div class="badge-category-section" data-category="${cat.id}">
+                <div class="badge-category-title-wrap">
+                  <div class="badge-category-name">
+                    <span>${cat.icon}</span>
+                    <span>${cat.name}</span>
+                  </div>
+                  <div class="badge-category-count">
+                    ${catEarned} / ${catBadges.length} získáno
+                  </div>
+                </div>
+
+                <div class="badge-cards-grid">
+                  ${catBadges.map(b => {
+                    const info = getBadgeGoalInfo(b);
+                    return `
+                      <div class="badge-card-v2 ${b.earned ? 'earned' : 'locked'}" data-badge-status="${b.earned ? 'earned' : 'locked'}" title="${b.description}">
+                        <div class="badge-top-row">
+                          <div class="badge-icon-bubble">
+                            ${b.icon}
+                          </div>
+                          <span class="badge-status-pill ${b.earned ? 'earned' : 'locked'}">
+                            ${b.earned ? '✓ Získáno' : '🎯 K odemčení'}
+                          </span>
+                        </div>
+
+                        <div class="badge-content-v2">
+                          <div class="badge-title-v2">${b.name}</div>
+                          <div class="badge-desc-v2">${b.description}</div>
+
+                          <div class="badge-progress-box">
+                            <div class="badge-progress-labels">
+                              <span>${b.earned ? 'Dokončeno na 100%' : `Postup: ${info.cur} / ${info.tgt} ${info.unit}`}</span>
+                              <span style="color: ${b.earned ? '#34d399' : '#a78bfa'};">${info.pct}%</span>
+                            </div>
+                            <div class="badge-progress-bar">
+                              <div class="badge-progress-bar-fill" style="width: ${info.pct}%; ${b.earned ? 'background: linear-gradient(90deg, #10B981, #059669);' : ''}"></div>
+                            </div>
+                            <div class="badge-goal-hint" style="color: ${b.earned ? '#34d399' : '#cbd5e1'};">
+                              ${b.earned ? '✨ Úspěch plně odemčen' : `🎯 ${info.goalHint}`}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </section>
+
+      <!-- 5. Sekce nastavení a správy účtu -->
+      <div class="card p-6 bg-surface-2 border border-surface-border mb-8" style="border-radius: 18px;">
         <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
           <span>⚙️</span> Nastavení aplikace
         </h3>

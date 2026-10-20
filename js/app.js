@@ -743,11 +743,280 @@ window.App = {
 
     // 3. Render #story-map
     this.renderStoryMap();
+    this.renderDashboardSidebar();
   },
 
   /**
    * Helper to jump straight into the current active lesson.
    */
+  /**
+   * Educational guitar tips cycling list
+   */
+  guitarTips: [
+    { title: "Čisté tóny na pražcích", text: "Pokládej prsty těsně za kovový pražec, nikoliv doprostřed pole. Zabráníš drnčení strun a zvuk bude zvonivý." },
+    { title: "Správný úchop trsátka", text: "Drž trsátko mezi bříškem palce a boční stranou ukazováčku. Šetří to energii v ruce a zrychluje hru." },
+    { title: "Pravidelnost vítězí", text: "15 minut soustředěného cvičení denně dá tvým prstům mnohem více než dvě vyčerpávající hodiny jednou za týden." },
+    { title: "Uvolněné zápěstí", text: "Křeč v ruce je největší nepřítel rychlosti. Pravidelně uvolňuj zápěstí, spusť ruku podél těla a vyklepej prsty." },
+    { title: "Hladké akordové přechody", text: "Při střídání akordů hledej společné prsty (tzv. pivot fingers), které se nemusí zvedat ze struny." },
+    { title: "Poloha palce na krku", text: "Palec levé ruky drž na zadní straně krku zhruba uprostřed. Dává to prstům volnost a správnou klenbu nad hmatníkem." }
+  ],
+  currentTipIndex: 0,
+
+  nextGuitarTip() {
+    this.currentTipIndex = (this.currentTipIndex + 1) % this.guitarTips.length;
+    this.renderDashboardSidebar();
+  },
+
+  /**
+   * Render the companion right sidebar column on the dashboard.
+   */
+  renderDashboardSidebar() {
+    const sidebar = document.getElementById('dashboard-sidebar');
+    if (!sidebar) return;
+
+    const { xp, streak, completed } = this.getProgressData();
+    const isGod = this.isGod();
+    const streakCount = (streak >= 1) ? 1 : 0;
+    const isStreakActive = (streakCount >= 1);
+
+    // Dynamic calculation of the closest locked badge to unlock
+    let nextBadge = null;
+    let badgeProgress = { current: 0, target: 1, percent: 0, hint: '' };
+    if (window.Progress && typeof window.Progress.getBadges === 'function') {
+      const allBadges = window.Progress.getBadges();
+      const lockedBadges = allBadges.filter(b => !b.earned);
+      if (lockedBadges.length > 0) {
+        for (const b of lockedBadges) {
+          let cur = 0, tgt = 1, h = '';
+          if (b.id === 'first_lesson') {
+            cur = completed.length; tgt = 1; h = `Dokonči 1 lekci v kurzu`;
+          } else if (b.id === 'five_lessons') {
+            cur = completed.length; tgt = 5; h = `Zbývá dokončit: ${Math.max(0, 5 - completed.length)} lekcí`;
+          } else if (b.id === 'ten_lessons') {
+            cur = completed.length; tgt = 10; h = `Zbývá dokončit: ${Math.max(0, 10 - completed.length)} lekcí`;
+          } else if (b.id === 'all_stage1') {
+            const c = completed.filter(id => id >= 1 && id <= 8).length;
+            cur = c; tgt = 8; h = `Zbývá: ${8 - c} lekcí v 1. fázi (Garáž)`;
+          } else if (b.id === 'all_stage2') {
+            const c = completed.filter(id => id >= 9 && id <= 16).length;
+            cur = c; tgt = 8; h = `Zbývá: ${8 - c} lekcí ve 2. fázi (Scéna)`;
+          } else if (b.id === 'xp_500') {
+            cur = xp; tgt = 500; h = `Chybí ještě: ${Math.max(0, 500 - xp)} XP`;
+          } else if (b.id === 'xp_1000') {
+            cur = xp; tgt = 1000; h = `Chybí ještě: ${Math.max(0, 1000 - xp)} XP`;
+          } else if (b.id === 'xp_5000') {
+            cur = xp; tgt = 5000; h = `Chybí ještě: ${Math.max(0, 5000 - xp)} XP`;
+          } else if (b.id === 'streak_3') {
+            cur = streakCount; tgt = 3; h = `Zbývá: ${Math.max(0, 3 - streakCount)} dny denní série`;
+          } else if (b.id === 'streak_7') {
+            cur = streakCount; tgt = 7; h = `Zbývá: ${Math.max(0, 7 - streakCount)} dní denní série`;
+          } else if (b.id === 'perfect_quiz') {
+            const p = (window.Progress.data && window.Progress.data.perfectQuizzes) || 0;
+            cur = p; tgt = 1; h = `Zvládni 1 kvíz bez chyby (100 %)`;
+          } else {
+            cur = 0; tgt = 1; h = b.description;
+          }
+
+          const pct = Math.min(100, Math.round((cur / tgt) * 100));
+          if (!nextBadge || pct > badgeProgress.percent) {
+            nextBadge = b;
+            badgeProgress = { current: cur, target: tgt, percent: pct, hint: h };
+          }
+        }
+      }
+    }
+
+    const tip = this.guitarTips[this.currentTipIndex % this.guitarTips.length];
+
+    sidebar.innerHTML = `
+      <!-- Companion Card 1: Dnešní cíl & Denní série -->
+      <div class="dashboard-companion-card animate-slideInUp">
+        <div class="companion-card-header">
+          <div class="companion-card-title">
+            <span style="font-size: 1.25rem;">🔥</span>
+            <span>Dnešní cíl & Série</span>
+          </div>
+          <span class="companion-card-badge ${isStreakActive ? 'streak-done' : ''}">
+            ${isStreakActive ? '✅ Splněno' : '⏳ K dokončení'}
+          </span>
+        </div>
+        <div class="companion-card-body">
+          <div style="display: flex; align-items: baseline; justify-content: space-between;">
+            <span style="font-size: 1.6rem; font-weight: 800; color: ${isStreakActive ? '#f59e0b' : '#f8fafc'};">
+              ${this.formatStreak(streakCount)}
+            </span>
+            <span style="font-size: 0.78rem; color: #94a3b8; font-weight: 600;">
+              ${isStreakActive ? 'Dnešní série aktivní' : 'Cíl: 1 cvičení denně'}
+            </span>
+          </div>
+          <p style="font-size: 0.82rem; color: #94a3b8; margin: 0; line-height: 1.4;">
+            ${isStreakActive
+              ? 'Skvělá práce! Dnes jsi splnil cvičení a tvůj kytarový plamen hoří.'
+              : 'Dnes jsi ještě necvičil. Dokonči alespoň 1 lekci nebo kvíz a rozpal svou denní sérii!'
+            }
+          </p>
+          <button class="btn ${isStreakActive ? 'btn-ghost' : 'btn-primary'} btn-sm" onclick="App.continueCurrentLesson()" style="
+            width: 100%;
+            margin-top: 0.35rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            font-weight: 700;
+          ">
+            <span>${isStreakActive ? 'Pokračovat v dalším cvičení' : 'Spustit dnešní lekci'}</span>
+            <span>▶</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Companion Card 2: Odznak na dosah -->
+      <div class="dashboard-companion-card animate-slideInUp" style="animation-delay: 50ms;">
+        <div class="companion-card-header">
+          <div class="companion-card-title">
+            <span style="font-size: 1.25rem;">🎯</span>
+            <span>Odznak na dosah</span>
+          </div>
+          <span class="companion-card-badge">Ocenění</span>
+        </div>
+        <div class="companion-card-body">
+          ${nextBadge ? `
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <div style="
+                width: 44px; height: 44px;
+                border-radius: 12px;
+                background: rgba(139, 92, 246, 0.15);
+                border: 1px solid rgba(139, 92, 246, 0.3);
+                display: flex; align-items: center; justify-content: center;
+                font-size: 1.5rem;
+                flex-shrink: 0;
+              ">${nextBadge.icon}</div>
+              <div style="min-width: 0;">
+                <div style="font-size: 0.92rem; font-weight: 800; color: #f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                  ${nextBadge.name}
+                </div>
+                <div style="font-size: 0.75rem; color: #94a3b8; line-height: 1.3;">
+                  ${nextBadge.description}
+                </div>
+              </div>
+            </div>
+
+            <!-- Progress bar to badge -->
+            <div style="margin-top: 0.25rem;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.72rem; font-weight: 700; color: #94a3b8; margin-bottom: 4px;">
+                <span>Postup: ${badgeProgress.current} / ${badgeProgress.target}</span>
+                <span style="color: #a78bfa;">${badgeProgress.percent}%</span>
+              </div>
+              <div class="badge-progress-bar">
+                <div class="badge-progress-bar-fill" style="width: ${badgeProgress.percent}%;"></div>
+              </div>
+              <div class="badge-goal-hint" style="margin-top: 6px;">
+                🎯 ${badgeProgress.hint}
+              </div>
+            </div>
+
+            <a href="#/profile" class="btn btn-ghost btn-sm" style="
+              width: 100%;
+              margin-top: 0.25rem;
+              font-size: 0.78rem;
+              text-align: center;
+              border: 1px solid rgba(255, 255, 255, 0.08);
+            ">
+              Všechny odznaky v profilu →
+            </a>
+          ` : `
+            <div style="text-align: center; padding: 0.5rem 0;">
+              <div style="font-size: 2rem; margin-bottom: 0.25rem;">🏆</div>
+              <div style="font-weight: 700; color: #f8fafc; font-size: 0.9rem;">Všechny odznaky odemčeny!</div>
+              <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 0.2rem;">Jsi absolutní mistr kytary.</div>
+            </div>
+          `}
+        </div>
+      </div>
+
+      <!-- Companion Card 3: Kytarový tip dne -->
+      <div class="dashboard-companion-card animate-slideInUp" style="animation-delay: 100ms;">
+        <div class="companion-card-header">
+          <div class="companion-card-title">
+            <span style="font-size: 1.25rem;">💡</span>
+            <span>Kytarový tip dne</span>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="App.nextGuitarTip()" title="Další tip" style="
+            padding: 2px 8px;
+            font-size: 0.72rem;
+            color: #a78bfa;
+            border-radius: 9999px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+          ">
+            Další tip ↻
+          </button>
+        </div>
+        <div class="companion-card-body">
+          <div style="font-size: 0.88rem; font-weight: 700; color: #f8fafc;">
+            ${tip.title}
+          </div>
+          <p style="font-size: 0.8rem; color: #94a3b8; margin: 0; line-height: 1.45;">
+            ${tip.text}
+          </p>
+        </div>
+      </div>
+
+      <!-- Companion Card 4: Rychlé nástroje -->
+      <div class="dashboard-companion-card animate-slideInUp" style="animation-delay: 150ms;">
+        <div class="companion-card-header">
+          <div class="companion-card-title">
+            <span style="font-size: 1.25rem;">⚡</span>
+            <span>Rychlé nástroje</span>
+          </div>
+          <span class="companion-card-badge">Praxe</span>
+        </div>
+        <div class="companion-mini-tools-grid">
+          <a href="#/songs" class="companion-tool-btn">
+            <span class="companion-tool-icon">🎵</span>
+            <span>Písničky</span>
+          </a>
+          <a href="#/tuner" class="companion-tool-btn">
+            <span class="companion-tool-icon">🎛️</span>
+            <span>Ladička</span>
+          </a>
+          <a href="#/metronome" class="companion-tool-btn">
+            <span class="companion-tool-icon">⏱️</span>
+            <span>Metronom</span>
+          </a>
+        </div>
+      </div>
+
+      ${isGod ? `
+      <!-- Companion Card 5: God Quick Tools -->
+      <div class="dashboard-companion-card animate-slideInUp" style="
+        border-color: rgba(245, 158, 11, 0.4);
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(245, 158, 11, 0.1) 100%);
+      ">
+        <div class="companion-card-header" style="border-bottom-color: rgba(245, 158, 11, 0.2);">
+          <div class="companion-card-title" style="color: #fde68a;">
+            <span style="font-size: 1.25rem;">👑</span>
+            <span>God Mode zkratky</span>
+          </div>
+          <span class="companion-card-badge" style="background: rgba(245, 158, 11, 0.2); color: #fde68a; border-color: rgba(245, 158, 11, 0.4);">
+            Root
+          </span>
+        </div>
+        <div class="companion-card-body" style="gap: 0.5rem;">
+          <div style="font-size: 0.75rem; color: #cbd5e1;">Plná kontrola nad aplikací aktivní.</div>
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button class="btn btn-sm btn-ghost" onclick="App.godSetMaxXP()" style="flex: 1; font-size: 0.72rem; border-color: rgba(245, 158, 11, 0.3); color: #fde68a;">
+              Max XP ⭐
+            </button>
+            <button class="btn btn-sm btn-ghost" onclick="App.godToggleStreak()" style="flex: 1; font-size: 0.72rem; border-color: rgba(239, 68, 68, 0.3); color: #fca5a5;">
+              Přepnout sérii 🔥
+            </button>
+          </div>
+        </div>
+      </div>
+      ` : ''}
+    `;
+  },
+
   continueCurrentLesson() {
     const { completed } = this.getProgressData();
     let currentId = 1;
@@ -784,7 +1053,7 @@ window.App = {
       <div class="story-map-container" style="
         position: relative;
         padding: 1rem 0 3rem 0;
-        max-width: 860px;
+        max-width: 100%;
         margin: 0 auto;
       ">
         <div style="text-align: center; margin-bottom: 2rem;">
