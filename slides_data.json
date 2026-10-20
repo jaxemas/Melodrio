@@ -1,0 +1,290 @@
+[
+  {
+    "slideNum": 1,
+    "type": "title",
+    "badgeText": "UVODNI PREZENTACE",
+    "badgeColor": "4F46E5",
+    "title": "MELODRIO",
+    "subtitle": "Interaktivni kytarova akademie nove generace",
+    "tagline": "Prezentace projektu po 1. FAZI VYVOJE (MVP, Gamifikace & Didakticke jadro)",
+    "inspiration": "Fúze tri osvedcenych svetu: HAXAGON + DUOLINGO + SIMPLY GUITAR",
+    "meta": "Autor: Matej Sedivy  |  Rozsah: 5-10 minut (10 slidu)  |  Rijen 2026"
+  },
+  {
+    "slideNum": 2,
+    "type": "threeCard",
+    "badgeText": "PRODUKTOVA DNA",
+    "badgeColor": "059669",
+    "title": "Vize aplikace: Fuze tri spickovych konceptu",
+    "subtitle": "Resime problem, proc 90 % zacatecniku na kytaru skonci do prvnich 3 mesicu",
+    "cards": [
+      {
+        "title": "1. DUOLINGO (Zvyk)",
+        "color": "10B981",
+        "bullets": [
+          "Mikro-lekce stravitelne behem par minut",
+          "Denni serie (Streak) pro psychologii navyku",
+          "Sbirani XP bodu a postup po urovnich (Level 1-100)",
+          "System 16 odznaku a okamzite odmeny"
+        ]
+      },
+      {
+        "title": "2. SIMPLY GUITAR (Didaktika)",
+        "color": "38BDF8",
+        "bullets": [
+          "Overena kytarova metodika pro samouky",
+          "Interaktivni akordove diagramy s prstoklady",
+          "Integrovana presna chromaticka ladicka",
+          "Zvukovy metronom pro presny trenink tempa"
+        ]
+      },
+      {
+        "title": "3. HAXAGON (Vyzvy a Mise)",
+        "color": "818CF8",
+        "bullets": [
+          "Struktura postupneho odemykani obsahu",
+          "Prakticke hands-on ukoly pro postup dal",
+          "Pisne navazane na splnene prerekvizity lekci",
+          "God / Admin mod pro evaluaci a testing"
+        ]
+      }
+    ]
+  },
+  {
+    "slideNum": 3,
+    "type": "threeCard",
+    "badgeText": "STRATEGICKA ROADMAPA",
+    "badgeColor": "D97706",
+    "title": "Dulezity kontext: Jsme v 1. FAZI ZE 3",
+    "subtitle": "Projekt je koncipovan jako trifazovy vyvojovy cyklus - dnes hodnotime prvni pilir",
+    "cards": [
+      {
+        "title": "FAZE 1: ZAKLAD (HOTOVO)",
+        "color": "10B981",
+        "bullets": [
+          "[x] Plne didakticke jadro a ciste rozhrani",
+          "[x] 16 strukturovanych lekci (Faze 1 a 2)",
+          "[x] Repertoar 25 skladeb s popup odemykanim",
+          "[x] Odemcena ladicka a metronom pro vsechny",
+          "[x] Profil studenta a administratorsky God Mode"
+        ]
+      },
+      {
+        "title": "FAZE 2: AUDIO ENGINE (DALSI KROK)",
+        "color": "F59E0B",
+        "bullets": [
+          "[>] Detekce tonu mikrofonem v realnem case",
+          "[>] Web Audio API + YIN pitch detection",
+          "[>] Interaktivni bezici tabulatura s hodnocenim",
+          "[>] Automaticka kontrola cistoty akordu",
+          "[>] Doprovodna kapela (backing tracks)"
+        ]
+      },
+      {
+        "title": "FAZE 3: MULTIPLAYER (BUDOUCNOST)",
+        "color": "818CF8",
+        "bullets": [
+          "[*] Kytarove ligy a tydenni zebricky",
+          "[*] Kytarove duely pratel 1 na 1",
+          "[*] Komunitni tvorba vlastnich tabulatur",
+          "[*] Mobilni PWA aplikace do kapsy",
+          "[*] Certifikaty o absolvovani kurzu"
+        ]
+      }
+    ]
+  },
+  {
+    "slideNum": 4,
+    "type": "twoCard",
+    "badgeText": "UZIVATELSKY ZAZITEK",
+    "badgeColor": "4F46E5",
+    "title": "Co vse muze uzivatel v aplikaci delat",
+    "subtitle": "Kompletni cvicebni prostredi navrzene pro maximalni efektivitu zacatecnika",
+    "card1": {
+      "title": "16 Strukturovanych lekci (Faze 1 a 2)",
+      "color": "6366F1",
+      "bullets": [
+        "Faze 1 (Zaklady): Anatomie kytary, drzeni trsatka, ladeni, tony a akordy Em, Am, C",
+        "Faze 2 (Rytmus): Akordy G, D, rytmicke vzorce a plynule prechody mezi akordy",
+        "Prehledny casovy strom lekci s cistym vizualnim oddelenim mezi fazemi",
+        "Kazda lekce obsahuje srozumitelnou teorii, diagramy i testovaci cviceni"
+      ]
+    },
+    "card2": {
+      "title": "Dashboard a Cvicebni nastroje",
+      "color": "38BDF8",
+      "bullets": [
+        "Novy dvousloupcovy responsivni dashboard: vlevo vyuka, vpravo nastroje",
+        "Kompaktni fixni (sticky) bocni panel zustava po ruce i pri scrollovani",
+        "Integrovana chromaticka ladicka s vizualni a zvukovou odezvou (E A D G B E)",
+        "Presny digitalni metronom s nastavitelnym tempem BPM a vizualnim kyvadlem"
+      ]
+    }
+  },
+  {
+    "slideNum": 5,
+    "type": "twoCard",
+    "badgeText": "KNIHOVNA SKLADEB",
+    "badgeColor": "059669",
+    "title": "Repertoar 25 pisni a Inteligentni odemykani",
+    "subtitle": "Uceni hrou na skutecne hudbe - zadna sucha cviceni, ale legendarni hity",
+    "card1": {
+      "title": "25 Svetovych hitu od 60. let po soucasnost",
+      "color": "10B981",
+      "bullets": [
+        "Ikonicke skladby: Knockin' on Heaven's Door, Wonderwall, Stand By Me, Sweet Child O' Mine...",
+        "Zanrova pestrost: Rock, Pop, Folk, Akustika i Hard Rock",
+        "Prehledne karty pisni s informacemi o tempu (BPM), zanru a potrebnych akordech",
+        "Odemcene skladby nabizeji prehled akordovych tabulatur a rytmickych doprovodu"
+      ]
+    },
+    "card2": {
+      "title": "System zamku a Asistencni popup modal",
+      "color": "F59E0B",
+      "bullets": [
+        "Pisne jsou zamcene, dokud student neprojde lekci s potrebnymi akordy",
+        "Zabranuje frustraci ze skladeb, na ktere student zatim technicky nema",
+        "Informativni popup: Kliknuti zobrazi: 'Odemkne se po Lekci X: <Nazev lekce>'",
+        "Jednim klikem: Tlacitko 'Prejit do Lekce X' okamzite otevre pozadovanou lekci"
+      ]
+    }
+  },
+  {
+    "slideNum": 6,
+    "type": "twoCard",
+    "badgeText": "MOTIVACNI ENGINE",
+    "badgeColor": "8B5CF6",
+    "title": "Gamifikace: Psychologie udrzeni pozornosti",
+    "subtitle": "Overene principy z Duolinga a Haxagonu, ktere udrzi studenta hrat kazdy den",
+    "card1": {
+      "title": "Prisny Daily Streak a Oddelene statistiky",
+      "color": "A855F7",
+      "bullets": [
+        "Prisna logika serie: Vychozi 0 dni, presne 1 den po dokonceni denniho cviceni",
+        "Zadna falesna cisla - streak buduje skutecny kazdodenni treninkovy navyk",
+        "Oddelene statistiky v profilu: Celkove XP body, level progres, celkovy postup",
+        "Detailni prehled: Dokonceni Faze 1 (8/8) a Faze 2 (8/8) pro okamzitou zpetnou vazbu"
+      ]
+    },
+    "card2": {
+      "title": "16 Aspiracnich odznaku za milniky",
+      "color": "EC4899",
+      "bullets": [
+        "Trofeje za konkretni uspechy: Prvni ton, Mistr akordu, Rytmicky mag, Pisnickar...",
+        "Jasny vizualni kontrast mezi ziskanymi a zatim zamcenymi odznaky",
+        "Aspiracni efekt: Uzivatel zretelne vidi cile, kterych chce v budoucnu dosahnout",
+        "Kazdy odznak ma detailni popis podminek potrebnych k jeho ziskani"
+      ]
+    }
+  },
+  {
+    "slideNum": 7,
+    "type": "twoCard",
+    "badgeText": "ADMINISTRACE & TESTING",
+    "badgeColor": "D97706",
+    "title": "God Mode: Plna kontrola pro zkousejiciho",
+    "subtitle": "Specialni administratorsky ucet pro okamzitou prezentaci a evaluační testovani",
+    "card1": {
+      "title": "Pristup a Pravomoci",
+      "color": "F59E0B",
+      "bullets": [
+        "Prihlasovaci udaje: jmeno 'god', heslo 'godballs'",
+        "Okamzity pristup ke vsem funkcim bez nutnosti odklikavat 16 lekci",
+        "Plne odemcene vsechny pisne, cviceni, nastroje i budouci moduly",
+        "Izolovany stav: Bezny uzivatel ma realny postup, God ucet je nezavisly a plne pripraven"
+      ]
+    },
+    "card2": {
+      "title": "Kralovsky zlaty profil pro Boha",
+      "color": "FBBF24",
+      "bullets": [
+        "Prestizni statistiky: 10 000 XP & maximalni Level 100",
+        "Dokonceno vsech 16/16 lekci (100 % celkovy postup)",
+        "Nekonecny streak: Symbol 'nekonecno dni' (pouze a jedine pro God mod)",
+        "Vsech 16 odznaku je odemcenych se statusem 'Ziskano'",
+        "Kralovsky zlaty vizual: Zlate karty, zlate ukazatele a zarive efekty (#F59E0B)"
+      ]
+    }
+  },
+  {
+    "slideNum": 8,
+    "type": "twoCard",
+    "badgeText": "INZENYRSKE LEKCE",
+    "badgeColor": "EF4444",
+    "title": "Vyzvy a prekazky: Co jsme museli vyresit",
+    "subtitle": "Uprimny pohled pod kapotu - realne technicke a vizualni problemy pri vyvoji",
+    "card1": {
+      "title": "Datove a Logicke prekazky",
+      "color": "F87171",
+      "bullets": [
+        "Bug '[object Object]' u streaku: Serializacni chyba ukladani objektu misto cisla; vyreseno striktni normalizaci na 0 nebo 1",
+        "Synchronizace stavu: Oddeleni stavu bezneho uzivatele od God modu bez kolizi",
+        "Podminena logika odemykani: Spravne navazani 25 pisnicek na prislusne lekce"
+      ]
+    },
+    "card2": {
+      "title": "Vizualni a UX vylepseni",
+      "color": "FB923C",
+      "bullets": [
+        "Zbloudile pismeno v profilu: Odstranen nezadouci znak pred zvolenym jmenem uzivatele",
+        "Chybejici mezera mezi fazemi: Lekce Faze 1 se lepily na Fazi 2; pridan vzdusny prechod",
+        "Nevyvazeny dashboard: Prazdna prava polovina obrazovky vyresena dvousloupcovym layoutem se sticky panelem"
+      ]
+    }
+  },
+  {
+    "slideNum": 9,
+    "type": "twoCard",
+    "badgeText": "TECHNOLOGIE & KOD",
+    "badgeColor": "6366F1",
+    "title": "Technicka architektura a Verzovani v Gitu",
+    "subtitle": "Robustni, bleskurychly a udrzitelny webovy zaklad bez zbytecnych balastu",
+    "card1": {
+      "title": "Moderni cisty webovy stack",
+      "color": "818CF8",
+      "bullets": [
+        "Vanilla JavaScript (ES6+): Okamzity nabeh aplikace v radu milisekund",
+        "Ciste CSS3: Flexbox, CSS Grid a dynamicke CSS promenne pro light/dark/gold rezimy",
+        "Zadne obri knihovny treticich stran: 100% prenositelnost a fungovani i offline",
+        "Web Audio API: Nativni zvukove jadro pro ladicku i metronom, pripraveno pro Fazi 2"
+      ]
+    },
+    "card2": {
+      "title": "Verzovani v Gitu a Bezpecnost",
+      "color": "38BDF8",
+      "bullets": [
+        "Vetveni projektu: Stabilni vetev 'main' a experimentalni vetev 'god-mode'",
+        "Verzovaci tagy: Tag 'v-god-mode' zarucuje bezpecny snapshot funkcniho stavu",
+        "Moznost kdykoliv se vratit do puvodni verze nebo naopak prepnout na plny admin",
+        "Automatizovane headless overeni pro kazdy novy commit v repozitari"
+      ]
+    }
+  },
+  {
+    "slideNum": 10,
+    "type": "twoCard",
+    "badgeText": "ZAVER & DISKUSE",
+    "badgeColor": "10B981",
+    "title": "Zaver, Roadmapa Faze 2 a Prostor pro Otazky",
+    "subtitle": "1. Faze je uspesne dokoncena. Pevny zaklad je postaven - co bude dal?",
+    "card1": {
+      "title": "Roadmapa pro Fazi 2 (Dalsi krok)",
+      "color": "34D399",
+      "bullets": [
+        "1. Zivy poslech hry pres mikrofon (algoritmus YIN pro vypocet frekvence tonu)",
+        "2. Bezici interaktivni tabulatura s okamzitym hodnocenim cistoty akordu",
+        "3. Realne doprovodne audio stopy (backing tracks) ke vsem 25 skladbam",
+        "4. Pokrocilejsi rytmicka cviceni a vybrnkavani prsty (fingerpicking)"
+      ]
+    },
+    "card2": {
+      "title": "Odpovedi na predpokladane otazky (Q&A)",
+      "color": "FBBF24",
+      "bullets": [
+        "Otazka: 'Proc web misto mobilni aplikace?' -> Web funguje ihned na PC i tabletu, ktery ma kytarista pohodlne na stole.",
+        "Otazka: 'Je Web Audio API dostatecne rychle?' -> Ano, moderni prohlizece zvladaji latenci pod 15 ms, coz je pro hudbu skvele.",
+        "DEKUJEME ZA POZORNOST! MATE NA NAS NEJAKE OTAZKY?"
+      ]
+    }
+  }
+]
