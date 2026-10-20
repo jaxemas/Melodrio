@@ -503,12 +503,14 @@ window.Progress = {
     const level = this.getLevel();
     const levelProgress = this.getLevelProgress();
     const badges = this.getBadges();
-    const earnedCount = badges.filter(b => b.earned).length;
+
+    // Check if God Mode is active
+    const isGod = (window.Auth && typeof window.Auth.isGod === 'function' && window.Auth.isGod()) || (data.isGod === true);
 
     // Získání uživatelských informací z modulu Auth (pokud existuje)
-    let userName = 'Kytarista';
-    let userEmail = 'kytarista@melodrio.cz';
-    if (window.Auth && typeof window.Auth.getUser === 'function') {
+    let userName = isGod ? 'God (Všemohoucí Bůh kytary)' : 'Kytarista';
+    let userEmail = isGod ? 'god@melodrio.cz' : 'kytarista@melodrio.cz';
+    if (!isGod && window.Auth && typeof window.Auth.getUser === 'function') {
       const user = window.Auth.getUser();
       if (user) {
         userName = user.name || user.username || userName;
@@ -533,24 +535,31 @@ window.Progress = {
     const savedVolume = localStorage.getItem('melodrio_volume') || '80';
     const soundEnabled = localStorage.getItem('melodrio_sound_enabled') !== 'false';
 
-    // 1. Skupina: Kytarový pokrok & Úroveň
-    const stage1Done = data.completedLessons.filter(id => id >= 1 && id <= 8).length;
-    const stage1Percent = Math.round((stage1Done / 8) * 100);
-    const stage2Done = data.completedLessons.filter(id => id >= 9 && id <= 16).length;
-    const stage2Percent = Math.round((stage2Done / 8) * 100);
-    const totalLessonsDone = data.completedLessons.length;
-    const totalCoursePercent = Math.min(100, Math.round((totalLessonsDone / 16) * 100));
+    // 1. Skupina: Kytarový pokrok & Úroveň (pro Boha vše na max a hotovo)
+    const displayXP = isGod ? Math.max(10000, data.totalXP) : data.totalXP;
+    const displayLevel = isGod ? 100 : level;
+    const displayLevelProgress = isGod ? 100 : levelProgress;
 
-    // 2. Skupina: Aktivita, Vytrvalost & Mistrovství (Striktně 0 nebo 1)
+    const stage1Done = isGod ? 8 : data.completedLessons.filter(id => id >= 1 && id <= 8).length;
+    const stage1Percent = isGod ? 100 : Math.round((stage1Done / 8) * 100);
+    const stage2Done = isGod ? 8 : data.completedLessons.filter(id => id >= 9 && id <= 16).length;
+    const stage2Percent = isGod ? 100 : Math.round((stage2Done / 8) * 100);
+    const totalLessonsDone = isGod ? 16 : data.completedLessons.length;
+    const totalCoursePercent = isGod ? 100 : Math.min(100, Math.round((totalLessonsDone / 16) * 100));
+
+    // 2. Skupina: Aktivita, Vytrvalost & Mistrovství
+    // PRO BOHA: Nekonečný streak (∞ dní) se zlatým zvýrazněním!
+    // PRO NORMÁLNÍHO UŽIVATELE: striktně 0 nebo 1 den.
     const streakRaw = (data.streak && typeof data.streak.current === 'number') ? data.streak.current : (typeof data.streak === 'number' ? data.streak : 0);
     const streakCount = streakRaw >= 1 ? 1 : 0;
-    const streakDisplay = streakCount === 1 ? '1 den' : '0 dní';
-    const streakActive = (streakCount >= 1);
+    const streakDisplay = isGod ? '∞ dní' : (streakCount === 1 ? '1 den' : '0 dní');
+    const streakActive = isGod ? true : (streakCount >= 1);
 
-    const totalQuizzes = data.totalQuizzes || 0;
-    const perfectQuizzes = data.perfectQuizzes || 0;
-    const estimatedMinutes = Math.max(10, (totalLessonsDone * 12) + (totalQuizzes * 5));
-    const badgePercent = Math.round((earnedCount / badges.length) * 100);
+    const totalQuizzes = isGod ? Math.max(25, data.totalQuizzes || 0) : (data.totalQuizzes || 0);
+    const perfectQuizzes = isGod ? totalQuizzes : (data.perfectQuizzes || 0);
+    const estimatedMinutes = isGod ? 999 : Math.max(10, (totalLessonsDone * 12) + (totalQuizzes * 5));
+    const earnedCount = isGod ? badges.length : badges.filter(b => b.earned).length;
+    const badgePercent = isGod ? 100 : Math.round((earnedCount / badges.length) * 100);
 
     // 3. Skupina: Kategoriální rozdělení odznaků
     const categories = [
@@ -582,6 +591,10 @@ window.Progress = {
 
     // Helper pro výpočet cíle a postupu odznaku
     const getBadgeGoalInfo = (badge) => {
+      if (isGod) {
+        return { cur: 1, tgt: 1, unit: 'splněno', pct: 100, goalHint: '✨ Božská moc: Plně odemčeno' };
+      }
+
       let cur = 0, tgt = 1, unit = '', goalHint = '';
       if (badge.id === 'first_lesson') {
         cur = totalLessonsDone; tgt = 1; unit = 'lekce';
@@ -599,13 +612,13 @@ window.Progress = {
         cur = stage2Done; tgt = 8; unit = 'na Scéně';
         goalHint = cur >= tgt ? 'Splněno!' : `Zbývá: ${8 - cur} lekcí na Scéně`;
       } else if (badge.id === 'xp_500') {
-        cur = data.totalXP; tgt = 500; unit = 'XP';
+        cur = displayXP; tgt = 500; unit = 'XP';
         goalHint = cur >= tgt ? 'Splněno!' : `Chybí ještě: ${Math.max(0, 500 - cur)} XP`;
       } else if (badge.id === 'xp_1000') {
-        cur = data.totalXP; tgt = 1000; unit = 'XP';
+        cur = displayXP; tgt = 1000; unit = 'XP';
         goalHint = cur >= tgt ? 'Splněno!' : `Chybí ještě: ${Math.max(0, 1000 - cur)} XP`;
       } else if (badge.id === 'xp_5000') {
-        cur = data.totalXP; tgt = 5000; unit = 'XP';
+        cur = displayXP; tgt = 5000; unit = 'XP';
         goalHint = cur >= tgt ? 'Splněno!' : `Chybí ještě: ${Math.max(0, 5000 - cur)} XP`;
       } else if (badge.id === 'perfect_quiz') {
         cur = perfectQuizzes; tgt = 1; unit = 'kvíz';
@@ -650,46 +663,50 @@ window.Progress = {
       </div>
 
       <!-- 1. Karta uživatele -->
-      <div class="card p-6 mb-8 flex flex-wrap items-center justify-between gap-6 animate-slideInUp bg-surface-2 border border-surface-border" style="border-radius: 18px;">
+      <div class="card p-6 mb-8 flex flex-wrap items-center justify-between gap-6 animate-slideInUp ${isGod ? 'god-gold-card' : 'bg-surface-2 border border-surface-border'}" style="border-radius: 18px;">
         <div class="flex items-center gap-5">
           <div style="
             width: 76px; height: 76px;
             border-radius: 50%;
-            background: linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(59, 130, 246, 0.2) 100%);
-            border: 2px solid rgba(139, 92, 246, 0.5);
+            background: ${isGod ? 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)' : 'linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(59, 130, 246, 0.2) 100%)'};
+            border: 2px solid ${isGod ? '#FBBF24' : 'rgba(139, 92, 246, 0.5)'};
             display: flex; align-items: center; justify-content: center;
             font-size: 2.5rem;
-            box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+            box-shadow: 0 0 20px ${isGod ? 'rgba(245, 158, 11, 0.5)' : 'rgba(139, 92, 246, 0.3)'};
             flex-shrink: 0;
           ">
-            🎸
+            ${isGod ? '👑' : '🎸'}
           </div>
           <div>
             <div class="flex items-center gap-3">
               <h2 class="text-2xl font-extrabold text-white mb-0">${userName}</h2>
-              <span class="rank-badge" style="background: ${rank.color}22; color: ${rank.color}; border: 1px solid ${rank.color}55;">
-                ${rank.icon} ${rank.name}
+              <span class="rank-badge ${isGod ? 'god-gold-badge' : ''}" style="${isGod ? '' : `background: ${rank.color}22; color: ${rank.color}; border: 1px solid ${rank.color}55;`}">
+                ${isGod ? '👑 Olymp (Bůh kytary)' : `${rank.icon} ${rank.name}`}
               </span>
             </div>
             <p class="text-sm text-muted mt-1 mb-1">${userEmail}</p>
             <div class="text-xs text-muted flex items-center gap-2 flex-wrap">
               <span>📅 Členem od: <strong>${formattedJoinDate}</strong></span>
               <span>•</span>
-              <span>Aktuální fáze: <strong style="color: ${rank.color};">${rank.stage}</strong></span>
+              <span>Aktuální fáze: <strong style="color: ${isGod ? '#fbbf24' : rank.color};">${isGod ? 'Všechny etapy dokončeny' : rank.stage}</strong></span>
             </div>
           </div>
         </div>
 
         <div class="user-rank-status text-right">
           <div class="text-xs text-muted font-bold uppercase tracking-wider mb-1">Titul & Fáze</div>
-          <div class="text-xl font-extrabold" style="color: ${rank.color};">${rank.icon} ${rank.name}</div>
-          ${rank.nextRank ? `
+          <div class="text-xl font-extrabold" style="color: ${isGod ? '#fbbf24' : rank.color};">
+            ${isGod ? '👑 Olymp (Bůh kytary)' : `${rank.icon} ${rank.name}`}
+          </div>
+          ${isGod ? `
+            <div class="text-xs font-bold mt-1" style="color: #fbbf24;">⚡ PLNÁ KONTROLA • VŠECHNY LEKCE DOKONČENY</div>
+          ` : (rank.nextRank ? `
             <div class="text-xs text-muted mt-1">
               Do titulu <strong>${rank.nextRank.name}</strong> zbývá: <strong>${rank.nextRank.minXP - data.totalXP} XP</strong>
             </div>
           ` : `
             <div class="text-xs text-success font-bold mt-1">🏆 Dosažen nejvyšší mistrovský titul!</div>
-          `}
+          `)}
         </div>
       </div>
 
@@ -703,96 +720,100 @@ window.Progress = {
             </h3>
             <p class="profile-group-desc">Tvůj postup kurzem, získané zkušenosti a postup na vyšší úroveň.</p>
           </div>
-          <span class="companion-card-badge" style="font-size: 0.75rem;">Level ${level}</span>
+          <span class="companion-card-badge ${isGod ? 'god-gold-badge' : ''}" style="font-size: 0.75rem;">
+            Level ${displayLevel}
+          </span>
         </div>
 
         <!-- Hero Card: Úroveň a XP -->
-        <div class="profile-hero-card">
+        <div class="profile-hero-card ${isGod ? 'god-gold-card' : ''}">
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem;">
             <div style="display: flex; align-items: center; gap: 1rem;">
               <div style="
                 width: 56px; height: 56px;
                 border-radius: 16px;
-                background: linear-gradient(135deg, #8B5CF6 0%, #3B82F6 100%);
+                background: ${isGod ? 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)' : 'linear-gradient(135deg, #8B5CF6 0%, #3B82F6 100%)'};
                 display: flex; align-items: center; justify-content: center;
                 font-size: 1.6rem;
                 font-weight: 800;
-                color: #ffffff;
-                box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+                color: ${isGod ? '#000000' : '#ffffff'};
+                box-shadow: 0 4px 15px ${isGod ? 'rgba(245, 158, 11, 0.5)' : 'rgba(139, 92, 246, 0.4)'};
               ">
-                ${level}
+                ${displayLevel}
               </div>
               <div>
                 <div style="font-size: 1.2rem; font-weight: 800; color: #ffffff;">
-                  Úroveň ${level} • ${rank.name}
+                  Úroveň ${displayLevel} • ${isGod ? 'Olymp (Bůh kytary)' : rank.name}
                 </div>
                 <div style="font-size: 0.8rem; color: #94a3b8;">
-                  Nasbíráno celkem <strong style="color: #fbbf24;">${data.totalXP} XP</strong>
+                  Nasbíráno celkem <strong style="color: #fbbf24;">${displayXP} XP</strong> ${isGod ? '(MAX DOSAŽENO)' : ''}
                 </div>
               </div>
             </div>
             <div style="text-align: right;">
-              <span style="font-size: 0.85rem; font-weight: 700; color: #a78bfa;">
-                ${levelProgress} / 100 XP (${levelProgress}%)
+              <span style="font-size: 0.85rem; font-weight: 700; color: ${isGod ? '#fbbf24' : '#a78bfa'};">
+                ${displayLevelProgress} / 100 XP (${displayLevelProgress}%)
               </span>
-              <div style="font-size: 0.75rem; color: #64748b;">Do další úrovně chybí ${100 - levelProgress} XP</div>
+              <div style="font-size: 0.75rem; color: #64748b;">
+                ${isGod ? 'Dosažena maximální božská úroveň' : `Do další úrovně chybí ${100 - displayLevelProgress} XP`}
+              </div>
             </div>
           </div>
 
-          <!-- XP Bar -->
+          <!-- XP Bar (Zlatý pro God Mode) -->
           <div class="xp-bar" style="height: 10px; background: rgba(15, 23, 42, 0.6); border-radius: 9999px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.08);">
-            <div class="xp-bar-fill" style="width: ${levelProgress}%; height: 100%; background: linear-gradient(90deg, #8B5CF6, #3B82F6); border-radius: 9999px; transition: width 0.6s ease;"></div>
+            <div class="xp-bar-fill ${isGod ? 'god-gold-bar' : ''}" style="width: ${displayLevelProgress}%; height: 100%; background: ${isGod ? 'linear-gradient(90deg, #F59E0B 0%, #FBBF24 50%, #FDE68A 100%)' : 'linear-gradient(90deg, #8B5CF6, #3B82F6)'}; border-radius: 9999px; transition: width 0.6s ease; box-shadow: ${isGod ? '0 0 12px rgba(245, 158, 11, 0.7)' : 'none'};"></div>
           </div>
         </div>
 
         <!-- 3 Podrobné karty postupu kurzem -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <!-- 1. etapa -->
-          <div class="stat-card card p-4 bg-surface-2 border border-surface-border">
+          <div class="stat-card card p-4 bg-surface-2 border border-surface-border ${isGod ? 'god-gold-card' : ''}">
             <div class="flex items-center justify-between text-muted text-xs font-bold uppercase mb-2">
               <span>1. Fáze: Garáž</span>
               <span class="text-base">🏠</span>
             </div>
             <div class="flex items-baseline justify-between mb-1">
               <span class="text-2xl font-extrabold text-white">${stage1Done} / 8 lekcí</span>
-              <span class="text-xs text-accent font-semibold">${stage1Percent}%</span>
+              <span class="text-xs ${isGod ? 'text-warning font-bold' : 'text-accent font-semibold'}">${stage1Percent}%</span>
             </div>
             <div class="badge-progress-bar mt-2">
-              <div class="badge-progress-bar-fill" style="width: ${stage1Percent}%;"></div>
+              <div class="badge-progress-bar-fill ${isGod ? 'god-gold-bar' : ''}" style="width: ${stage1Percent}%;"></div>
             </div>
-            <div class="text-xs text-muted mt-2">Základní akordy, rytmus a úchop</div>
+            <div class="text-xs text-muted mt-2">${isGod ? '✅ Všechny lekce v Garáži splněny' : 'Základní akordy, rytmus a úchop'}</div>
           </div>
 
           <!-- 2. etapa -->
-          <div class="stat-card card p-4 bg-surface-2 border border-surface-border">
+          <div class="stat-card card p-4 bg-surface-2 border border-surface-border ${isGod ? 'god-gold-card' : ''}">
             <div class="flex items-center justify-between text-muted text-xs font-bold uppercase mb-2">
               <span>2. Fáze: Otevřená scéna</span>
               <span class="text-base">🎤</span>
             </div>
             <div class="flex items-baseline justify-between mb-1">
               <span class="text-2xl font-extrabold text-white">${stage2Done} / 8 lekcí</span>
-              <span class="text-xs text-accent font-semibold">${stage2Percent}%</span>
+              <span class="text-xs ${isGod ? 'text-warning font-bold' : 'text-accent font-semibold'}">${stage2Percent}%</span>
             </div>
             <div class="badge-progress-bar mt-2">
-              <div class="badge-progress-bar-fill" style="width: ${stage2Percent}%;"></div>
+              <div class="badge-progress-bar-fill ${isGod ? 'god-gold-bar' : ''}" style="width: ${stage2Percent}%;"></div>
             </div>
-            <div class="text-xs text-muted mt-2">Písničky, barre akordy a vybrnkávání</div>
+            <div class="text-xs text-muted mt-2">${isGod ? '✅ Všechny lekce na Scéně splněny' : 'Písničky, barre akordy a vybrnkávání'}</div>
           </div>
 
           <!-- Celkový kurz -->
-          <div class="stat-card card p-4 bg-surface-2 border border-surface-border">
+          <div class="stat-card card p-4 bg-surface-2 border border-surface-border ${isGod ? 'god-gold-card' : ''}">
             <div class="flex items-center justify-between text-muted text-xs font-bold uppercase mb-2">
               <span>Celkový postup výukou</span>
               <span class="text-base">📖</span>
             </div>
             <div class="flex items-baseline justify-between mb-1">
               <span class="text-2xl font-extrabold text-white">${totalLessonsDone} / 16 lekcí</span>
-              <span class="text-xs text-success font-semibold">${totalCoursePercent}%</span>
+              <span class="text-xs text-success font-bold">${totalCoursePercent}%</span>
             </div>
             <div class="badge-progress-bar mt-2">
-              <div class="badge-progress-bar-fill" style="width: ${totalCoursePercent}%; background: linear-gradient(90deg, #10B981, #059669);"></div>
+              <div class="badge-progress-bar-fill ${isGod ? 'god-gold-bar' : ''}" style="width: ${totalCoursePercent}%; ${isGod ? '' : 'background: linear-gradient(90deg, #10B981, #059669);'}"></div>
             </div>
-            <div class="text-xs text-muted mt-2">Kompletní akademie hry na kytaru</div>
+            <div class="text-xs text-muted mt-2">${isGod ? '🏆 Kompletní akademie 100% dokončena' : 'Kompletní akademie hry na kytaru'}</div>
           </div>
         </div>
       </section>
@@ -807,61 +828,61 @@ window.Progress = {
             </h3>
             <p class="profile-group-desc">Sledování pravidelnosti cvičení, přesnosti odpovědí a kytarové praxe.</p>
           </div>
-          <span class="companion-card-badge ${streakActive ? 'streak-done' : ''}">
-            ${streakActive ? '🔥 Série aktivní' : '⏳ Připraveno ke cvičení'}
+          <span class="companion-card-badge ${isGod ? 'god-gold-badge' : (streakActive ? 'streak-done' : '')}">
+            ${isGod ? '👑 Nekonečná série' : (streakActive ? '🔥 Série aktivní' : '⏳ Připraveno ke cvičení')}
           </span>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <!-- Denní série -->
-          <div class="stat-card card p-4 bg-surface-2 border border-surface-border">
+          <!-- Denní série (Nekonečno ∞ pro God Mode) -->
+          <div class="stat-card card p-4 bg-surface-2 border border-surface-border ${isGod ? 'god-gold-card' : ''}">
             <div class="flex items-center justify-between text-muted text-xs font-bold uppercase mb-2">
               <span>Denní série</span>
               <span class="text-base">🔥</span>
             </div>
-            <div class="text-3xl font-extrabold text-white mb-1" style="color: ${streakActive ? '#f59e0b' : '#ffffff'};">
+            <div class="text-3xl font-extrabold mb-1" style="color: ${isGod ? '#fbbf24' : (streakActive ? '#f59e0b' : '#ffffff')}; ${isGod ? 'text-shadow: 0 0 15px rgba(245, 158, 11, 0.7);' : ''}">
               ${streakDisplay}
             </div>
             <div class="text-xs text-muted">
-              Dnes aktivní: <strong style="color: ${streakActive ? '#34d399' : '#94a3b8'};">${streakActive ? 'Ano (1 den)' : 'Zatím ne (0 dní)'}</strong>
+              Dnes aktivní: <strong style="color: ${isGod ? '#fbbf24' : (streakActive ? '#34d399' : '#94a3b8')};">${isGod ? 'Ano (∞ dní - Božská moc)' : (streakActive ? 'Ano (1 den)' : 'Zatím ne (0 dní)')}</strong>
             </div>
           </div>
 
           <!-- Kvízy -->
-          <div class="stat-card card p-4 bg-surface-2 border border-surface-border">
+          <div class="stat-card card p-4 bg-surface-2 border border-surface-border ${isGod ? 'god-gold-card' : ''}">
             <div class="flex items-center justify-between text-muted text-xs font-bold uppercase mb-2">
               <span>Odehrané kvízy</span>
               <span class="text-base">💯</span>
             </div>
             <div class="text-3xl font-extrabold text-white mb-1">${totalQuizzes}</div>
             <div class="text-xs text-muted">
-              Bezchybných: <strong style="color: #34d399;">${perfectQuizzes}</strong> (100%)
+              Bezchybných: <strong style="color: ${isGod ? '#fbbf24' : '#34d399'};">${perfectQuizzes}</strong> (100%)
             </div>
           </div>
 
           <!-- Kytarová praxe -->
-          <div class="stat-card card p-4 bg-surface-2 border border-surface-border">
+          <div class="stat-card card p-4 bg-surface-2 border border-surface-border ${isGod ? 'god-gold-card' : ''}">
             <div class="flex items-center justify-between text-muted text-xs font-bold uppercase mb-2">
               <span>Čas praxe</span>
               <span class="text-base">⏱️</span>
             </div>
-            <div class="text-3xl font-extrabold text-white mb-1">~${estimatedMinutes} min</div>
+            <div class="text-3xl font-extrabold text-white mb-1">${isGod ? 'Nekonečno' : `~${estimatedMinutes} min`}</div>
             <div class="text-xs text-muted">Odehraný čas u cvičení a lekcí</div>
           </div>
 
           <!-- Trofeje -->
-          <div class="stat-card card p-4 bg-surface-2 border border-surface-border">
+          <div class="stat-card card p-4 bg-surface-2 border border-surface-border ${isGod ? 'god-gold-card' : ''}">
             <div class="flex items-center justify-between text-muted text-xs font-bold uppercase mb-2">
               <span>Trofeje & Odznaky</span>
               <span class="text-base">🎖️</span>
             </div>
-            <div class="text-3xl font-extrabold text-accent mb-1">${earnedCount} / ${badges.length}</div>
+            <div class="text-3xl font-extrabold ${isGod ? 'text-warning' : 'text-accent'} mb-1">${earnedCount} / ${badges.length}</div>
             <div class="text-xs text-muted">Odemčeno <strong>${badgePercent}%</strong> ocenění</div>
           </div>
         </div>
       </section>
 
-      <!-- 4. ROZDĚLENÉ A MOTIVUJÍCÍ ODZNAKY (Aspirational Badges) -->
+      <!-- 4. ROZDĚLENÉ A MOTIVUJÍCÍ ODZNAKY -->
       <section class="badges-section mb-8 animate-slideInUp" style="animation-delay: 100ms;">
         <div class="profile-group-header">
           <div>
@@ -871,8 +892,8 @@ window.Progress = {
             </h3>
             <p class="profile-group-desc">Sleduj svůj postup a odemykej speciální ocenění pro kytaristy.</p>
           </div>
-          <span class="companion-card-badge" style="font-size: 0.8rem; padding: 4px 12px;">
-            ${earnedCount} získáno • ${badges.length - earnedCount} zbývá
+          <span class="companion-card-badge ${isGod ? 'god-gold-badge' : ''}" style="font-size: 0.8rem; padding: 4px 12px;">
+            ${earnedCount} získáno • ${isGod ? '0 zbývá' : `${badges.length - earnedCount} zbývá`}
           </span>
         </div>
 
@@ -885,7 +906,7 @@ window.Progress = {
             ✨ Získané (${earnedCount})
           </button>
           <button class="badge-filter-btn" data-filter="locked" onclick="Progress.filterBadges('locked')">
-            🎯 K odemčení (${badges.length - earnedCount})
+            🎯 K odemčení (${isGod ? 0 : badges.length - earnedCount})
           </button>
         </div>
 
@@ -893,31 +914,32 @@ window.Progress = {
         <div class="badge-categories-container">
           ${categories.map(cat => {
             const catBadges = badges.filter(b => cat.badgeIds.includes(b.id));
-            const catEarned = catBadges.filter(b => b.earned).length;
+            const catEarned = isGod ? catBadges.length : catBadges.filter(b => b.earned).length;
 
             return `
-              <div class="badge-category-section" data-category="${cat.id}">
+              <div class="badge-category-section ${isGod ? 'god-gold-card' : ''}" data-category="${cat.id}">
                 <div class="badge-category-title-wrap">
                   <div class="badge-category-name">
                     <span>${cat.icon}</span>
                     <span>${cat.name}</span>
                   </div>
-                  <div class="badge-category-count">
+                  <div class="badge-category-count ${isGod ? 'god-gold-badge' : ''}">
                     ${catEarned} / ${catBadges.length} získáno
                   </div>
                 </div>
 
                 <div class="badge-cards-grid">
                   ${catBadges.map(b => {
+                    const isEarned = isGod || b.earned;
                     const info = getBadgeGoalInfo(b);
                     return `
-                      <div class="badge-card-v2 ${b.earned ? 'earned' : 'locked'}" data-badge-status="${b.earned ? 'earned' : 'locked'}" title="${b.description}">
+                      <div class="badge-card-v2 ${isEarned ? 'earned' : 'locked'}" data-badge-status="${isEarned ? 'earned' : 'locked'}" title="${b.description}">
                         <div class="badge-top-row">
-                          <div class="badge-icon-bubble">
+                          <div class="badge-icon-bubble" style="${isGod ? 'background: rgba(245, 158, 11, 0.25); border: 1px solid #f59e0b; box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);' : ''}">
                             ${b.icon}
                           </div>
-                          <span class="badge-status-pill ${b.earned ? 'earned' : 'locked'}">
-                            ${b.earned ? '✓ Získáno' : '🎯 K odemčení'}
+                          <span class="badge-status-pill ${isEarned ? 'earned' : 'locked'}" style="${isGod ? 'background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-color: rgba(245, 158, 11, 0.5);' : ''}">
+                            ${isEarned ? '✓ Získáno' : '🎯 K odemčení'}
                           </span>
                         </div>
 
@@ -927,14 +949,14 @@ window.Progress = {
 
                           <div class="badge-progress-box">
                             <div class="badge-progress-labels">
-                              <span>${b.earned ? 'Dokončeno na 100%' : `Postup: ${info.cur} / ${info.tgt} ${info.unit}`}</span>
-                              <span style="color: ${b.earned ? '#34d399' : '#a78bfa'};">${info.pct}%</span>
+                              <span>${isEarned ? 'Dokončeno na 100%' : `Postup: ${info.cur} / ${info.tgt} ${info.unit}`}</span>
+                              <span style="color: ${isEarned ? '#fbbf24' : '#a78bfa'};">${info.pct}%</span>
                             </div>
                             <div class="badge-progress-bar">
-                              <div class="badge-progress-bar-fill" style="width: ${info.pct}%; ${b.earned ? 'background: linear-gradient(90deg, #10B981, #059669);' : ''}"></div>
+                              <div class="badge-progress-bar-fill ${isGod ? 'god-gold-bar' : ''}" style="width: ${info.pct}%; ${(!isGod && isEarned) ? 'background: linear-gradient(90deg, #10B981, #059669);' : ''}"></div>
                             </div>
-                            <div class="badge-goal-hint" style="color: ${b.earned ? '#34d399' : '#cbd5e1'};">
-                              ${b.earned ? '✨ Úspěch plně odemčen' : `🎯 ${info.goalHint}`}
+                            <div class="badge-goal-hint" style="color: ${isEarned ? (isGod ? '#fbbf24' : '#34d399') : '#cbd5e1'};">
+                              ${isEarned ? (isGod ? '✨ Božská moc: Plně odemčeno' : '✨ Úspěch plně odemčen') : `🎯 ${info.goalHint}`}
                             </div>
                           </div>
                         </div>
@@ -1079,7 +1101,6 @@ window.Progress = {
       });
     }
   },
-
   initializeForNewUser() {
     const now = new Date();
 

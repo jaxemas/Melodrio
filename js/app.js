@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Melodrio - Main Application Module
  * Handles routing, navigation, dashboard rendering, story map, profile, and app initialization.
  */
@@ -768,7 +768,7 @@ window.App = {
   },
 
   /**
-   * Render the companion right sidebar column on the dashboard.
+   * Render the companion right sidebar column on the dashboard (Compact & Sticky).
    */
   renderDashboardSidebar() {
     const sidebar = document.getElementById('dashboard-sidebar');
@@ -777,42 +777,42 @@ window.App = {
     const { xp, streak, completed } = this.getProgressData();
     const isGod = this.isGod();
     const streakCount = (streak >= 1) ? 1 : 0;
-    const isStreakActive = (streakCount >= 1);
+    const isStreakActive = isGod ? true : (streakCount >= 1);
 
     // Dynamic calculation of the closest locked badge to unlock
     let nextBadge = null;
     let badgeProgress = { current: 0, target: 1, percent: 0, hint: '' };
     if (window.Progress && typeof window.Progress.getBadges === 'function') {
       const allBadges = window.Progress.getBadges();
-      const lockedBadges = allBadges.filter(b => !b.earned);
+      const lockedBadges = isGod ? [] : allBadges.filter(b => !b.earned);
       if (lockedBadges.length > 0) {
         for (const b of lockedBadges) {
           let cur = 0, tgt = 1, h = '';
           if (b.id === 'first_lesson') {
-            cur = completed.length; tgt = 1; h = `Dokonči 1 lekci v kurzu`;
+            cur = completed.length; tgt = 1; h = `Dokonči 1. lekci v kurzu`;
           } else if (b.id === 'five_lessons') {
-            cur = completed.length; tgt = 5; h = `Zbývá dokončit: ${Math.max(0, 5 - completed.length)} lekcí`;
+            cur = completed.length; tgt = 5; h = `Zbývá: ${Math.max(0, 5 - completed.length)} lekcí`;
           } else if (b.id === 'ten_lessons') {
-            cur = completed.length; tgt = 10; h = `Zbývá dokončit: ${Math.max(0, 10 - completed.length)} lekcí`;
+            cur = completed.length; tgt = 10; h = `Zbývá: ${Math.max(0, 10 - completed.length)} lekcí`;
           } else if (b.id === 'all_stage1') {
             const c = completed.filter(id => id >= 1 && id <= 8).length;
-            cur = c; tgt = 8; h = `Zbývá: ${8 - c} lekcí v 1. fázi (Garáž)`;
+            cur = c; tgt = 8; h = `Zbývá: ${8 - c} lekcí v Garáži`;
           } else if (b.id === 'all_stage2') {
             const c = completed.filter(id => id >= 9 && id <= 16).length;
-            cur = c; tgt = 8; h = `Zbývá: ${8 - c} lekcí ve 2. fázi (Scéna)`;
+            cur = c; tgt = 8; h = `Zbývá: ${8 - c} lekcí na Scéně`;
           } else if (b.id === 'xp_500') {
-            cur = xp; tgt = 500; h = `Chybí ještě: ${Math.max(0, 500 - xp)} XP`;
+            cur = xp; tgt = 500; h = `Chybí: ${Math.max(0, 500 - xp)} XP`;
           } else if (b.id === 'xp_1000') {
-            cur = xp; tgt = 1000; h = `Chybí ještě: ${Math.max(0, 1000 - xp)} XP`;
+            cur = xp; tgt = 1000; h = `Chybí: ${Math.max(0, 1000 - xp)} XP`;
           } else if (b.id === 'xp_5000') {
-            cur = xp; tgt = 5000; h = `Chybí ještě: ${Math.max(0, 5000 - xp)} XP`;
+            cur = xp; tgt = 5000; h = `Chybí: ${Math.max(0, 5000 - xp)} XP`;
           } else if (b.id === 'streak_3') {
-            cur = streakCount; tgt = 3; h = `Zbývá: ${Math.max(0, 3 - streakCount)} dny denní série`;
+            cur = streakCount; tgt = 3; h = `Zbývá: ${Math.max(0, 3 - streakCount)} dny série`;
           } else if (b.id === 'streak_7') {
-            cur = streakCount; tgt = 7; h = `Zbývá: ${Math.max(0, 7 - streakCount)} dní denní série`;
+            cur = streakCount; tgt = 7; h = `Zbývá: ${Math.max(0, 7 - streakCount)} dní série`;
           } else if (b.id === 'perfect_quiz') {
             const p = (window.Progress.data && window.Progress.data.perfectQuizzes) || 0;
-            cur = p; tgt = 1; h = `Zvládni 1 kvíz bez chyby (100 %)`;
+            cur = p; tgt = 1; h = `Kvíz bez chyby (100 %)`;
           } else {
             cur = 0; tgt = 1; h = b.description;
           }
@@ -833,8 +833,8 @@ window.App = {
       <div class="dashboard-companion-card animate-slideInUp">
         <div class="companion-card-header">
           <div class="companion-card-title">
-            <span style="font-size: 1.25rem;">🔥</span>
-            <span>Dnešní cíl & Série</span>
+            <span>🔥</span>
+            <span>Dnešní série & Cíl</span>
           </div>
           <span class="companion-card-badge ${isStreakActive ? 'streak-done' : ''}">
             ${isStreakActive ? '✅ Splněno' : '⏳ K dokončení'}
@@ -842,130 +842,105 @@ window.App = {
         </div>
         <div class="companion-card-body">
           <div style="display: flex; align-items: baseline; justify-content: space-between;">
-            <span style="font-size: 1.6rem; font-weight: 800; color: ${isStreakActive ? '#f59e0b' : '#f8fafc'};">
-              ${this.formatStreak(streakCount)}
+            <span style="font-size: 1.3rem; font-weight: 800; color: ${isStreakActive ? '#f59e0b' : '#f8fafc'};">
+              ${isGod ? '∞ dní' : this.formatStreak(streakCount)}
             </span>
-            <span style="font-size: 0.78rem; color: #94a3b8; font-weight: 600;">
-              ${isStreakActive ? 'Dnešní série aktivní' : 'Cíl: 1 cvičení denně'}
+            <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 600;">
+              ${isStreakActive ? 'Dnes aktivní' : '1 cvičení denně'}
             </span>
           </div>
-          <p style="font-size: 0.82rem; color: #94a3b8; margin: 0; line-height: 1.4;">
-            ${isStreakActive
-              ? 'Skvělá práce! Dnes jsi splnil cvičení a tvůj kytarový plamen hoří.'
-              : 'Dnes jsi ještě necvičil. Dokonči alespoň 1 lekci nebo kvíz a rozpal svou denní sérii!'
-            }
-          </p>
           <button class="btn ${isStreakActive ? 'btn-ghost' : 'btn-primary'} btn-sm" onclick="App.continueCurrentLesson()" style="
             width: 100%;
-            margin-top: 0.35rem;
+            padding: 0.35rem 0.6rem;
+            font-size: 0.78rem;
+            font-weight: 700;
+            border-radius: 8px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 0.4rem;
-            font-weight: 700;
+            gap: 0.35rem;
           ">
-            <span>${isStreakActive ? 'Pokračovat v dalším cvičení' : 'Spustit dnešní lekci'}</span>
+            <span>${isStreakActive ? 'Další lekce' : 'Spustit dnešní lekci'}</span>
             <span>▶</span>
           </button>
         </div>
       </div>
 
       <!-- Companion Card 2: Odznak na dosah -->
-      <div class="dashboard-companion-card animate-slideInUp" style="animation-delay: 50ms;">
+      <div class="dashboard-companion-card animate-slideInUp">
         <div class="companion-card-header">
           <div class="companion-card-title">
-            <span style="font-size: 1.25rem;">🎯</span>
+            <span>🎯</span>
             <span>Odznak na dosah</span>
           </div>
-          <span class="companion-card-badge">Ocenění</span>
+          <a href="#/profile" style="font-size: 0.68rem; color: #a78bfa; font-weight: 600; text-decoration: none;">Profil →</a>
         </div>
         <div class="companion-card-body">
           ${nextBadge ? `
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
               <div style="
-                width: 44px; height: 44px;
-                border-radius: 12px;
+                width: 34px; height: 34px;
+                border-radius: 8px;
                 background: rgba(139, 92, 246, 0.15);
                 border: 1px solid rgba(139, 92, 246, 0.3);
                 display: flex; align-items: center; justify-content: center;
-                font-size: 1.5rem;
+                font-size: 1.2rem;
                 flex-shrink: 0;
               ">${nextBadge.icon}</div>
-              <div style="min-width: 0;">
-                <div style="font-size: 0.92rem; font-weight: 800; color: #f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              <div style="min-width: 0; flex: 1;">
+                <div style="font-size: 0.82rem; font-weight: 700; color: #f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                   ${nextBadge.name}
                 </div>
-                <div style="font-size: 0.75rem; color: #94a3b8; line-height: 1.3;">
+                <div style="font-size: 0.68rem; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                   ${nextBadge.description}
                 </div>
               </div>
+              <span style="font-size: 0.72rem; font-weight: 700; color: #a78bfa;">${badgeProgress.percent}%</span>
             </div>
-
-            <!-- Progress bar to badge -->
-            <div style="margin-top: 0.25rem;">
-              <div style="display: flex; justify-content: space-between; font-size: 0.72rem; font-weight: 700; color: #94a3b8; margin-bottom: 4px;">
-                <span>Postup: ${badgeProgress.current} / ${badgeProgress.target}</span>
-                <span style="color: #a78bfa;">${badgeProgress.percent}%</span>
-              </div>
-              <div class="badge-progress-bar">
-                <div class="badge-progress-bar-fill" style="width: ${badgeProgress.percent}%;"></div>
-              </div>
-              <div class="badge-goal-hint" style="margin-top: 6px;">
-                🎯 ${badgeProgress.hint}
-              </div>
+            <div class="badge-progress-bar" style="height: 5px; margin-top: 2px;">
+              <div class="badge-progress-bar-fill" style="width: ${badgeProgress.percent}%;"></div>
             </div>
-
-            <a href="#/profile" class="btn btn-ghost btn-sm" style="
-              width: 100%;
-              margin-top: 0.25rem;
-              font-size: 0.78rem;
-              text-align: center;
-              border: 1px solid rgba(255, 255, 255, 0.08);
-            ">
-              Všechny odznaky v profilu →
-            </a>
+            <div style="font-size: 0.68rem; color: #cbd5e1; font-weight: 600;">
+              🎯 ${badgeProgress.hint}
+            </div>
           ` : `
-            <div style="text-align: center; padding: 0.5rem 0;">
-              <div style="font-size: 2rem; margin-bottom: 0.25rem;">🏆</div>
-              <div style="font-weight: 700; color: #f8fafc; font-size: 0.9rem;">Všechny odznaky odemčeny!</div>
-              <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 0.2rem;">Jsi absolutní mistr kytary.</div>
+            <div style="text-align: center; padding: 0.2rem 0; font-size: 0.78rem; color: #f8fafc; font-weight: 700;">
+              🏆 Všechny odznaky odemčeny!
             </div>
           `}
         </div>
       </div>
 
       <!-- Companion Card 3: Kytarový tip dne -->
-      <div class="dashboard-companion-card animate-slideInUp" style="animation-delay: 100ms;">
+      <div class="dashboard-companion-card animate-slideInUp">
         <div class="companion-card-header">
           <div class="companion-card-title">
-            <span style="font-size: 1.25rem;">💡</span>
-            <span>Kytarový tip dne</span>
+            <span>💡</span>
+            <span>Tip dne</span>
           </div>
-          <button class="btn btn-ghost btn-sm" onclick="App.nextGuitarTip()" title="Další tip" style="
-            padding: 2px 8px;
-            font-size: 0.72rem;
+          <button class="btn btn-ghost" onclick="App.nextGuitarTip()" title="Další tip" style="
+            padding: 1px 6px;
+            font-size: 0.68rem;
             color: #a78bfa;
-            border-radius: 9999px;
-            border: 1px solid rgba(139, 92, 246, 0.3);
-          ">
-            Další tip ↻
-          </button>
+            border-radius: 6px;
+            border: 1px solid rgba(139, 92, 246, 0.25);
+          ">Další ↻</button>
         </div>
         <div class="companion-card-body">
-          <div style="font-size: 0.88rem; font-weight: 700; color: #f8fafc;">
+          <div style="font-size: 0.78rem; font-weight: 700; color: #f8fafc;">
             ${tip.title}
           </div>
-          <p style="font-size: 0.8rem; color: #94a3b8; margin: 0; line-height: 1.45;">
+          <p style="font-size: 0.72rem; color: #94a3b8; margin: 0; line-height: 1.35;">
             ${tip.text}
           </p>
         </div>
       </div>
 
       <!-- Companion Card 4: Rychlé nástroje -->
-      <div class="dashboard-companion-card animate-slideInUp" style="animation-delay: 150ms;">
+      <div class="dashboard-companion-card animate-slideInUp">
         <div class="companion-card-header">
           <div class="companion-card-title">
-            <span style="font-size: 1.25rem;">⚡</span>
+            <span>⚡</span>
             <span>Rychlé nástroje</span>
           </div>
           <span class="companion-card-badge">Praxe</span>
@@ -994,21 +969,20 @@ window.App = {
       ">
         <div class="companion-card-header" style="border-bottom-color: rgba(245, 158, 11, 0.2);">
           <div class="companion-card-title" style="color: #fde68a;">
-            <span style="font-size: 1.25rem;">👑</span>
-            <span>God Mode zkratky</span>
+            <span>👑</span>
+            <span>God Mode</span>
           </div>
           <span class="companion-card-badge" style="background: rgba(245, 158, 11, 0.2); color: #fde68a; border-color: rgba(245, 158, 11, 0.4);">
             Root
           </span>
         </div>
-        <div class="companion-card-body" style="gap: 0.5rem;">
-          <div style="font-size: 0.75rem; color: #cbd5e1;">Plná kontrola nad aplikací aktivní.</div>
-          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-            <button class="btn btn-sm btn-ghost" onclick="App.godSetMaxXP()" style="flex: 1; font-size: 0.72rem; border-color: rgba(245, 158, 11, 0.3); color: #fde68a;">
+        <div class="companion-card-body" style="gap: 0.35rem;">
+          <div style="display: flex; gap: 0.35rem;">
+            <button class="btn btn-sm btn-ghost" onclick="App.godSetMaxXP()" style="flex: 1; padding: 2px 4px; font-size: 0.68rem; border-color: rgba(245, 158, 11, 0.3); color: #fde68a;">
               Max XP ⭐
             </button>
-            <button class="btn btn-sm btn-ghost" onclick="App.godToggleStreak()" style="flex: 1; font-size: 0.72rem; border-color: rgba(239, 68, 68, 0.3); color: #fca5a5;">
-              Přepnout sérii 🔥
+            <button class="btn btn-sm btn-ghost" onclick="App.godToggleStreak()" style="flex: 1; padding: 2px 4px; font-size: 0.68rem; border-color: rgba(239, 68, 68, 0.3); color: #fca5a5;">
+              Série 🔥
             </button>
           </div>
         </div>
@@ -1016,7 +990,6 @@ window.App = {
       ` : ''}
     `;
   },
-
   continueCurrentLesson() {
     const { completed } = this.getProgressData();
     let currentId = 1;
@@ -2000,33 +1973,33 @@ window.App = {
     }
   },
 
-  // 25 Song Repertoire
+  // 25 Song Repertoire with unlock conditions tied to lessons
   SONGS_25: [
-    { id: 1, title: 'Stánky', artist: 'Nedvědi', difficulty: 'Snadná', bpm: 105, chords: ['D', 'G', 'A'], lyrics: "U stánků na levnou krásu postávaj a smějou se času,\ns kapkou rumu v kafi marně touží po lidech...\nJen konce všech těch lásek zbyly někde v prachu cest." },
-    { id: 2, title: 'Bedna od vodky', artist: 'Miki Ryvola', difficulty: 'Snadná', bpm: 120, chords: ['C', 'F', 'G', 'Am'], lyrics: "Pět neděl v chládku jsem si poseděl,\nteď v kapse prachy mám a starej cíl.\nV hospodě na rohu chci chvíli pít,\na starou bednu od vodky zas mít." },
-    { id: 3, title: 'Slavíci z Madridu', artist: 'Waldemar Matuška', difficulty: 'Snadná', bpm: 110, chords: ['Am', 'E', 'Dm'], lyrics: "Nebe je modrý a zlatý, bílá je sluneční zář,\nhorko a sváteční šaty, vřava a lhostejná tvář.\nLalalalala lalala lalala lalalalala..." },
-    { id: 4, title: 'Severní vítr', artist: 'Jaroslav Uhlíř', difficulty: 'Snadná', bpm: 95, chords: ['C', 'Am', 'F', 'G'], lyrics: "Jdu s děravou patou, mám horečku zlatou,\njsem chudý, jsem sláb, nemocen.\nHlava mě pálí a v modravé dáli\nse leskne a třpytí můj sen..." },
-    { id: 5, title: "Knockin' on Heaven's Door", artist: 'Bob Dylan', difficulty: 'Snadná', bpm: 68, chords: ['G', 'D', 'Am', 'C'], lyrics: "Mama, take this badge off of me,\nI can't use it anymore.\nIt's gettin' dark, too dark for me to see,\nFeels like I'm knockin' on heaven's door." },
-    { id: 6, title: 'Let It Be', artist: 'The Beatles', difficulty: 'Střední', bpm: 72, chords: ['C', 'G', 'Am', 'F'], lyrics: "When I find myself in times of trouble,\nMother Mary comes to me,\nSpeaking words of wisdom: Let it be.\nAnd in my hour of darkness she is standing right in front of me..." },
-    { id: 7, title: 'Wonderwall', artist: 'Oasis', difficulty: 'Střední', bpm: 88, chords: ['Em', 'G', 'D', 'A7sus4'], lyrics: "Today is gonna be the day that they're gonna throw it back to you.\nBy now you should've somehow realized what you gotta do.\nI don't believe that anybody feels the way I do about you now." },
-    { id: 8, title: 'Zombie', artist: 'The Cranberries', difficulty: 'Snadná', bpm: 84, chords: ['Em', 'C', 'G', 'D'], lyrics: "Another head hangs lowly, child is slowly taken.\nAnd the violence caused such silence, who are we mistaken?\nIn your head, in your head, they are fighting..." },
-    { id: 9, title: 'Hallelujah', artist: 'Leonard Cohen', difficulty: 'Střední', bpm: 58, chords: ['C', 'Am', 'F', 'G', 'E'], lyrics: "Now I've heard there was a secret chord\nThat David played, and it pleased the Lord,\nBut you don't really care for music, do ya?\nIt goes like this: the fourth, the fifth, the minor fall, the major lift..." },
-    { id: 10, title: 'Stand By Me', artist: 'Ben E. King', difficulty: 'Snadná', bpm: 118, chords: ['A', 'F#m', 'D', 'E'], lyrics: "When the night has come and the land is dark,\nAnd the moon is the only light we'll see.\nNo, I won't be afraid, oh, I won't be afraid,\nJust as long as you stand, stand by me." },
-    { id: 11, title: 'House of the Rising Sun', artist: 'The Animals', difficulty: 'Pokročilá', bpm: 78, chords: ['Am', 'C', 'D', 'F', 'E'], lyrics: "There is a house in New Orleans they call the Rising Sun,\nAnd it's been the ruin of many a poor boy,\nAnd God, I know I'm one." },
-    { id: 12, title: 'Wish You Were Here', artist: 'Pink Floyd', difficulty: 'Střední', bpm: 60, chords: ['Em', 'G', 'A7sus4', 'C', 'D'], lyrics: "So, so you think you can tell Heaven from Hell?\nBlue skies from pain?\nCan you tell a green field from a cold steel rail?\nA smile from a veil? Do you think you can tell?" },
-    { id: 13, title: 'Riptide', artist: 'Vance Joy', difficulty: 'Snadná', bpm: 102, chords: ['Am', 'G', 'C', 'F'], lyrics: "I was scared of dentists and the dark,\nI was scared of pretty girls and starting conversations.\nOh, all my friends are turning green,\nYou're the magician's assistant in their dreams." },
-    { id: 14, title: 'Hey Jude', artist: 'The Beatles', difficulty: 'Střední', bpm: 74, chords: ['F', 'C', 'C7', 'Bb'], lyrics: "Hey Jude, don't make it bad,\nTake a sad song and make it better.\nRemember to let her into your heart,\nThen you can start to make it better." },
-    { id: 15, title: 'A Horse with No Name', artist: 'America', difficulty: 'Snadná', bpm: 122, chords: ['Em', 'D6/9'], lyrics: "On the first part of the journey, I was looking at all the life.\nThere were plants and birds and rocks and things,\nThere was sand and hills and rings.\nThe ocean is a desert with its life underground..." },
-    { id: 16, title: 'Černí andělé', artist: 'Lucie', difficulty: 'Střední', bpm: 124, chords: ['Em', 'G', 'D', 'C'], lyrics: "Černí andělé v nás křídla rozprostřou,\ntisíc let už bdí a čekaj nad Prahou.\nSex je náš a dělá dobře mně i tobě,\nčerný anděl hlídá nás." },
-    { id: 17, title: 'Tisíc mil', artist: 'Waldemar Matuška', difficulty: 'Snadná', bpm: 90, chords: ['G', 'Em', 'C', 'D'], lyrics: "V nohách mám už tisíc mil,\nstovky měst a stovky řek,\nnikde klid a nikde cíl,\njenom stín a prach a vděk..." },
-    { id: 18, title: 'Kometa', artist: 'Jaromír Nohavica', difficulty: 'Střední', bpm: 110, chords: ['Am', 'Dm', 'E', 'C'], lyrics: "Spatřil jsem kometu, oblohou letěla,\nchtěl jsem jí zazpívat, ona mi zmizela.\nJako srnka, když v křoví zhasne,\njako když rozkvete poupě krásné..." },
-    { id: 19, title: 'Jarošovský pivovar', artist: 'Argema', difficulty: 'Snadná', bpm: 130, chords: ['G', 'D', 'Em', 'C'], lyrics: "Léta tam stál, stát bude dál,\nten náš slavný pivovar.\nKde se pivo vaří, tam se dobře daří,\ntam je svět náš..." },
-    { id: 20, title: 'Svařené víno', artist: 'Sem Tam', difficulty: 'Snadná', bpm: 98, chords: ['C', 'F', 'G'], lyrics: "Když venku mrzne, až praští mráz,\nsvařené víno zahřeje nás.\nHřebíček, skořice, plamínek plápolá,\ntenhle večer na kytaru zavolá..." },
-    { id: 21, title: 'Bláznova ukolébavka', artist: 'Pavel Dobeš', difficulty: 'Snadná', bpm: 100, chords: ['D', 'A', 'G'], lyrics: "Máš, má ovečko, dávno spát,\ni píseň ptáků už doznává,\nzavři svá očka a nechej si zdát,\no tom, jak tě mám rád..." },
-    { id: 22, title: 'Sweet Home Alabama', artist: 'Lynyrd Skynyrd', difficulty: 'Střední', bpm: 98, chords: ['D', 'C', 'G'], lyrics: "Big wheels keep on turnin',\nCarry me home to see my kin.\nSingin' songs about the south-land,\nI miss 'ole 'Bama once again and I think it's a sin." },
-    { id: 23, title: 'Take Me Home, Country Roads', artist: 'John Denver', difficulty: 'Snadná', bpm: 82, chords: ['G', 'Em', 'D', 'C'], lyrics: "Almost Heaven, West Virginia,\nBlue Ridge Mountains, Shenandoah River.\nLife is old there, older than the trees,\nYounger than the mountains, growin' like a breeze." },
-    { id: 24, title: "Ain't No Sunshine", artist: 'Bill Withers', difficulty: 'Střední', bpm: 78, chords: ['Am', 'Em', 'G', 'Dm'], lyrics: "Ain't no sunshine when she's gone,\nIt's not warm when she's away.\nAin't no sunshine when she's gone,\nAnd she's always gone too long anytime she goes away." },
-    { id: 25, title: 'Perfect', artist: 'Ed Sheeran', difficulty: 'Snadná', bpm: 63, chords: ['G', 'Em', 'C', 'D'], lyrics: "I found a love for me,\nDarling, just dive right in and follow my lead.\nWell, I found a girl, beautiful and sweet,\nOh, I never knew you were the someone waiting for me." }
+    { id: 1, title: 'Stánky', artist: 'Nedvědi', difficulty: 'Snadná', bpm: 105, unlockLesson: 11, chords: ['D', 'G', 'A'], lyrics: "U stánků na levnou krásu postávaj a smějou se času,\ns kapkou rumu v kafi marně touží po lidech...\nJen konce všech těch lásek zbyly někde v prachu cest." },
+    { id: 2, title: 'Bedna od vodky', artist: 'Miki Ryvola', difficulty: 'Snadná', bpm: 120, unlockLesson: 13, chords: ['C', 'F', 'G', 'Am'], lyrics: "Pět neděl v chládku jsem si poseděl,\nteď v kapse prachy mám a starej cíl.\nV hospodě na rohu chci chvíli pít,\na starou bednu od vodky zas mít." },
+    { id: 3, title: 'Slavíci z Madridu', artist: 'Waldemar Matuška', difficulty: 'Snadná', bpm: 110, unlockLesson: 9, chords: ['Am', 'E', 'Dm'], lyrics: "Nebe je modrý a zlatý, bílá je sluneční zář,\nhorko a sváteční šaty, vřava a lhostejná tvář.\nLalalalala lalala lalala lalalalala..." },
+    { id: 4, title: 'Severní vítr', artist: 'Jaroslav Uhlíř', difficulty: 'Snadná', bpm: 95, unlockLesson: 13, chords: ['C', 'Am', 'F', 'G'], lyrics: "Jdu s děravou patou, mám horečku zlatou,\njsem chudý, jsem sláb, nemocen.\nHlava mě pálí a v modravé dáli\nse leskne a třpytí můj sen..." },
+    { id: 5, title: "Knockin' on Heaven's Door", artist: 'Bob Dylan', difficulty: 'Snadná', bpm: 68, unlockLesson: 14, chords: ['G', 'D', 'Am', 'C'], lyrics: "Mama, take this badge off of me,\nI can't use it anymore.\nIt's gettin' dark, too dark for me to see,\nFeels like I'm knockin' on heaven's door." },
+    { id: 6, title: 'Let It Be', artist: 'The Beatles', difficulty: 'Střední', bpm: 72, unlockLesson: 13, chords: ['C', 'G', 'Am', 'F'], lyrics: "When I find myself in times of trouble,\nMother Mary comes to me,\nSpeaking words of wisdom: Let it be.\nAnd in my hour of darkness she is standing right in front of me..." },
+    { id: 7, title: 'Wonderwall', artist: 'Oasis', difficulty: 'Střední', bpm: 88, unlockLesson: 14, chords: ['Em', 'G', 'D', 'A7sus4'], lyrics: "Today is gonna be the day that they're gonna throw it back to you.\nBy now you should've somehow realized what you gotta do.\nI don't believe that anybody feels the way I do about you now." },
+    { id: 8, title: 'Zombie', artist: 'The Cranberries', difficulty: 'Snadná', bpm: 84, unlockLesson: 8, chords: ['Em', 'C', 'G', 'D'], lyrics: "Another head hangs lowly, child is slowly taken.\nAnd the violence caused such silence, who are we mistaken?\nIn your head, in your head, they are fighting..." },
+    { id: 9, title: 'Hallelujah', artist: 'Leonard Cohen', difficulty: 'Střední', bpm: 58, unlockLesson: 13, chords: ['C', 'Am', 'F', 'G', 'E'], lyrics: "Now I've heard there was a secret chord\nThat David played, and it pleased the Lord,\nBut you don't really care for music, do ya?\nIt goes like this: the fourth, the fifth, the minor fall, the major lift..." },
+    { id: 10, title: 'Stand By Me', artist: 'Ben E. King', difficulty: 'Snadná', bpm: 118, unlockLesson: 10, chords: ['A', 'F#m', 'D', 'E'], lyrics: "When the night has come and the land is dark,\nAnd the moon is the only light we'll see.\nNo, I won't be afraid, oh, I won't be afraid,\nJust as long as you stand, stand by me." },
+    { id: 11, title: 'House of the Rising Sun', artist: 'The Animals', difficulty: 'Pokročilá', bpm: 78, unlockLesson: 13, chords: ['Am', 'C', 'D', 'F', 'E'], lyrics: "There is a house in New Orleans they call the Rising Sun,\nAnd it's been the ruin of many a poor boy,\nAnd God, I know I'm one." },
+    { id: 12, title: 'Wish You Were Here', artist: 'Pink Floyd', difficulty: 'Střední', bpm: 60, unlockLesson: 14, chords: ['Em', 'G', 'A7sus4', 'C', 'D'], lyrics: "So, so you think you can tell Heaven from Hell?\nBlue skies from pain?\nCan you tell a green field from a cold steel rail?\nA smile from a veil? Do you think you can tell?" },
+    { id: 13, title: 'Riptide', artist: 'Vance Joy', difficulty: 'Snadná', bpm: 102, unlockLesson: 13, chords: ['Am', 'G', 'C', 'F'], lyrics: "I was scared of dentists and the dark,\nI was scared of pretty girls and starting conversations.\nOh, all my friends are turning green,\nYou're the magician's assistant in their dreams." },
+    { id: 14, title: 'Hey Jude', artist: 'The Beatles', difficulty: 'Střední', bpm: 74, unlockLesson: 13, chords: ['F', 'C', 'C7', 'Bb'], lyrics: "Hey Jude, don't make it bad,\nTake a sad song and make it better.\nRemember to let her into your heart,\nThen you can start to make it better." },
+    { id: 15, title: 'A Horse with No Name', artist: 'America', difficulty: 'Snadná', bpm: 122, unlockLesson: 6, chords: ['Em', 'D6/9'], lyrics: "On the first part of the journey, I was looking at all the life.\nThere were plants and birds and rocks and things,\nThere was sand and hills and rings.\nThe ocean is a desert with its life underground..." },
+    { id: 16, title: 'Černí andělé', artist: 'Lucie', difficulty: 'Střední', bpm: 124, unlockLesson: 14, chords: ['Em', 'G', 'D', 'C'], lyrics: "Černí andělé v nás křídla rozprostřou,\ntisíc let už bdí a čekaj nad Prahou.\nSex je náš a dělá dobře mně i tobě,\nčerný anděl hlídá nás." },
+    { id: 17, title: 'Tisíc mil', artist: 'Waldemar Matuška', difficulty: 'Snadná', bpm: 90, unlockLesson: 14, chords: ['G', 'Em', 'C', 'D'], lyrics: "V nohách mám už tisíc mil,\nstovky měst a stovky řek,\nnikde klid a nikde cíl,\njenom stín a prach a vděk..." },
+    { id: 18, title: 'Kometa', artist: 'Jaromír Nohavica', difficulty: 'Střední', bpm: 110, unlockLesson: 9, chords: ['Am', 'Dm', 'E', 'C'], lyrics: "Spatřil jsem kometu, oblohou letěla,\nchtěl jsem jí zazpívat, ona mi zmizela.\nJako srnka, když v křoví zhasne,\njako když rozkvete poupě krásné..." },
+    { id: 19, title: 'Jarošovský pivovar', artist: 'Argema', difficulty: 'Snadná', bpm: 130, unlockLesson: 14, chords: ['G', 'D', 'Em', 'C'], lyrics: "Léta tam stál, stát bude dál,\nten náš slavný pivovar.\nKde se pivo vaří, tam se dobře daří,\ntam je svět náš..." },
+    { id: 20, title: 'Svařené víno', artist: 'Sem Tam', difficulty: 'Snadná', bpm: 98, unlockLesson: 14, chords: ['C', 'F', 'G'], lyrics: "Když venku mrzne, až praští mráz,\nsvařené víno zahřeje nás.\nHřebíček, skořice, plamínek plápolá,\ntenhle večer na kytaru zavolá..." },
+    { id: 21, title: 'Bláznova ukolébavka', artist: 'Pavel Dobeš', difficulty: 'Snadná', bpm: 100, unlockLesson: 11, chords: ['D', 'A', 'G'], lyrics: "Máš, má ovečko, dávno spát,\ni píseň ptáků už doznává,\nzavři svá očka a nechej si zdát,\no tom, jak tě mám rád..." },
+    { id: 22, title: 'Sweet Home Alabama', artist: 'Lynyrd Skynyrd', difficulty: 'Střední', bpm: 98, unlockLesson: 15, chords: ['D', 'C', 'G'], lyrics: "Big wheels keep on turnin',\nCarry me home to see my kin.\nSingin' songs about the south-land,\nI miss 'ole 'Bama once again and I think it's a sin." },
+    { id: 23, title: 'Take Me Home, Country Roads', artist: 'John Denver', difficulty: 'Snadná', bpm: 82, unlockLesson: 15, chords: ['G', 'Em', 'D', 'C'], lyrics: "Almost Heaven, West Virginia,\nBlue Ridge Mountains, Shenandoah River.\nLife is old there, older than the trees,\nYounger than the mountains, growin' like a breeze." },
+    { id: 24, title: "Ain't No Sunshine", artist: 'Bill Withers', difficulty: 'Střední', bpm: 78, unlockLesson: 8, chords: ['Am', 'Em', 'G', 'Dm'], lyrics: "Ain't no sunshine when she's gone,\nIt's not warm when she's away.\nAin't no sunshine when she's gone,\nAnd she's always gone too long anytime she goes away." },
+    { id: 25, title: 'Perfect', artist: 'Ed Sheeran', difficulty: 'Snadná', bpm: 63, unlockLesson: 15, chords: ['G', 'Em', 'C', 'D'], lyrics: "I found a love for me,\nDarling, just dive right in and follow my lead.\nWell, I found a girl, beautiful and sweet,\nOh, I never knew you were the someone waiting for me." }
   ],
 
   // Metronome State
@@ -2068,22 +2041,29 @@ window.App = {
       },
       {
         q: 'Který tón je základním tónem akordu G dur na kytaře?',
-        options: ['Tón E na 6. struně', 'Tón G na 3. pražci 6. struny (E)', 'Tón C na 3. pražci A struny', 'Prázdná H struna'],
-        correct: 1,
-        tip: 'Základní basový tón G se nachází na 3. pražci tlusté E struny.'
+        options: ['Tón G na 3. pražci 6. struny', 'Tón C na 3. pražci 5. struny', 'Otevřená struna D', '1. pražec na tenkém e'],
+        correct: 0,
+        tip: 'Základní basový tón G leží na 3. pražci nejtlustší struny E.'
       },
       {
-        q: 'Který akord tvoří typický trojúhelníkový tvar na spodních třech strunách?',
-        options: ['Am', 'D dur', 'F dur', 'C dur'],
-        correct: 1,
-        tip: 'Akord D dur využívá 1. a 2. prst na 2. pražci (G a tenké E) a 3. prst na 3. pražci (H).'
+        q: 'Co znamená zkratka BPM v hudbě?',
+        options: ['Beats Per Minute (počet úderů za minutu)', 'Bass Power Music', 'Best Practice Method', 'Bar Per Measure'],
+        correct: 0,
+        tip: 'BPM udává tempo skladby — kolik dob proběhne za 60 sekund.'
+      },
+      {
+        q: 'Jaký je standardní interval mezi 3. strunou (G) a 2. strunou (H)?',
+        options: ['Velká tercie', 'Čistá kvarta', 'Čistá kvinta', 'Malá sekunda'],
+        correct: 0,
+        tip: 'Všechny ostatní struny jsou laděné v čistých kvartách, pouze mezi G a H je velká tercie (4 půltóny).'
       }
     ]
   },
 
   /**
-   * Render coming soon placeholder cards for tools (songs, practice, tuner, metronome),
-   * OR render full interactive preview tools if user is in God mode.
+   * Render views for tools (songs, tuner, metronome, practice).
+   * Ladička a Metronom jsou nyní odemčeny pro všechny uživatele!
+   * Písničky mají propracovaný katalog s odemykáním podle lekcí.
    * @param {string} viewId
    * @param {string} toolName
    */
@@ -2091,34 +2071,24 @@ window.App = {
     const view = document.getElementById(viewId);
     if (!view) return;
 
-    // IF GOD MODE: render fully functional interactive tool preview!
-    if (this.isGod()) {
-      switch (toolName) {
-        case 'metronome':
-          this.renderGodMetronome(view);
-          return;
-        case 'tuner':
-          this.renderGodTuner(view);
-          return;
-        case 'practice':
-          this.renderGodPractice(view);
-          return;
-        case 'songs':
-          this.renderGodSongs(view);
-          return;
-      }
+    if (toolName === 'metronome') {
+      this.renderGodMetronome(view);
+      return;
+    }
+    if (toolName === 'tuner') {
+      this.renderGodTuner(view);
+      return;
+    }
+    if (toolName === 'songs') {
+      this.renderSongsCatalog(view);
+      return;
+    }
+    if (toolName === 'practice' && this.isGod()) {
+      this.renderGodPractice(view);
+      return;
     }
 
-    // NORMAL USERS: Clean coming-soon card
-    const titles = {
-      songs: { title: 'Písničky a taby', icon: '🎶', desc: 'Knihovna skladeb s interaktivními akordy a texty.' },
-      practice: { title: 'Trénink & Cvičení', icon: '🎯', desc: 'Rychlé tréninkové moduly pro trénink prstů a sluchu.' },
-      tuner: { title: 'Kytarová ladička', icon: '🎚️', desc: 'Přesné ladění kytary přes mikrofon i tóny.' },
-      metronome: { title: 'Metronom', icon: '⏱️', desc: 'Nastavitelný metronom s vizuálním a zvukovým rytmem.' }
-    };
-
-    const item = titles[toolName] || { title: 'Připravujeme', icon: '🎸', desc: 'Tento modul je právě ve vývoji.' };
-
+    // Normal user practice placeholder
     view.innerHTML = `
       <div class="card coming-soon-page" style="
         background: rgba(30, 41, 59, 0.7);
@@ -2130,9 +2100,11 @@ window.App = {
         margin: 2rem auto;
         backdrop-filter: blur(14px);
       ">
-        <div style="font-size: 3.5rem; margin-bottom: 1rem;">${item.icon}</div>
-        <h2 style="font-size: 1.75rem; font-weight: 800; color: #f8fafc; margin-bottom: 0.5rem;">${item.title}</h2>
-        <p style="color: #94a3b8; font-size: 1.05rem; margin-bottom: 2rem; line-height: 1.5;">${item.desc}</p>
+        <div style="font-size: 3.5rem; margin-bottom: 1rem;">🎯</div>
+        <h2 style="font-size: 1.75rem; font-weight: 800; color: #f8fafc; margin-bottom: 0.5rem;">Trénink & Cvičení</h2>
+        <p style="color: #94a3b8; font-size: 1.05rem; margin-bottom: 2rem; line-height: 1.5;">
+          Interaktivní chord quiz a tréninkové moduly pro hbitost prstů.
+        </p>
         <div style="display: inline-block; background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.35); color: #c4b5fd; padding: 0.4rem 1rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 700; margin-bottom: 1.5rem;">
           🚀 Bude dostupné v příští aktualizaci
         </div>
@@ -2146,21 +2118,23 @@ window.App = {
   },
 
   /* ==========================================================================
-     INTERACTIVE GOD TOOLS (Metronome, Tuner, Practice, Songs)
+     INTERACTIVE TOOLS (Metronome, Tuner, Practice, Songs)
      ========================================================================== */
 
   /**
-   * Render Interactive Metronome
+   * Render Interactive Metronome (plně odemčeno pro všechny uživatele)
    */
   renderGodMetronome(container) {
     const s = this._metroState;
+    const isGod = this.isGod();
+
     container.innerHTML = `
       <div style="max-width: 680px; margin: 1rem auto; display: flex; flex-direction: column; gap: 1.5rem;">
-        <!-- God Mode Banner -->
-        <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(30, 41, 59, 0.8)); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 14px; padding: 0.85rem 1.25rem; display: flex; justify-content: space-between; align-items: center;">
-          <div style="display: flex; align-items: center; gap: 0.6rem; color: #fde68a; font-weight: 700; font-size: 0.9rem;">
-            <span>👑 Administrátorský přístup:</span>
-            <span style="color: #cbd5e1; font-weight: normal;">Interaktivní náhled modulu Metronom</span>
+        <!-- Banner -->
+        <div style="background: ${isGod ? 'linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(30, 41, 59, 0.8))' : 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(30, 41, 59, 0.8))'}; border: 1px solid ${isGod ? 'rgba(245, 158, 11, 0.4)' : 'rgba(139, 92, 246, 0.35)'}; border-radius: 14px; padding: 0.85rem 1.25rem; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 0.6rem; color: ${isGod ? '#fde68a' : '#c4b5fd'}; font-weight: 700; font-size: 0.9rem;">
+            <span>${isGod ? '👑 Administrátorský přístup:' : '⏱️ Interaktivní metronom:'}</span>
+            <span style="color: #cbd5e1; font-weight: normal;">${isGod ? 'Interaktivní náhled modulu Metronom' : 'Trénuj přesnost rytmu, tempo a plynulost přechodů'}</span>
           </div>
           <button class="btn btn-ghost btn-sm" onclick="App.navigate('#/dashboard')">← Dashboard</button>
         </div>
@@ -2260,39 +2234,42 @@ window.App = {
 
   toggleMetronome() {
     const s = this._metroState;
+    s.isPlaying = !s.isPlaying;
+    const btn = document.getElementById('metro-play-btn');
+
     if (s.isPlaying) {
-      clearInterval(s.timer);
-      s.isPlaying = false;
-      s.currentBeat = 0;
-      this.clearBeatIndicators();
-    } else {
-      s.isPlaying = true;
-      s.currentBeat = 0;
+      if (btn) {
+        btn.textContent = '⏹ Zastavit';
+        btn.className = 'btn btn-danger btn-lg';
+      }
       const intervalMs = (60 / s.bpm) * 1000;
       this.tickMetronome();
       s.timer = setInterval(() => this.tickMetronome(), intervalMs);
-    }
-    const btn = document.getElementById('metro-play-btn');
-    if (btn) {
-      btn.className = `btn ${s.isPlaying ? 'btn-danger' : 'btn-primary'} btn-lg`;
-      btn.innerHTML = s.isPlaying ? '⏹ Zastavit' : '▶ Spustit metronom';
-      btn.style.boxShadow = s.isPlaying ? '0 4px 20px rgba(239, 68, 68, 0.4)' : '0 4px 20px rgba(139, 92, 246, 0.4)';
+    } else {
+      if (btn) {
+        btn.textContent = '▶ Spustit metronom';
+        btn.className = 'btn btn-primary btn-lg';
+      }
+      clearInterval(s.timer);
+      s.timer = null;
+      s.currentBeat = 0;
+      this.clearBeatIndicators();
     }
   },
 
   tickMetronome() {
     const s = this._metroState;
-    const accent = s.currentBeat === 0;
-    this.playMetronomeClick(accent);
+    const isFirstBeat = (s.currentBeat === 0);
+    this.playMetronomeClick(isFirstBeat);
 
-    // Update visual dot indicators
+    // Update beat indicator dots
     for (let i = 0; i < s.beatsPerBar; i++) {
       const dot = document.getElementById(`metro-beat-${i}`);
       if (dot) {
         if (i === s.currentBeat) {
-          dot.style.background = accent ? '#F59E0B' : '#8B5CF6';
-          dot.style.transform = 'scale(1.4)';
-          dot.style.boxShadow = accent ? '0 0 16px #F59E0B' : '0 0 12px #8B5CF6';
+          dot.style.background = isFirstBeat ? '#10B981' : '#8B5CF6';
+          dot.style.transform = 'scale(1.35)';
+          dot.style.boxShadow = `0 0 16px ${isFirstBeat ? 'rgba(16, 185, 129, 0.8)' : 'rgba(139, 92, 246, 0.8)'}`;
         } else {
           dot.style.background = 'rgba(255,255,255,0.15)';
           dot.style.transform = 'scale(1)';
@@ -2363,9 +2340,10 @@ window.App = {
   },
 
   /**
-   * Render Interactive Tuner
+   * Render Interactive Tuner (plně odemčeno pro všechny uživatele)
    */
   renderGodTuner(container) {
+    const isGod = this.isGod();
     const strings = [
       { num: 6, note: 'E', name: '6. E (Tlusté E)', freq: 82.41 },
       { num: 5, note: 'A', name: '5. A', freq: 110.00 },
@@ -2377,11 +2355,11 @@ window.App = {
 
     container.innerHTML = `
       <div style="max-width: 720px; margin: 1rem auto; display: flex; flex-direction: column; gap: 1.5rem;">
-        <!-- God Mode Banner -->
-        <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(30, 41, 59, 0.8)); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 14px; padding: 0.85rem 1.25rem; display: flex; justify-content: space-between; align-items: center;">
-          <div style="display: flex; align-items: center; gap: 0.6rem; color: #fde68a; font-weight: 700; font-size: 0.9rem;">
-            <span>👑 Administrátorský přístup:</span>
-            <span style="color: #cbd5e1; font-weight: normal;">Interaktivní kytarová ladička (připraveno pro Výstup 3)</span>
+        <!-- Banner -->
+        <div style="background: ${isGod ? 'linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(30, 41, 59, 0.8))' : 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(30, 41, 59, 0.8))'}; border: 1px solid ${isGod ? 'rgba(245, 158, 11, 0.4)' : 'rgba(139, 92, 246, 0.35)'}; border-radius: 14px; padding: 0.85rem 1.25rem; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 0.6rem; color: ${isGod ? '#fde68a' : '#c4b5fd'}; font-weight: 700; font-size: 0.9rem;">
+            <span>${isGod ? '👑 Administrátorský přístup:' : '🎛️ Chromatická ladička:'}</span>
+            <span style="color: #cbd5e1; font-weight: normal;">${isGod ? 'Interaktivní kytarová ladička' : 'Referenční tóny pro standardní kytarové ladění E-A-D-G-H-E'}</span>
           </div>
           <button class="btn btn-ghost btn-sm" onclick="App.navigate('#/dashboard')">← Dashboard</button>
         </div>
@@ -2389,7 +2367,7 @@ window.App = {
         <!-- Tuner Dial & Needle Card -->
         <div class="card" style="background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 20px; padding: 2.25rem; text-align: center; backdrop-filter: blur(14px);">
           <div style="font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; color: #a78bfa; font-weight: 700; margin-bottom: 0.25rem;">
-            Chromatická ladička
+            Referenční tóny pro ladění
           </div>
           <div id="tuner-note-display" style="font-size: 4rem; font-weight: 900; color: #f8fafc; font-family: monospace; line-height: 1.1;">
             E<span style="font-size: 1.5rem; color: #94a3b8;">2</span>
@@ -2399,299 +2377,319 @@ window.App = {
           </div>
 
           <!-- Needle Meter -->
-          <div style="position: relative; width: 100%; max-width: 440px; margin: 0 auto 1.5rem auto; height: 70px; background: rgba(15, 23, 42, 0.7); border-radius: 14px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; padding: 0 1.5rem 0.75rem 1.5rem; box-sizing: border-box;">
-            <!-- Scale markings -->
-            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #64748b; font-weight: 700; margin-bottom: 0.5rem;">
-              <span>-50 ct</span>
-              <span style="color: #10B981;">0 (OK)</span>
-              <span>+50 ct</span>
-            </div>
-            <!-- Center In-Tune line -->
-            <div style="position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; background: #10B981; transform: translateX(-50%); opacity: 0.8;"></div>
-            <!-- Needle -->
-            <div id="tuner-needle" style="position: absolute; top: 8px; bottom: 8px; left: 50%; width: 4px; background: #F59E0B; transform: translateX(-50%); border-radius: 2px; box-shadow: 0 0 10px #F59E0B; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+          <div style="position: relative; width: 280px; height: 140px; margin: 0 auto 2rem auto; overflow: hidden;">
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 140px; border-radius: 140px 140px 0 0; background: rgba(15, 23, 42, 0.7); border: 2px solid rgba(255, 255, 255, 0.1); border-bottom: none;"></div>
+            <div style="position: absolute; bottom: 0; left: 50%; width: 4px; height: 120px; background: #10B981; transform-origin: bottom center; transform: translateX(-50%) rotate(0deg); border-radius: 2px; box-shadow: 0 0 12px #10B981; transition: transform 0.25s ease;" id="tuner-needle"></div>
+            <div style="position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); width: 24px; height: 24px; border-radius: 50%; background: #ffffff; box-shadow: 0 0 10px rgba(0,0,0,0.5);"></div>
           </div>
 
-          <div id="tuner-status-badge" style="display: inline-block; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #a7f3d0; padding: 0.35rem 1.25rem; border-radius: 9999px; font-weight: 700; font-size: 0.9rem; margin-bottom: 2rem;">
-            ✓ Perfektně naladěno
+          <div id="tuner-status-badge" style="display: inline-block; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; font-weight: 800; padding: 0.4rem 1.25rem; border-radius: 9999px; font-size: 0.95rem; margin-bottom: 2rem;">
+            🎯 Přesně naladěno (In Tune)
           </div>
 
-          <!-- Strings List (Click to play tone) -->
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 0.75rem; margin-top: 1rem;">
-            ${strings.map(s => `
+          <!-- 6 Guitar String Selector Buttons -->
+          <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.5rem; max-width: 550px; margin: 0 auto 1.5rem auto;">
+            ${strings.map(st => `
               <button
                 class="btn btn-secondary tuner-string-btn"
-                id="tuner-str-${s.note}${s.num}"
-                onclick="App.playTunerTone(${s.freq}, '${s.note}', ${s.num})"
-                style="padding: 0.85rem 0.5rem; border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 0.25rem; border-color: rgba(255,255,255,0.12);"
+                id="tuner-btn-${st.num}"
+                onclick="App.playTunerString(${st.num}, ${st.freq}, '${st.note}')"
+                style="padding: 0.85rem 0.25rem; border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 0.25rem; font-weight: 800;"
               >
-                <span style="font-size: 1.35rem; font-weight: 800; color: #f8fafc;">${s.note}</span>
-                <span style="font-size: 0.75rem; color: #94a3b8;">${s.name}</span>
-                <span style="font-size: 0.7rem; color: #a78bfa;">${s.freq} Hz</span>
+                <span style="font-size: 1.35rem; color: #f8fafc;">${st.note}</span>
+                <span style="font-size: 0.7rem; color: #94a3b8;">${st.num}. struna</span>
               </button>
             `).join('')}
+          </div>
+
+          <div style="color: #94a3b8; font-size: 0.85rem;">
+            Klikni na libovolnou strunu a poslouchej referenční tón pro naladění své kytary.
           </div>
         </div>
       </div>
     `;
   },
 
-  playTunerTone(freq, note, num) {
+  playTunerString(num, freq, note) {
+    const s = this._tunerState;
+    if (s.currentOsc) {
+      try { s.currentOsc.stop(); } catch (e) {}
+      s.currentOsc = null;
+    }
+
     try {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (!AudioCtx) return;
-      if (!this._tunerState.audioCtx) {
-        this._tunerState.audioCtx = new AudioCtx();
-      }
-      const ctx = this._tunerState.audioCtx;
-      if (ctx.state === 'suspended') {
-        ctx.resume();
-      }
-      if (this._tunerState.currentOsc) {
-        try { this._tunerState.currentOsc.stop(); } catch (e) {}
-        this._tunerState.currentOsc = null;
-      }
-
-      // Update UI displays
-      const noteEl = document.getElementById('tuner-note-display');
-      const freqEl = document.getElementById('tuner-freq-display');
-      const needleEl = document.getElementById('tuner-needle');
-      if (noteEl) noteEl.innerHTML = `${note}<span style="font-size: 1.5rem; color: #94a3b8;">${num}</span>`;
-      if (freqEl) freqEl.textContent = `Referenční tón: ${freq} Hz`;
-
-      // Slight needle wiggle for realistic feel
-      if (needleEl) {
-        needleEl.style.left = '48%';
-        setTimeout(() => { if (needleEl) needleEl.style.left = '51%'; }, 150);
-        setTimeout(() => { if (needleEl) needleEl.style.left = '50%'; }, 350);
-      }
+      if (!s.audioCtx) s.audioCtx = new AudioCtx();
+      const ctx = s.audioCtx;
+      if (ctx.state === 'suspended') ctx.resume();
 
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'triangle';
       osc.frequency.setValueAtTime(freq, ctx.currentTime);
 
-      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.setValueAtTime(0.4, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 3.0);
 
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.start();
       osc.stop(ctx.currentTime + 3.0);
-      this._tunerState.currentOsc = osc;
+      s.currentOsc = osc;
 
-      if (window.UI) {
-        window.UI.showToast(`Přehrávám tón ${note} (${freq} Hz)`, 'info');
+      // Update UI
+      const noteEl = document.getElementById('tuner-note-display');
+      const freqEl = document.getElementById('tuner-freq-display');
+      if (noteEl) noteEl.innerHTML = `${note}<span style="font-size: 1.5rem; color: #94a3b8;">(${num}. struna)</span>`;
+      if (freqEl) freqEl.textContent = `Frekvence: ${freq} Hz`;
+
+      // Highlight active button
+      document.querySelectorAll('.tuner-string-btn').forEach(b => {
+        b.style.borderColor = 'rgba(255,255,255,0.1)';
+        b.style.background = 'rgba(255,255,255,0.05)';
+      });
+      const activeBtn = document.getElementById(`tuner-btn-${num}`);
+      if (activeBtn) {
+        activeBtn.style.borderColor = '#10B981';
+        activeBtn.style.background = 'rgba(16, 185, 129, 0.2)';
       }
     } catch (e) {
-      console.warn('Tuner tone error:', e);
+      console.warn('Tuner audio error:', e);
     }
   },
 
   /**
-   * Render Interactive Practice Module
+   * Render Interactive Practice Quiz
    */
   renderGodPractice(container) {
-    const q = this._quizState.questions[this._quizState.index];
-    const chords = [
-      { name: 'C dur', diagram: 'x 3 2 0 1 0', desc: 'Ukazovák 1. pražec H, prostředník 2. pražec D, prsteník 3. pražec A.' },
-      { name: 'G dur', diagram: '3 2 0 0 0 3', desc: 'Prostředník 2. pražec A, prsteník 3. pražec tlusté E, malíček 3. pražec tenké E.' },
-      { name: 'D dur', diagram: 'x x 0 2 3 2', desc: 'Ukazovák 2. pražec G, prsteník 3. pražec H, prostředník 2. pražec tenké E.' },
-      { name: 'E moll', diagram: '0 2 2 0 0 0', desc: 'Prostředník 2. pražec A, prsteník 2. pražec D. Zní všech 6 strun.' },
-      { name: 'A moll', diagram: 'x 0 2 2 1 0', desc: 'Ukazovák 1. pražec H, prostředník 2. pražec D, prsteník 2. pražec G.' },
-      { name: 'F dur', diagram: '1 3 3 2 1 1', desc: 'Bariérový akord: ukazovák přes 1. pražec všech strun.' }
-    ];
+    const q = this._quizState;
+    const item = q.questions[q.index];
 
     container.innerHTML = `
-      <div style="max-width: 820px; margin: 1rem auto; display: flex; flex-direction: column; gap: 1.5rem;">
-        <!-- God Mode Banner -->
+      <div style="max-width: 680px; margin: 1rem auto; display: flex; flex-direction: column; gap: 1.5rem;">
+        <!-- Banner -->
         <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(30, 41, 59, 0.8)); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 14px; padding: 0.85rem 1.25rem; display: flex; justify-content: space-between; align-items: center;">
           <div style="display: flex; align-items: center; gap: 0.6rem; color: #fde68a; font-weight: 700; font-size: 0.9rem;">
             <span>👑 Administrátorský přístup:</span>
-            <span style="color: #cbd5e1; font-weight: normal;">Cvičení & Interaktivní akordový kvíz</span>
+            <span style="color: #cbd5e1; font-weight: normal;">Interaktivní hudební kvíz & trénink</span>
           </div>
           <button class="btn btn-ghost btn-sm" onclick="App.navigate('#/dashboard')">← Dashboard</button>
         </div>
 
-        <!-- Section 1: Interactive Chord Quiz Card -->
-        <div class="card" style="background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(139, 92, 246, 0.35); border-radius: 20px; padding: 2rem; backdrop-filter: blur(14px);">
+        <!-- Quiz Card -->
+        <div class="card" style="background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 20px; padding: 2.25rem; backdrop-filter: blur(14px);">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-            <div style="display: flex; align-items: center; gap: 0.6rem;">
-              <span style="font-size: 1.5rem;">🎯</span>
-              <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #f8fafc;">
-                Akordový kvíz (Otázka ${this._quizState.index + 1} ze 4)
-              </h3>
-            </div>
-            <span style="background: rgba(16, 185, 129, 0.2); color: #a7f3d0; border: 1px solid rgba(16, 185, 129, 0.4); padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 700;">
-              Skóre: ${this._quizState.score} XP
+            <span style="font-size: 0.85rem; font-weight: 700; color: #a78bfa; text-transform: uppercase;">
+              Otázka ${q.index + 1} z ${q.questions.length}
+            </span>
+            <span style="font-size: 0.85rem; font-weight: 700; color: #10B981;">
+              Skóre: ${q.score} / ${q.questions.length}
             </span>
           </div>
 
-          <p style="font-size: 1.15rem; color: #f1f5f9; font-weight: 600; margin-bottom: 1.5rem; line-height: 1.5;">
-            ${q.q}
-          </p>
+          <h3 style="font-size: 1.35rem; font-weight: 800; color: #f8fafc; margin-bottom: 1.5rem; line-height: 1.4;">
+            ${item.q}
+          </h3>
 
-          <div style="display: grid; grid-template-columns: 1fr; gap: 0.75rem; margin-bottom: 1.5rem;">
-            ${q.options.map((opt, i) => `
+          <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem;">
+            ${item.options.map((opt, i) => `
               <button
                 class="btn btn-secondary quiz-opt-btn"
                 onclick="App.answerPracticeQuiz(${i})"
-                style="text-align: left; padding: 0.85rem 1.25rem; font-size: 0.95rem; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; background: rgba(15, 23, 42, 0.6);"
+                id="quiz-opt-${i}"
+                style="text-align: left; padding: 1rem 1.25rem; border-radius: 12px; font-weight: 600; font-size: 0.95rem; justify-content: flex-start;"
               >
-                <span>${opt}</span>
-                <span class="opt-badge" style="font-size: 0.85rem; color: #94a3b8;">Vybrat →</span>
+                <span style="margin-right: 0.75rem; font-weight: 800; color: #a78bfa;">${String.fromCharCode(65 + i)})</span>
+                ${opt}
               </button>
             `).join('')}
           </div>
 
-          <div id="quiz-feedback-box" style="display: none; padding: 1rem 1.25rem; border-radius: 12px; margin-bottom: 1rem;"></div>
+          <div id="quiz-feedback-box" style="display: none; padding: 1rem; border-radius: 12px; margin-bottom: 1.25rem;"></div>
 
           <div style="display: flex; justify-content: flex-end;">
-            <button class="btn btn-primary" onclick="App.nextPracticeQuiz()" style="border-radius: 10px; font-weight: 700;">
+            <button id="quiz-next-btn" class="btn btn-primary" onclick="App.nextPracticeQuiz()" style="display: none; border-radius: 10px;">
               Další otázka →
             </button>
-          </div>
-        </div>
-
-        <!-- Section 2: Chord Library Quick Reference -->
-        <div class="card" style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 1.75rem;">
-          <h4 style="margin: 0 0 1rem 0; font-size: 1.1rem; color: #f8fafc; font-weight: 700;">
-            🎸 Rychlá přehlídka akordů pro začátečníky:
-          </h4>
-          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem;">
-            ${chords.map(c => `
-              <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 1rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
-                  <strong style="font-size: 1.15rem; color: #fde68a;">${c.name}</strong>
-                  <span style="font-family: monospace; font-size: 0.75rem; color: #a78bfa; background: rgba(139, 92, 246, 0.2); padding: 0.15rem 0.4rem; border-radius: 4px;">${c.diagram}</span>
-                </div>
-                <p style="font-size: 0.8rem; color: #94a3b8; margin: 0; line-height: 1.4;">${c.desc}</p>
-              </div>
-            `).join('')}
           </div>
         </div>
       </div>
     `;
   },
 
-  answerPracticeQuiz(index) {
-    const q = this._quizState.questions[this._quizState.index];
-    const box = document.getElementById('quiz-feedback-box');
+  answerPracticeQuiz(chosenIdx) {
+    const q = this._quizState;
+    if (q.answered) return;
+    q.answered = true;
 
-    if (index === q.correct) {
-      this._quizState.score += 25;
-      if (box) {
-        box.style.display = 'block';
-        box.style.background = 'rgba(16, 185, 129, 0.2)';
-        box.style.border = '1px solid rgba(16, 185, 129, 0.4)';
-        box.style.color = '#a7f3d0';
-        box.innerHTML = `<strong>✅ Správně! (+25 XP)</strong> ${q.tip}`;
+    const item = q.questions[q.index];
+    const isCorrect = (chosenIdx === item.correct);
+    if (isCorrect) q.score++;
+
+    const feedback = document.getElementById('quiz-feedback-box');
+    const nextBtn = document.getElementById('quiz-next-btn');
+
+    if (feedback) {
+      feedback.style.display = 'block';
+      if (isCorrect) {
+        feedback.style.background = 'rgba(16, 185, 129, 0.15)';
+        feedback.style.border = '1px solid rgba(16, 185, 129, 0.4)';
+        feedback.style.color = '#34d399';
+        feedback.innerHTML = `<strong>✅ Skvěle! Správná odpověď.</strong><div style="font-size: 0.85rem; color: #cbd5e1; margin-top: 4px;">${item.tip}</div>`;
+        if (window.Sounds) window.Sounds.playSuccess();
+      } else {
+        feedback.style.background = 'rgba(239, 68, 68, 0.15)';
+        feedback.style.border = '1px solid rgba(239, 68, 68, 0.4)';
+        feedback.style.color = '#f87171';
+        feedback.innerHTML = `<strong>❌ Bohužel špatně.</strong><div style="font-size: 0.85rem; color: #cbd5e1; margin-top: 4px;">${item.tip}</div>`;
+        if (window.Sounds) window.Sounds.playError();
       }
-      if (window.Sounds) window.Sounds.playComplete();
-      if (window.UI) window.UI.showConfetti();
-      if (window.Progress && typeof window.Progress.recordPracticeActivity === 'function') {
-        window.Progress.recordPracticeActivity();
-      }
-    } else {
-      if (box) {
-        box.style.display = 'block';
-        box.style.background = 'rgba(239, 68, 68, 0.2)';
-        box.style.border = '1px solid rgba(239, 68, 68, 0.4)';
-        box.style.color = '#fca5a5';
-        box.innerHTML = `<strong>❌ Zkus to znovu!</strong> ${q.tip}`;
-      }
-      if (window.Sounds) window.Sounds.playError();
     }
+
+    const chosenBtn = document.getElementById(`quiz-opt-${chosenIdx}`);
+    if (chosenBtn) {
+      chosenBtn.style.background = isCorrect ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)';
+      chosenBtn.style.borderColor = isCorrect ? '#10B981' : '#EF4444';
+    }
+    const correctBtn = document.getElementById(`quiz-opt-${item.correct}`);
+    if (correctBtn && !isCorrect) {
+      correctBtn.style.background = 'rgba(16, 185, 129, 0.25)';
+      correctBtn.style.borderColor = '#10B981';
+    }
+
+    if (nextBtn) nextBtn.style.display = 'inline-flex';
   },
 
   nextPracticeQuiz() {
-    this._quizState.index = (this._quizState.index + 1) % this._quizState.questions.length;
+    const q = this._quizState;
+    q.answered = false;
+    q.index = (q.index + 1) % q.questions.length;
     const view = document.getElementById('view-practice');
     if (view) this.renderGodPractice(view);
   },
 
   /**
-   * Render Interactive 25-Song Repertoire Repertoire
+   * Render Interactive 25-Song Repertoire (podporuje God i normálního uživatele s odemykáním)
    */
-  renderGodSongs(container, query = '', filterDiff = 'all') {
+  renderSongsCatalog(container, query = '', filterDiff = 'all') {
+    const isGod = this.isGod();
+    const { completed } = this.getProgressData();
     let filtered = this.SONGS_25;
-    if (query) {
-      const q = query.toLowerCase();
-      filtered = filtered.filter(s => s.title.toLowerCase().includes(q) || s.artist.toLowerCase().includes(q));
+
+    if (query.trim()) {
+      const q = query.toLowerCase().trim();
+      filtered = filtered.filter(s => s.title.toLowerCase().includes(q) || s.artist.toLowerCase().includes(q) || s.chords.some(c => c.toLowerCase().includes(q)));
     }
     if (filterDiff !== 'all') {
       filtered = filtered.filter(s => s.difficulty === filterDiff);
     }
 
+    const unlockedCount = isGod ? this.SONGS_25.length : this.SONGS_25.filter(s => completed.includes(s.unlockLesson)).length;
+
     container.innerHTML = `
-      <div style="max-width: 900px; margin: 1rem auto; display: flex; flex-direction: column; gap: 1.5rem;">
-        <!-- God Mode Banner -->
-        <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(30, 41, 59, 0.8)); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 14px; padding: 0.85rem 1.25rem; display: flex; justify-content: space-between; align-items: center;">
-          <div style="display: flex; align-items: center; gap: 0.6rem; color: #fde68a; font-weight: 700; font-size: 0.9rem;">
-            <span>👑 Administrátorský přístup:</span>
-            <span style="color: #cbd5e1; font-weight: normal;">Knihovna 25 skladeb s akordy a texty</span>
+      <div style="max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.25rem;">
+        <!-- Header Banner -->
+        <div style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.25) 0%, rgba(59, 130, 246, 0.15) 100%); border: 1px solid rgba(139, 92, 246, 0.35); border-radius: 18px; padding: 1.25rem 1.75rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.35rem;">
+              <span style="font-size: 1.75rem;">🎵</span>
+              <h1 style="font-size: 1.5rem; font-weight: 800; color: #f8fafc; margin: 0;">Knihovna 25 skladeb a tabů</h1>
+              <span class="companion-card-badge" style="font-size: 0.75rem;">
+                ${unlockedCount} / ${this.SONGS_25.length} odemčeno
+              </span>
+            </div>
+            <p style="color: #94a3b8; font-size: 0.9rem; margin: 0;">
+              ${isGod
+                ? '👑 Režim Boha: Všech 25 skladeb máš plně odemčeno s akordy a texty.'
+                : 'Skladby se ti postupně odemykají podle toho, jaké akordy a lekce v kurzu zvládneš.'
+              }
+            </p>
           </div>
-          <button class="btn btn-ghost btn-sm" onclick="App.navigate('#/dashboard')">← Dashboard</button>
+
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button class="btn btn-secondary btn-sm" onclick="App.showAllSongsUnlockScheduleModal()" style="border-radius: 10px; font-weight: 700;">
+              📋 Pravidla odemykání skladeb
+            </button>
+            <button class="btn btn-ghost btn-sm" onclick="App.navigate('#/dashboard')">← Dashboard</button>
+          </div>
         </div>
 
         <!-- Filter Bar -->
-        <div class="card" style="background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 1.25rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+        <div class="card" style="background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 14px; padding: 0.85rem 1.25rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
           <input
             type="text"
-            placeholder="🔍 Hledat píseň nebo interpreta..."
+            placeholder="🔍 Hledat píseň, interpreta nebo akord..."
             value="${query}"
-            oninput="App.renderGodSongs(document.getElementById('view-songs'), this.value, '${filterDiff}')"
-            style="flex: 1; min-width: 200px; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; padding: 0.6rem 1rem; color: #f8fafc; font-size: 0.9rem;"
+            oninput="App.renderSongsCatalog(document.getElementById('view-songs'), this.value, '${filterDiff}')"
+            style="flex: 1; min-width: 220px; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; padding: 0.55rem 0.9rem; color: #f8fafc; font-size: 0.9rem;"
           >
-          <div style="display: flex; gap: 0.5rem;">
-            <button class="btn btn-sm ${filterDiff === 'all' ? 'btn-primary' : 'btn-ghost'}" onclick="App.renderGodSongs(document.getElementById('view-songs'), '${query}', 'all')" style="border-radius: 8px;">Vše (${this.SONGS_25.length})</button>
-            <button class="btn btn-sm ${filterDiff === 'Snadná' ? 'btn-primary' : 'btn-ghost'}" onclick="App.renderGodSongs(document.getElementById('view-songs'), '${query}', 'Snadná')" style="border-radius: 8px;">Snadné</button>
-            <button class="btn btn-sm ${filterDiff === 'Střední' ? 'btn-primary' : 'btn-ghost'}" onclick="App.renderGodSongs(document.getElementById('view-songs'), '${query}', 'Střední')" style="border-radius: 8px;">Střední</button>
+          <div style="display: flex; gap: 0.4rem;">
+            <button class="btn btn-sm ${filterDiff === 'all' ? 'btn-primary' : 'btn-ghost'}" onclick="App.renderSongsCatalog(document.getElementById('view-songs'), '${query}', 'all')" style="border-radius: 8px;">Vše (${this.SONGS_25.length})</button>
+            <button class="btn btn-sm ${filterDiff === 'Snadná' ? 'btn-primary' : 'btn-ghost'}" onclick="App.renderSongsCatalog(document.getElementById('view-songs'), '${query}', 'Snadná')" style="border-radius: 8px;">Snadné</button>
+            <button class="btn btn-sm ${filterDiff === 'Střední' ? 'btn-primary' : 'btn-ghost'}" onclick="App.renderSongsCatalog(document.getElementById('view-songs'), '${query}', 'Střední')" style="border-radius: 8px;">Střední</button>
           </div>
         </div>
 
-        <!-- Songs Grid (25 songs) -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 1rem;">
-          ${filtered.map(s => `
-            <div
-              class="card song-card"
-              onclick="App.showSongModal(${s.id})"
-              style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 1.25rem; cursor: pointer; transition: transform 0.2s ease, border-color 0.2s ease; display: flex; flex-direction: column; justify-content: space-between;"
-              onmouseover="this.style.transform='translateY(-3px)'; this.style.borderColor='rgba(139, 92, 246, 0.5)';"
-              onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='rgba(255, 255, 255, 0.08)';"
-            >
-              <div>
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
-                  <span style="font-size: 0.75rem; font-weight: 700; color: #a78bfa; background: rgba(139, 92, 246, 0.15); padding: 0.2rem 0.5rem; border-radius: 6px;">
-                    #${s.id}
-                  </span>
-                  <span style="font-size: 0.75rem; font-weight: 700; color: ${s.difficulty === 'Snadná' ? '#10B981' : (s.difficulty === 'Střední' ? '#F59E0B' : '#EF4444')};">
-                    ${s.difficulty}
-                  </span>
-                </div>
-                <h3 style="font-size: 1.1rem; font-weight: 800; color: #f8fafc; margin: 0 0 0.25rem 0;">
-                  ${s.title}
-                </h3>
-                <div style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.85rem;">
-                  ${s.artist} • ${s.bpm} BPM
-                </div>
-              </div>
+        <!-- Songs Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">
+          ${filtered.map(s => {
+            const isUnlocked = isGod || completed.includes(s.unlockLesson);
+            const lessonInfo = this.getLessonInfo(s.unlockLesson);
+            const lessonTitle = lessonInfo ? lessonInfo.title : `Lekce ${s.unlockLesson}`;
 
-              <div>
-                <div style="display: flex; gap: 0.35rem; flex-wrap: wrap; margin-bottom: 0.75rem;">
-                  ${s.chords.map(c => `
-                    <span style="font-size: 0.75rem; font-weight: 700; color: #fde68a; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); padding: 0.15rem 0.45rem; border-radius: 6px;">
-                      ${c}
+            return `
+              <div
+                class="card song-card ${isUnlocked ? 'unlocked' : 'locked'}"
+                onclick="${isUnlocked ? `App.showSongModal(${s.id})` : `App.showSongUnlockPopup(${s.id})`}"
+                style="background: rgba(30, 41, 59, 0.7); border: 1px solid ${isUnlocked ? 'rgba(255, 255, 255, 0.1)' : 'rgba(245, 158, 11, 0.35)'}; border-radius: 14px; padding: 1.15rem; cursor: pointer; transition: transform 0.2s ease, border-color 0.2s ease; display: flex; flex-direction: column; justify-content: space-between;"
+                onmouseover="this.style.transform='translateY(-3px)';"
+                onmouseout="this.style.transform='translateY(0)';"
+              >
+                <div>
+                  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; gap: 0.5rem;">
+                    <span style="font-size: 0.75rem; font-weight: 700; color: #a78bfa; background: rgba(139, 92, 246, 0.15); padding: 0.2rem 0.5rem; border-radius: 6px;">
+                      #${s.id}
                     </span>
-                  `).join('')}
+                    ${isUnlocked ? `
+                      <span style="font-size: 0.72rem; font-weight: 700; color: #34d399; background: rgba(16, 185, 129, 0.15); padding: 2px 7px; border-radius: 6px; border: 1px solid rgba(16, 185, 129, 0.3);">
+                        🔓 Odemčeno
+                      </span>
+                    ` : `
+                      <span class="song-lock-badge">
+                        🔒 Po Lekci ${s.unlockLesson}
+                      </span>
+                    `}
+                  </div>
+
+                  <h3 style="font-size: 1.1rem; font-weight: 800; color: #f8fafc; margin: 0 0 0.25rem 0;">
+                    ${s.title}
+                  </h3>
+                  <div style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.85rem;">
+                    ${s.artist} • ${s.bpm} BPM
+                  </div>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 0.6rem;">
-                  <span style="font-size: 0.8rem; color: #64748b;">Klikni pro náhled</span>
-                  <span style="font-size: 0.8rem; color: #a78bfa; font-weight: 700;">Zobrazit text →</span>
+
+                <div>
+                  <div style="display: flex; gap: 0.35rem; flex-wrap: wrap; margin-bottom: 0.75rem;">
+                    ${s.chords.map(c => `
+                      <span style="font-size: 0.75rem; font-weight: 700; color: #fde68a; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); padding: 0.15rem 0.45rem; border-radius: 6px;">
+                        ${c}
+                      </span>
+                    `).join('')}
+                  </div>
+                  <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 0.6rem;">
+                    <span style="font-size: 0.78rem; color: ${isUnlocked ? '#64748b' : '#fbbf24'};">
+                      ${isUnlocked ? 'Klikni pro akordy a text' : `Vyžaduje Lekci ${s.unlockLesson}`}
+                    </span>
+                    <span style="font-size: 0.78rem; color: ${isUnlocked ? '#a78bfa' : '#f59e0b'}; font-weight: 700;">
+                      ${isUnlocked ? 'Hrát →' : 'Podmínky 🔒'}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          `).join('')}
+            `;
+          }).join('')}
         </div>
       </div>
 
@@ -2701,6 +2699,153 @@ window.App = {
         </div>
       </div>
     `;
+  },
+
+  // Alias for backward compatibility
+  renderGodSongs(container, query = '', filterDiff = 'all') {
+    this.renderSongsCatalog(container, query, filterDiff);
+  },
+
+  /**
+   * Popup modal for locked songs explaining what lesson unlocks it.
+   */
+  showSongUnlockPopup(songId) {
+    const song = this.SONGS_25.find(s => s.id === songId);
+    if (!song) return;
+
+    const lessonInfo = this.getLessonInfo(song.unlockLesson);
+    const lessonTitle = lessonInfo ? lessonInfo.title : `Lekce ${song.unlockLesson}`;
+
+    const content = `
+      <div style="text-align: center; padding: 0.5rem 0;">
+        <div style="font-size: 3rem; margin-bottom: 0.5rem;">🎸🔒</div>
+        <h4 style="font-size: 1.35rem; font-weight: 800; color: #ffffff; margin-bottom: 0.25rem;">
+          ${song.title}
+        </h4>
+        <div style="font-size: 0.95rem; color: #94a3b8; margin-bottom: 1rem;">
+          Interpret: <strong style="color: #cbd5e1;">${song.artist}</strong> • Obtížnost: <strong>${song.difficulty}</strong>
+        </div>
+
+        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 0.85rem; margin-bottom: 1.25rem; text-align: left;">
+          <div style="font-size: 0.8rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 0.4rem;">
+            Potřebné akordy k zahrání:
+          </div>
+          <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+            ${song.chords.map(c => `
+              <span style="font-size: 0.9rem; font-weight: 800; color: #fde68a; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); padding: 0.25rem 0.65rem; border-radius: 8px;">
+                ${c}
+              </span>
+            `).join('')}
+          </div>
+        </div>
+
+        <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(139, 92, 246, 0.15)); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 14px; padding: 1.15rem; text-align: left; margin-bottom: 1.25rem;">
+          <div style="font-size: 0.82rem; font-weight: 700; color: #fbbf24; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.35rem;">
+            🎯 Jak tuto skladbu odemknout:
+          </div>
+          <div style="font-size: 1.05rem; font-weight: 800; color: #f8fafc; margin-bottom: 0.35rem;">
+            Dokonči Lekci ${song.unlockLesson}: ${lessonTitle}
+          </div>
+          <p style="font-size: 0.85rem; color: #cbd5e1; margin: 0; line-height: 1.45;">
+            V této lekci získáš všechny potřebné kytarové dovednosti, abys mohl skladbu zahrát plynule a s čistým tónem.
+          </p>
+        </div>
+      </div>
+    `;
+
+    if (window.UI && typeof window.UI.showModal === 'function') {
+      window.UI.showModal('Kdy se odemkne tato píseň?', content, [
+        {
+          text: `Přejít do Lekce ${song.unlockLesson} ▶`,
+          primary: true,
+          action: () => {
+            if (window.UI && typeof window.UI.hideModal === 'function') {
+              window.UI.hideModal();
+            }
+            window.location.hash = `#/lesson/${song.unlockLesson}`;
+          }
+        },
+        {
+          text: 'Rozumím',
+          action: () => {
+            if (window.UI && typeof window.UI.hideModal === 'function') {
+              window.UI.hideModal();
+            }
+          }
+        }
+      ]);
+    }
+  },
+
+  /**
+   * Modal dialog displaying the unlock schedule for all 25 songs.
+   */
+  showAllSongsUnlockScheduleModal() {
+    const isGod = this.isGod();
+    const { completed } = this.getProgressData();
+
+    // Group songs by unlock lesson
+    const lessonGroups = [
+      { lessonId: 6, title: 'Lekce 6: Akord Em (E moll)' },
+      { lessonId: 8, title: 'Lekce 8: Střídání akordů Em–Am' },
+      { lessonId: 9, title: 'Lekce 9: Akord E dur' },
+      { lessonId: 10, title: 'Lekce 10: Akord A dur' },
+      { lessonId: 11, title: 'Lekce 11: Akord D dur' },
+      { lessonId: 13, title: 'Lekce 13: Akord C dur' },
+      { lessonId: 14, title: 'Lekce 14: Akord G dur' },
+      { lessonId: 15, title: 'Lekce 15: Akordová progrese G–C–D' }
+    ];
+
+    let html = `
+      <div style="max-height: 65vh; overflow-y: auto; padding-right: 6px;">
+        <p style="font-size: 0.9rem; color: #94a3b8; margin-top: 0; margin-bottom: 1.25rem;">
+          Zde vidíš přesný přehled všech 25 písniček v Melodriu a lekce, které je potřeba splnit pro jejich odemčení.
+        </p>
+
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+          ${lessonGroups.map(grp => {
+            const songsInGrp = this.SONGS_25.filter(s => s.unlockLesson === grp.lessonId);
+            const isLessonDone = isGod || completed.includes(grp.lessonId);
+
+            return `
+              <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid ${isLessonDone ? 'rgba(16, 185, 129, 0.4)' : 'rgba(255, 255, 255, 0.08)'}; border-radius: 12px; padding: 0.85rem 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+                  <span style="font-size: 0.92rem; font-weight: 800; color: #ffffff;">
+                    ${grp.title}
+                  </span>
+                  <span style="font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 9999px; ${isLessonDone ? 'background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4);' : 'background: rgba(245, 158, 11, 0.15); color: #fde68a; border: 1px solid rgba(245, 158, 11, 0.3);'}">
+                    ${isLessonDone ? '✅ Odemčeno' : '🔒 Čeká na dokončení'}
+                  </span>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.5rem;">
+                  ${songsInGrp.map(s => `
+                    <div style="background: rgba(30, 41, 59, 0.5); padding: 0.4rem 0.6rem; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.82rem;">
+                      <div style="font-weight: 700; color: #f8fafc;">${s.title}</div>
+                      <div style="font-size: 0.72rem; color: #94a3b8;">${s.artist} • [${s.chords.join(', ')}]</div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+
+    if (window.UI && typeof window.UI.showModal === 'function') {
+      window.UI.showModal('Harmonogram odemykání skladeb (25 písní)', html, [
+        {
+          text: 'Rozumím',
+          primary: true,
+          action: () => {
+            if (window.UI && typeof window.UI.hideModal === 'function') {
+              window.UI.hideModal();
+            }
+          }
+        }
+      ]);
+    }
   },
 
   showSongModal(songId) {
