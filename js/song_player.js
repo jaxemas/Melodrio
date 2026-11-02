@@ -10,12 +10,12 @@ const SongPlayer = (() => {
 
   // ── Guitar Strings Configuration (Top to Bottom: high e to low E) ─────
   const STRINGS = [
-    { stringNum: 1, name: 'e', note: 'E4', color: '#FF3B69', thickness: 2.0, shapeIdx: 5 }, // String 1 (high e) - Rose
-    { stringNum: 2, name: 'B', note: 'B3', color: '#FF9F0A', thickness: 2.6, shapeIdx: 4 }, // String 2 (B) - Amber
-    { stringNum: 3, name: 'G', note: 'G3', color: '#30D158', thickness: 3.2, shapeIdx: 3 }, // String 3 (G) - Emerald
-    { stringNum: 4, name: 'D', note: 'D3', color: '#0A84FF', thickness: 4.0, shapeIdx: 2 }, // String 4 (D) - Blue
-    { stringNum: 5, name: 'A', note: 'A2', color: '#BF5AF2', thickness: 5.0, shapeIdx: 1 }, // String 5 (A) - Purple
-    { stringNum: 6, name: 'E', note: 'E2', color: '#FF375F', thickness: 6.2, shapeIdx: 0 }, // String 6 (low E) - Pink
+    { stringNum: 1, name: 'e', note: 'E4', color: '#E2E8F0', thickness: 1.8, shapeIdx: 5 }, // String 1 (high e) - Steel
+    { stringNum: 2, name: 'B', note: 'B3', color: '#CBD5E1', thickness: 2.2, shapeIdx: 4 }, // String 2 (B) - Steel
+    { stringNum: 3, name: 'G', note: 'G3', color: '#CBD5E1', thickness: 2.8, shapeIdx: 3 }, // String 3 (G) - Steel
+    { stringNum: 4, name: 'D', note: 'D3', color: '#94A3B8', thickness: 3.4, shapeIdx: 2 }, // String 4 (D) - Nickel
+    { stringNum: 5, name: 'A', note: 'A2', color: '#94A3B8', thickness: 4.2, shapeIdx: 1 }, // String 5 (A) - Nickel
+    { stringNum: 6, name: 'E', note: 'E2', color: '#64748B', thickness: 5.2, shapeIdx: 0 }, // String 6 (low E) - Bronze
   ];
 
   // ── Strumming Patterns Catalog (Rytmické vzory úderů) ─────────────────
@@ -315,8 +315,10 @@ const SongPlayer = (() => {
     g.fillRect(hitLineX - 6, stringAreaTop - 25, 6, stringAreaBottom - stringAreaTop + 50);
 
     // 3. Moving Rhythm Grid & Beat Lines
+    // Fixed physical beat spacing so chords NEVER overlap, regardless of tempo or BPM!
     const beatDuration = 60 / _bpm;
-    const pixelsPerSecond = NOTE_SPEED_BASE * _tempo * (_bpm / 120);
+    const pixelsPerBeat = 180; // 180px per beat = 90px per 8th-note strum
+    const pixelsPerSecond = pixelsPerBeat * (_bpm / 60);
 
     const minTime = _songTime - 0.5;
     const maxTime = _songTime + (w - hitLineX) / pixelsPerSecond + 1;
@@ -332,13 +334,13 @@ const SongPlayer = (() => {
 
       g.beginPath();
       if (isDownbeat) {
-        g.strokeStyle = 'rgba(255, 255, 255, 0.35)';
-        g.lineWidth = 2.5;
+        g.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+        g.lineWidth = 2.0;
         g.setLineDash([]);
       } else {
-        g.strokeStyle = 'rgba(255, 255, 255, 0.09)';
-        g.lineWidth = 1.2;
-        g.setLineDash([5, 5]);
+        g.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+        g.lineWidth = 1.0;
+        g.setLineDash([4, 4]);
       }
       g.moveTo(bx, stringAreaTop - 15);
       g.lineTo(bx, stringAreaBottom + 15);
@@ -348,57 +350,57 @@ const SongPlayer = (() => {
       // Measure Badge
       if (isDownbeat) {
         const measureNum = Math.floor(b / _beatsPerMeasure) + 1;
-        g.fillStyle = 'rgba(167, 139, 250, 0.8)';
-        g.font = 'bold 12px "Segoe UI", sans-serif';
+        g.fillStyle = 'rgba(148, 163, 184, 0.75)';
+        g.font = 'bold 11px "Segoe UI", sans-serif';
         g.textAlign = 'center';
         g.fillText('Takt ' + measureNum, bx, stringAreaTop - 20);
       }
     }
 
-    // 4. Horizontal Guitar Strings
+    // 4. Horizontal Guitar Strings (Clean Metallic Fretboard)
     for (let i = 0; i < 6; i++) {
       const s = STRINGS[i];
       const y = Math.round(stringAreaTop + i * stringSpacing);
 
-      // Lane Ambient Glow
-      const laneGrad = g.createLinearGradient(0, y - 14, 0, y + 14);
-      laneGrad.addColorStop(0, 'rgba(0,0,0,0)');
-      laneGrad.addColorStop(0.5, s.color + '22');
-      laneGrad.addColorStop(1, 'rgba(0,0,0,0)');
-      g.fillStyle = laneGrad;
-      g.fillRect(hitLineX, y - 14, w - hitLineX, 28);
+      // Subtle string guide line
+      g.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+      g.lineWidth = 1;
+      g.beginPath();
+      g.moveTo(hitLineX, y);
+      g.lineTo(w, y);
+      g.stroke();
 
-      // String Cable
-      g.strokeStyle = s.color + '85';
+      // Metallic String Cable
+      g.strokeStyle = s.color + 'AA';
       g.lineWidth = s.thickness;
       g.beginPath();
       g.moveTo(0, y);
       g.lineTo(w, y);
       g.stroke();
 
-      // Metallic String Core Glint
-      g.strokeStyle = '#FFFFFF40';
-      g.lineWidth = Math.max(1, s.thickness * 0.35);
+      // Metallic Glint
+      g.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+      g.lineWidth = Math.max(0.8, s.thickness * 0.32);
       g.beginPath();
       g.moveTo(0, y);
       g.lineTo(w, y);
       g.stroke();
 
       // String Badge on Headstock (Left)
-      const badgeW = 60;
-      const badgeH = 26;
+      const badgeW = 54;
+      const badgeH = 24;
       const badgeX = Math.round(hitLineX * 0.48);
 
-      g.fillStyle = s.color + '25';
-      roundRect(g, badgeX - badgeW / 2, y - badgeH / 2, badgeW, badgeH, 8);
+      g.fillStyle = 'rgba(15, 23, 42, 0.88)';
+      roundRect(g, badgeX - badgeW / 2, y - badgeH / 2, badgeW, badgeH, 6);
       g.fill();
-      g.strokeStyle = s.color;
-      g.lineWidth = 1.5;
-      roundRect(g, badgeX - badgeW / 2, y - badgeH / 2, badgeW, badgeH, 8);
+      g.strokeStyle = 'rgba(255, 255, 255, 0.14)';
+      g.lineWidth = 1.2;
+      roundRect(g, badgeX - badgeW / 2, y - badgeH / 2, badgeW, badgeH, 6);
       g.stroke();
 
-      // Text inside string badge
-      g.fillStyle = '#FFFFFF';
+      // Text inside string badge: "[1] e" in crisp slate
+      g.fillStyle = '#CBD5E1';
       g.font = 'bold 12px "Segoe UI", sans-serif';
       g.textAlign = 'center';
       g.textBaseline = 'middle';
@@ -406,12 +408,12 @@ const SongPlayer = (() => {
     }
 
     // 5. Target / Hit Line (Neon Laser Bar)
-    const laserGlow = g.createLinearGradient(hitLineX - 35, 0, hitLineX + 35, 0);
+    const laserGlow = g.createLinearGradient(hitLineX - 30, 0, hitLineX + 30, 0);
     laserGlow.addColorStop(0, 'rgba(99, 102, 241, 0)');
-    laserGlow.addColorStop(0.5, 'rgba(99, 102, 241, 0.45)');
+    laserGlow.addColorStop(0.5, 'rgba(99, 102, 241, 0.35)');
     laserGlow.addColorStop(1, 'rgba(99, 102, 241, 0)');
     g.fillStyle = laserGlow;
-    g.fillRect(hitLineX - 35, stringAreaTop - 25, 70, stringAreaBottom - stringAreaTop + 50);
+    g.fillRect(hitLineX - 30, stringAreaTop - 25, 60, stringAreaBottom - stringAreaTop + 50);
 
     // Laser Line Center
     g.strokeStyle = '#FFFFFF';
@@ -423,18 +425,17 @@ const SongPlayer = (() => {
 
     // Target Receptors on each string
     for (let i = 0; i < 6; i++) {
-      const s = STRINGS[i];
       const y = Math.round(stringAreaTop + i * stringSpacing);
 
       g.fillStyle = '#0B1120';
       g.beginPath();
-      g.arc(hitLineX, y, 13, 0, Math.PI * 2);
+      g.arc(hitLineX, y, 12, 0, Math.PI * 2);
       g.fill();
 
-      g.strokeStyle = s.color;
-      g.lineWidth = 2.5;
+      g.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+      g.lineWidth = 2;
       g.beginPath();
-      g.arc(hitLineX, y, 13, 0, Math.PI * 2);
+      g.arc(hitLineX, y, 12, 0, Math.PI * 2);
       g.stroke();
     }
 
@@ -454,30 +455,48 @@ const SongPlayer = (() => {
       const isHitNow = Math.abs(activeTarget.time - _songTime) <= GOOD_WINDOW;
       const isDown = (activeTarget.direction === 'down');
       const cueColor = isHitNow ? '#FBBF24' : (isDown ? '#10B981' : '#38BDF8');
-      const arrowIcon = isDown ? '⬇' : '⬆';
-      const dirText = isDown ? 'DOLŮ' : 'NAHORU';
-      const cueText = isHitNow
-        ? `🎯 TEĎ: [ ${activeTarget.chord} ] ${arrowIcon} ${dirText}`
-        : `🎯 PŘÍŠTÍ: [ ${activeTarget.chord} ] ${arrowIcon} ${dirText}`;
+      const arrowIcon = isDown ? '↓' : '↑';
+      const label = isHitNow ? '🎯 TEĎ: ' : '🎯 PŘÍŠTÍ: ';
+      const chordText = activeTarget.chord;
 
-      g.font = '900 13px "Segoe UI", sans-serif';
-      const textW = g.measureText(cueText).width;
-      const boxW = Math.max(170, textW + 28);
-      const boxH = 28;
+      g.font = 'bold 13px "Segoe UI", sans-serif';
+      const labelW = g.measureText(label).width;
+      g.font = '900 15px "Segoe UI", sans-serif';
+      const chordW = g.measureText(chordText + ' ').width;
+      g.font = '900 20px "Segoe UI", sans-serif';
+      const arrowW = g.measureText(arrowIcon).width;
 
-      g.fillStyle = 'rgba(15, 23, 42, 0.92)';
-      roundRect(g, Math.round(hitLineX - boxW / 2), cueY - 14, boxW, boxH, 8);
+      const totalContentW = labelW + chordW + arrowW;
+      const boxW = Math.max(120, totalContentW + 24);
+      const boxH = 30;
+      const boxX = Math.round(hitLineX - boxW / 2);
+
+      g.fillStyle = 'rgba(15, 23, 42, 0.95)';
+      roundRect(g, boxX, cueY - 15, boxW, boxH, 8);
       g.fill();
 
       g.strokeStyle = cueColor;
       g.lineWidth = isHitNow ? 2.5 : 1.5;
-      roundRect(g, Math.round(hitLineX - boxW / 2), cueY - 14, boxW, boxH, 8);
+      roundRect(g, boxX, cueY - 15, boxW, boxH, 8);
       g.stroke();
 
-      g.fillStyle = cueColor;
-      g.textAlign = 'center';
+      // Render text parts
+      let curX = boxX + 12;
+      g.fillStyle = isHitNow ? '#FBBF24' : '#94A3B8';
+      g.font = 'bold 13px "Segoe UI", sans-serif';
+      g.textAlign = 'left';
       g.textBaseline = 'middle';
-      g.fillText(cueText, hitLineX, cueY);
+      g.fillText(label, curX, cueY);
+      curX += labelW;
+
+      g.fillStyle = '#FFFFFF';
+      g.font = '900 15px "Segoe UI", sans-serif';
+      g.fillText(chordText + ' ', curX, cueY);
+      curX += chordW;
+
+      g.fillStyle = isDown ? '#10B981' : '#38BDF8';
+      g.font = '900 22px "Segoe UI", sans-serif';
+      g.fillText(arrowIcon, curX, cueY + 1);
     } else {
       g.fillStyle = '#64748B';
       g.font = 'bold 12px "Segoe UI", sans-serif';
@@ -571,7 +590,7 @@ const SongPlayer = (() => {
 
     const topY = stringAreaTop + minIdx * stringSpacing - 18;
     const botY = stringAreaTop + maxIdx * stringSpacing + 18;
-    const cardW = 46;
+    const cardW = 38;
     const cardX = Math.round(x - cardW / 2);
 
     // Color theme based on stroke direction & timing judgement
@@ -581,9 +600,9 @@ const SongPlayer = (() => {
     else if (note.judgement === 'miss') themeColor = '#EF4444';
 
     // 1. Unified Chord & Strumming Direction Pill (Top)
-    // Consolidates chord name AND strumming pattern directly next to each other!
-    const pillW = 52;
-    const pillH = 44;
+    // Clean, minimalist: Chord name + Large Arrow (no text labels!)
+    const pillW = 44;
+    const pillH = 48;
     const pillY = topY - pillH - 8;
     const pillX = Math.round(x - pillW / 2);
 
@@ -597,63 +616,50 @@ const SongPlayer = (() => {
     roundRect(g, pillX, pillY, pillW, pillH, 8);
     g.stroke();
 
-    // Chord Name (Top half of pill)
+    // Chord Name (Top of pill)
     g.fillStyle = '#FFFFFF';
     g.font = '900 15px "Segoe UI", sans-serif';
     g.textAlign = 'center';
     g.textBaseline = 'middle';
-    g.fillText(note.chord || '?', x, pillY + 13);
+    g.fillText(note.chord || '?', x, pillY + 14);
 
-    // Strumming Direction Badge (Bottom half of pill, directly with the chord!)
-    const dirBadgeW = 44;
-    const dirBadgeH = 16;
-    const dirBadgeX = pillX + 4;
-    const dirBadgeY = pillY + 23;
-
-    g.fillStyle = isDown ? '#10B981' : '#38BDF8';
-    roundRect(g, dirBadgeX, dirBadgeY, dirBadgeW, dirBadgeH, 4);
-    g.fill();
-
-    g.fillStyle = '#060B16';
-    g.font = '900 10px "Segoe UI", sans-serif';
+    // Large Strumming Arrow Icon (Bottom of pill, bold and clear!)
+    const arrowChar = isDown ? '↓' : '↑';
+    g.fillStyle = themeColor;
+    g.font = '900 24px "Segoe UI", sans-serif';
     g.textAlign = 'center';
     g.textBaseline = 'middle';
-    g.fillText(isDown ? '⬇ DOLŮ' : '⬆ NAH.', x, dirBadgeY + dirBadgeH / 2);
+    g.fillText(arrowChar, x, pillY + 34);
 
-    // 2. Vertical Card Beam Glow connecting active strings
-    const beamGrad = g.createLinearGradient(cardX, 0, cardX + cardW, 0);
-    beamGrad.addColorStop(0, themeColor + '18');
-    beamGrad.addColorStop(0.5, themeColor + '40');
-    beamGrad.addColorStop(1, themeColor + '18');
-    g.fillStyle = beamGrad;
-    roundRect(g, cardX, topY, cardW, botY - topY, 10);
+    // 2. Vertical Card Beam connecting active strings
+    g.fillStyle = 'rgba(30, 41, 59, 0.45)';
+    roundRect(g, cardX, topY, cardW, botY - topY, 8);
     g.fill();
 
     // Beam Border
-    g.strokeStyle = themeColor + '80';
-    g.lineWidth = note.accent ? 2.5 : 1.5;
-    roundRect(g, cardX, topY, cardW, botY - topY, 10);
+    g.strokeStyle = themeColor + '60';
+    g.lineWidth = note.accent ? 2.0 : 1.2;
+    roundRect(g, cardX, topY, cardW, botY - topY, 8);
     g.stroke();
 
     // 3. String Fret Pucks (Circles on each active string)
     for (let i = 0; i < 6; i++) {
       const fret = frets[i];
       const y = Math.round(stringAreaTop + i * stringSpacing);
-      const strColor = STRINGS[i].color;
 
       if (fret >= 0) {
-        const puckRadius = 15;
+        const puckRadius = 14;
 
-        // Outer Glow Ring
-        g.fillStyle = strColor;
+        // Outer Ring matching stroke theme
+        g.fillStyle = themeColor;
         g.beginPath();
         g.arc(x, y, puckRadius, 0, Math.PI * 2);
         g.fill();
 
         // Inner Core
-        g.fillStyle = '#0F172A';
+        g.fillStyle = '#0B1120';
         g.beginPath();
-        g.arc(x, y, puckRadius - 3, 0, Math.PI * 2);
+        g.arc(x, y, puckRadius - 2.5, 0, Math.PI * 2);
         g.fill();
 
         // Fret Number
@@ -663,7 +669,7 @@ const SongPlayer = (() => {
         g.textBaseline = 'middle';
         g.fillText(fret === 0 ? '0' : String(fret), x, y);
       } else {
-        // Muted String (Red ✕)
+        // Muted String (Clean Red ✕)
         g.fillStyle = '#EF4444';
         g.font = '900 14px "Segoe UI", sans-serif';
         g.textAlign = 'center';
