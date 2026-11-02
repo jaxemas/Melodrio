@@ -2933,11 +2933,20 @@ window.App = {
     const titleEl = document.getElementById('player-song-title');
     const subEl = document.getElementById('player-song-sub');
     if (titleEl) titleEl.textContent = song.title;
-    if (subEl) subEl.textContent = `${song.artist} • ${song.bpm} BPM • Akordy: ${song.chords.join(', ')}`;
+    if (subEl) {
+      if (song.isTransitionWorkout) {
+        subEl.textContent = `${song.artist} • ${song.bpm} BPM • Střídání: ${song.chordA} ⇄ ${song.chordB}`;
+      } else {
+        const uniqueChords = song.chords ? [...new Set(song.chords)] : [];
+        subEl.textContent = `${song.artist} • ${song.bpm} BPM • Akordy: ${uniqueChords.join(', ')}`;
+      }
+    }
 
-    // Reset tempo buttons
+    // Set active tempo and highlight matching tempo button
+    const activeTempo = (song.initialTempo !== undefined) ? String(song.initialTempo) : '1.0';
+    SongPlayer.setTempo(parseFloat(activeTempo));
     document.querySelectorAll('.tempo-btn').forEach(btn => {
-      const isDefault = btn.getAttribute('data-tempo') === '1.0';
+      const isDefault = btn.getAttribute('data-tempo') === activeTempo;
       btn.classList.toggle('active', isDefault);
       btn.classList.toggle('btn-primary', isDefault);
       btn.classList.toggle('btn-ghost', !isDefault);

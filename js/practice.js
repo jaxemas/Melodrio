@@ -172,13 +172,27 @@ const Practice = (() => {
         </div>
 
         <!-- Subtabs -->
-        <div style="display: flex; gap: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 1.5rem; padding-bottom: 0.5rem;">
+        <div style="display: flex; gap: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 1.5rem; padding-bottom: 0.5rem; flex-wrap: wrap;">
           <button
             class="btn btn-sm ${_currentSubTab === 'atlas' ? 'btn-primary' : 'btn-ghost'}"
             onclick="Practice.switchSubTab('atlas')"
             style="border-radius: 8px; font-weight: 700;"
           >
-            📖 Atlas akordů & Hmatník
+            📖 Atlas akordů
+          </button>
+          <button
+            class="btn btn-sm ${_currentSubTab === 'transitions' ? 'btn-primary' : 'btn-ghost'}"
+            onclick="Practice.switchSubTab('transitions')"
+            style="border-radius: 8px; font-weight: 700;"
+          >
+            🔄 Střídání 2 akordů
+          </button>
+          <button
+            class="btn btn-sm ${_currentSubTab === 'strumming' ? 'btn-primary' : 'btn-ghost'}"
+            onclick="Practice.switchSubTab('strumming')"
+            style="border-radius: 8px; font-weight: 700;"
+          >
+            🎸 Rytmické vzory
           </button>
           <button
             class="btn btn-sm ${_currentSubTab === 'mistakes' ? 'btn-primary' : 'btn-ghost'}"
@@ -197,7 +211,7 @@ const Practice = (() => {
             onclick="Practice.switchSubTab('quiz')"
             style="border-radius: 8px; font-weight: 700;"
           >
-            🧠 Teoretický kvíz
+            🧠 Kvíz
           </button>
         </div>
 
@@ -223,6 +237,8 @@ const Practice = (() => {
 
     if (_currentSubTab === 'atlas') {
       renderAtlasTab(content);
+    } else if (_currentSubTab === 'transitions') {
+      renderTransitionsTab(content);
     } else if (_currentSubTab === 'strumming') {
       renderStrummingTab(content);
     } else if (_currentSubTab === 'mistakes') {
@@ -451,8 +467,316 @@ const Practice = (() => {
     return svg;
   }
 
-  
-  // ── Strumming Patterns Academy ───────────────────────────────────────
+  // ── 2. Trenažér střídání 2 akordů (Chord Switch Trainer) ──────────────
+  let _transChordA = 'Em';
+  let _transChordB = 'C';
+  let _transPattern = 'camp';
+  let _transBars = 1;
+  let _transTempo = 0.75;
+
+  function renderTransitionsTab(container) {
+    const chordAObj = CHORD_LIBRARY.find(c => c.name === _transChordA) || CHORD_LIBRARY[0];
+    const chordBObj = CHORD_LIBRARY.find(c => c.name === _transChordB) || CHORD_LIBRARY[2];
+
+    const presets = [
+      { a: 'Em', b: 'C', name: 'Em ⇄ C', desc: 'Pop & Balady' },
+      { a: 'D', b: 'G', name: 'D ⇄ G', desc: 'Táborákový základ' },
+      { a: 'Am', b: 'C', name: 'Am ⇄ C', desc: 'Změna 1 prstu' },
+      { a: 'G', b: 'Em', name: 'G ⇄ Em', desc: 'Záchytné prsty' },
+      { a: 'C', b: 'G', name: 'C ⇄ G', desc: 'Královský přehmat' },
+      { a: 'D', b: 'A', name: 'D ⇄ A', desc: 'Rychlý obrat' },
+      { a: 'Am', b: 'E', name: 'Am ⇄ E', desc: 'Stejný tvar výš' }
+    ];
+
+    container.innerHTML = `
+      <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <!-- Header Banner -->
+        <div class="card" style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95)); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 16px; padding: 1.25rem 1.75rem;">
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+            <div>
+              <div style="font-size: 0.75rem; font-weight: 800; color: #818CF8; letter-spacing: 0.05em; text-transform: uppercase;">
+                🎸 Trénink přehmatů & svalové paměti
+              </div>
+              <h3 style="font-size: 1.45rem; font-weight: 900; color: #F8FAFC; margin: 0.25rem 0 0.4rem 0;">
+                Trenažér střídání 2 akordů
+              </h3>
+              <p style="font-size: 0.88rem; color: #94A3B8; margin: 0; max-width: 650px;">
+                Zvol si libovolné dva akordy a natrénuj plynulé a čisté střídání na interaktivní herní dráze. Rychlé přehmátnutí je základem hraní každé písničky!
+              </p>
+            </div>
+            <button
+              type="button"
+              class="btn btn-primary btn-lg"
+              onclick="Practice.startTransitionWorkout()"
+              style="border-radius: 12px; font-weight: 800; padding: 0.75rem 1.5rem; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);"
+            >
+              <span>🚀 Spustit trénink střídání</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Preset Pairs -->
+        <div>
+          <div style="font-size: 0.8rem; font-weight: 800; color: #94A3B8; text-transform: uppercase; margin-bottom: 0.6rem;">
+            ⚡ Doporučené přechody pro začátečníky:
+          </div>
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            ${presets.map(p => `
+              <button
+                type="button"
+                class="btn btn-sm ${(_transChordA === p.a && _transChordB === p.b) ? 'btn-primary' : 'btn-ghost'}"
+                onclick="Practice.selectTransitionPair('${p.a}', '${p.b}')"
+                style="border-radius: 10px; font-weight: 700; padding: 0.35rem 0.85rem;"
+              >
+                ${p.name} <span style="opacity: 0.7; font-size: 0.72rem; margin-left: 4px;">(${p.desc})</span>
+              </button>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Side-by-Side Dual Chord Selectors with Live SVGs -->
+        <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 1.25rem; align-items: center;">
+          <!-- Chord A Card -->
+          <div class="card" style="background: rgba(30, 41, 59, 0.7); border: 2px solid rgba(16, 185, 129, 0.35); border-radius: 16px; padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <span style="font-size: 0.78rem; font-weight: 800; color: #10B981; text-transform: uppercase;">1. Akord (Výchozí)</span>
+              <button
+                type="button"
+                class="btn btn-xs btn-ghost"
+                onclick="Practice.playChordSound('${_transChordA}')"
+                style="border-radius: 6px; font-size: 0.75rem;"
+              >
+                🔊 Přehrát zvuk
+              </button>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+              <select
+                id="trans-chord-a"
+                class="player-select"
+                onchange="Practice.setTransChordA(this.value)"
+                style="font-size: 1.2rem; font-weight: 900; padding: 0.45rem 0.9rem; border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.5); background: #0F172A; color: #FFFFFF; flex: 1;"
+              >
+                ${CHORD_LIBRARY.map(c => `
+                  <option value="${c.name}" ${c.name === _transChordA ? 'selected' : ''}>
+                    ${c.name} (${c.category})
+                  </option>
+                `).join('')}
+              </select>
+            </div>
+
+            <!-- Fretboard Diagram for Chord A -->
+            <div style="background: #0B1120; border-radius: 12px; padding: 0.75rem; display: flex; justify-content: center; border: 1px solid rgba(255,255,255,0.06);">
+              ${renderFretboardSvg(chordAObj)}
+            </div>
+            <div style="margin-top: 0.75rem; font-size: 0.8rem; color: #94A3B8; text-align: center;">
+              💡 ${chordAObj.tip || ''}
+            </div>
+          </div>
+
+          <!-- Center Swap Icon -->
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+            <button
+              type="button"
+              class="btn btn-ghost"
+              onclick="Practice.swapTransChords()"
+              title="Prohodit pořadí akordů"
+              style="width: 48px; height: 48px; border-radius: 50%; background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255,255,255,0.15); font-size: 1.4rem; display: flex; align-items: center; justify-content: center;"
+            >
+              ⇄
+            </button>
+            <span style="font-size: 0.7rem; font-weight: 800; color: #64748B; text-transform: uppercase;">Výměna</span>
+          </div>
+
+          <!-- Chord B Card -->
+          <div class="card" style="background: rgba(30, 41, 59, 0.7); border: 2px solid rgba(56, 189, 248, 0.35); border-radius: 16px; padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <span style="font-size: 0.78rem; font-weight: 800; color: #38BDF8; text-transform: uppercase;">2. Akord (Cílový)</span>
+              <button
+                type="button"
+                class="btn btn-xs btn-ghost"
+                onclick="Practice.playChordSound('${_transChordB}')"
+                style="border-radius: 6px; font-size: 0.75rem;"
+              >
+                🔊 Přehrát zvuk
+              </button>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+              <select
+                id="trans-chord-b"
+                class="player-select"
+                onchange="Practice.setTransChordB(this.value)"
+                style="font-size: 1.2rem; font-weight: 900; padding: 0.45rem 0.9rem; border-radius: 10px; border: 1px solid rgba(56, 189, 248, 0.5); background: #0F172A; color: #FFFFFF; flex: 1;"
+              >
+                ${CHORD_LIBRARY.map(c => `
+                  <option value="${c.name}" ${c.name === _transChordB ? 'selected' : ''}>
+                    ${c.name} (${c.category})
+                  </option>
+                `).join('')}
+              </select>
+            </div>
+
+            <!-- Fretboard Diagram for Chord B -->
+            <div style="background: #0B1120; border-radius: 12px; padding: 0.75rem; display: flex; justify-content: center; border: 1px solid rgba(255,255,255,0.06);">
+              ${renderFretboardSvg(chordBObj)}
+            </div>
+            <div style="margin-top: 0.75rem; font-size: 0.8rem; color: #94A3B8; text-align: center;">
+              💡 ${chordBObj.tip || ''}
+            </div>
+          </div>
+        </div>
+
+        <!-- Workout Options (Pattern, Frequency, Tempo) -->
+        <div class="card" style="background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 1.25rem; display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 0.82rem; font-weight: 800; color: #94A3B8;">🎸 Rytmus úderů:</span>
+            <select
+              id="trans-pattern"
+              class="player-select"
+              onchange="Practice.setTransPattern(this.value)"
+              style="padding: 0.35rem 0.75rem; border-radius: 8px; font-size: 0.85rem; font-weight: 700; background: #0F172A; color: #FFF;"
+            >
+              <option value="camp" ${_transPattern === 'camp' ? 'selected' : ''}>Táborákový (↓ · ↓ ↑ · ↑ ↓ ↑)</option>
+              <option value="basic4" ${_transPattern === 'basic4' ? 'selected' : ''}>Základní 4/4 (↓ · ↓ · ↓ · ↓ ·)</option>
+              <option value="folk" ${_transPattern === 'folk' ? 'selected' : ''}>Country & Folk (↓ · ↓ · ↓ ↑ ↓ ↑)</option>
+              <option value="rock" ${_transPattern === 'rock' ? 'selected' : ''}>Rockový tah (↓ ↑ ↓ ↑ ↓ ↑ ↓ ↑)</option>
+              <option value="ballad" ${_transPattern === 'ballad' ? 'selected' : ''}>Akustická balada (↓ · · · ↓ ↑ · ↑)</option>
+            </select>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 0.82rem; font-weight: 800; color: #94A3B8;">⏱️ Interval střídání:</span>
+            <div style="display: flex; gap: 4px;">
+              <button
+                type="button"
+                class="btn btn-sm ${_transBars === 1 ? 'btn-primary' : 'btn-ghost'}"
+                onclick="Practice.setTransBars(1)"
+                style="border-radius: 6px; font-size: 0.8rem; font-weight: 700;"
+              >
+                1 takt (Rychlé)
+              </button>
+              <button
+                type="button"
+                class="btn btn-sm ${_transBars === 2 ? 'btn-primary' : 'btn-ghost'}"
+                onclick="Practice.setTransBars(2)"
+                style="border-radius: 6px; font-size: 0.8rem; font-weight: 700;"
+              >
+                2 takty (Pohodové)
+              </button>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 0.82rem; font-weight: 800; color: #94A3B8;">🐢 Tempo:</span>
+            <div style="display: flex; gap: 4px;">
+              <button
+                type="button"
+                class="btn btn-sm ${_transTempo === 0.5 ? 'btn-primary' : 'btn-ghost'}"
+                onclick="Practice.setTransTempo(0.5)"
+                style="border-radius: 6px; font-size: 0.8rem; font-weight: 700;"
+              >
+                0.5×
+              </button>
+              <button
+                type="button"
+                class="btn btn-sm ${_transTempo === 0.75 ? 'btn-primary' : 'btn-ghost'}"
+                onclick="Practice.setTransTempo(0.75)"
+                style="border-radius: 6px; font-size: 0.8rem; font-weight: 700;"
+              >
+                0.75×
+              </button>
+              <button
+                type="button"
+                class="btn btn-sm ${_transTempo === 1.0 ? 'btn-primary' : 'btn-ghost'}"
+                onclick="Practice.setTransTempo(1.0)"
+                style="border-radius: 6px; font-size: 0.8rem; font-weight: 700;"
+              >
+                1.0×
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function selectTransitionPair(chordA, chordB) {
+    _transChordA = chordA;
+    _transChordB = chordB;
+    const content = document.getElementById('practice-tab-content');
+    if (content) renderTransitionsTab(content);
+    playChordSound(chordA);
+  }
+
+  function setTransChordA(chordA) {
+    _transChordA = chordA;
+    const content = document.getElementById('practice-tab-content');
+    if (content) renderTransitionsTab(content);
+  }
+
+  function setTransChordB(chordB) {
+    _transChordB = chordB;
+    const content = document.getElementById('practice-tab-content');
+    if (content) renderTransitionsTab(content);
+  }
+
+  function swapTransChords() {
+    const tmp = _transChordA;
+    _transChordA = _transChordB;
+    _transChordB = tmp;
+    const content = document.getElementById('practice-tab-content');
+    if (content) renderTransitionsTab(content);
+  }
+
+  function setTransPattern(pattern) {
+    _transPattern = pattern;
+  }
+
+  function setTransBars(bars) {
+    _transBars = parseInt(bars, 10);
+    const content = document.getElementById('practice-tab-content');
+    if (content) renderTransitionsTab(content);
+  }
+
+  function setTransTempo(tempo) {
+    _transTempo = parseFloat(tempo);
+    const content = document.getElementById('practice-tab-content');
+    if (content) renderTransitionsTab(content);
+  }
+
+  function startTransitionWorkout() {
+    const chordA = _transChordA;
+    const chordB = _transChordB;
+    const pattern = _transPattern || 'camp';
+    const bars = _transBars || 1;
+    const tempo = _transTempo || 0.75;
+
+    const alternatingChords = [];
+    for (let i = 0; i < 24; i++) {
+      const useA = Math.floor(i / bars) % 2 === 0;
+      alternatingChords.push(useA ? chordA : chordB);
+    }
+
+    const workoutSong = {
+      id: 99100 + Math.floor(Math.random() * 800),
+      title: `Střídání: ${chordA} ⇄ ${chordB}`,
+      artist: `Trenažér přechodů (${bars === 1 ? '1 takt' : '2 takty'} na akord)`,
+      bpm: 90,
+      chords: alternatingChords,
+      strummingPattern: pattern,
+      isTransitionWorkout: true,
+      chordA,
+      chordB,
+      initialTempo: tempo
+    };
+
+    if (typeof App !== 'undefined' && typeof App.launchSongPlayer === 'function') {
+      App.launchSongPlayer(workoutSong);
+    }
+  }
+
+  // ── 3. Strumming Patterns Academy ─────────────────────────────────────
   function renderStrummingTab(container) {
     const patterns = (typeof SongPlayer !== 'undefined' && SongPlayer.getStrummingPatterns)
       ? SongPlayer.getStrummingPatterns()
@@ -764,6 +1088,15 @@ const Practice = (() => {
     playPatternPreview,
     startPatternWorkout,
     renderStrummingTab,
+    renderTransitionsTab,
+    selectTransitionPair,
+    setTransChordA,
+    setTransChordB,
+    swapTransChords,
+    setTransPattern,
+    setTransBars,
+    setTransTempo,
+    startTransitionWorkout,
     CHORD_LIBRARY
   };
 })();

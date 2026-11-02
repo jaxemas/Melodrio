@@ -386,25 +386,25 @@ const SongPlayer = (() => {
       g.lineTo(w, y);
       g.stroke();
 
-      // String Badge on Headstock (Left)
-      const badgeW = 54;
-      const badgeH = 24;
+      // String Badge on Headstock (Left - clean string name only, no numbers!)
+      const badgeW = 38;
+      const badgeH = 26;
       const badgeX = Math.round(hitLineX * 0.48);
 
-      g.fillStyle = 'rgba(15, 23, 42, 0.88)';
+      g.fillStyle = 'rgba(15, 23, 42, 0.9)';
       roundRect(g, badgeX - badgeW / 2, y - badgeH / 2, badgeW, badgeH, 6);
       g.fill();
-      g.strokeStyle = 'rgba(255, 255, 255, 0.14)';
+      g.strokeStyle = 'rgba(255, 255, 255, 0.18)';
       g.lineWidth = 1.2;
       roundRect(g, badgeX - badgeW / 2, y - badgeH / 2, badgeW, badgeH, 6);
       g.stroke();
 
-      // Text inside string badge: "[1] e" in crisp slate
-      g.fillStyle = '#CBD5E1';
-      g.font = 'bold 12px "Segoe UI", sans-serif';
+      // Text inside string badge: ONLY the string name (no numbers!)
+      g.fillStyle = '#F8FAFC';
+      g.font = '900 15px "Segoe UI", sans-serif';
       g.textAlign = 'center';
       g.textBaseline = 'middle';
-      g.fillText(`[${s.stringNum}] ${s.name}`, badgeX, y);
+      g.fillText(s.name, badgeX, y);
     }
 
     // 5. Target / Hit Line (Neon Laser Bar)
@@ -590,7 +590,7 @@ const SongPlayer = (() => {
 
     const topY = stringAreaTop + minIdx * stringSpacing - 18;
     const botY = stringAreaTop + maxIdx * stringSpacing + 18;
-    const cardW = 38;
+    const cardW = 42;
     const cardX = Math.round(x - cardW / 2);
 
     // Color theme based on stroke direction & timing judgement
@@ -601,7 +601,7 @@ const SongPlayer = (() => {
 
     // 1. Unified Chord & Strumming Direction Pill (Top)
     // Clean, minimalist: Chord name + Large Arrow (no text labels!)
-    const pillW = 44;
+    const pillW = 46;
     const pillH = 48;
     const pillY = topY - pillH - 8;
     const pillX = Math.round(x - pillW / 2);
@@ -642,13 +642,13 @@ const SongPlayer = (() => {
     roundRect(g, cardX, topY, cardW, botY - topY, 8);
     g.stroke();
 
-    // 3. String Fret Pucks (Circles on each active string)
+    // 3. String Fret Pucks (Circles on each active string - large & clear!)
     for (let i = 0; i < 6; i++) {
       const fret = frets[i];
       const y = Math.round(stringAreaTop + i * stringSpacing);
 
       if (fret >= 0) {
-        const puckRadius = 14;
+        const puckRadius = 17; // Larger diameter (34px) for high visibility
 
         // Outer Ring matching stroke theme
         g.fillStyle = themeColor;
@@ -659,19 +659,27 @@ const SongPlayer = (() => {
         // Inner Core
         g.fillStyle = '#0B1120';
         g.beginPath();
-        g.arc(x, y, puckRadius - 2.5, 0, Math.PI * 2);
+        g.arc(x, y, puckRadius - 2.8, 0, Math.PI * 2);
         g.fill();
 
-        // Fret Number
-        g.fillStyle = '#F8FAFC';
-        g.font = '900 13px "Segoe UI", sans-serif';
-        g.textAlign = 'center';
-        g.textBaseline = 'middle';
-        g.fillText(fret === 0 ? '0' : String(fret), x, y);
+        // Fret Number (Significantly larger & bolder!)
+        if (fret === 0) {
+          g.fillStyle = '#CBD5E1';
+          g.font = '900 16px "Segoe UI", sans-serif';
+          g.textAlign = 'center';
+          g.textBaseline = 'middle';
+          g.fillText('0', x, y);
+        } else {
+          g.fillStyle = '#FFFFFF';
+          g.font = '900 18px "Segoe UI", sans-serif';
+          g.textAlign = 'center';
+          g.textBaseline = 'middle';
+          g.fillText(String(fret), x, y);
+        }
       } else {
         // Muted String (Clean Red ✕)
         g.fillStyle = '#EF4444';
-        g.font = '900 14px "Segoe UI", sans-serif';
+        g.font = '900 18px "Segoe UI", sans-serif';
         g.textAlign = 'center';
         g.textBaseline = 'middle';
         g.fillText('✕', x, y);
