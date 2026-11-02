@@ -265,68 +265,13 @@ const SongPlayer = (() => {
     return { w, h };
   }
 
-  // ── Strumming Guide Ribbon (DOM Bar Synchronization) ──────────────────
+  // ── Strumming Pattern Synchronization (Integrated directly onto each chord) ──
   function updateRibbonDOM() {
-    const pattern = STRUMMING_PATTERNS[_currentPatternId] || STRUMMING_PATTERNS['camp'];
-    const nameEl = document.getElementById('strum-ribbon-name');
-    const slotsEl = document.getElementById('strum-ribbon-slots');
-    if (nameEl) nameEl.textContent = pattern.shortName;
-
-    if (slotsEl) {
-      slotsEl.innerHTML = pattern.slots.map((s, idx) => {
-        let typeClass = 'rest';
-        let arrowText = '·';
-
-        if (s.dir === 'down') {
-          typeClass = 'down';
-          arrowText = '↓';
-        } else if (s.dir === 'up') {
-          typeClass = 'up';
-          arrowText = '↑';
-        }
-
-        return `
-          <div class="strum-slot ${typeClass}" id="ribbon-slot-${idx}" data-beat="${s.beat}">
-            <span class="slot-label">${s.label}</span>
-            <span class="slot-arrow">${arrowText}</span>
-          </div>
-        `;
-      }).join('');
-    }
+    // Kept for backward compatibility - strumming indicators are now placed directly on chords
   }
 
   function syncRibbonCursor() {
-    const pattern = STRUMMING_PATTERNS[_currentPatternId];
-    if (!pattern) return;
-
-    const beatDuration = 60 / _bpm;
-    const totalMeasureDuration = _beatsPerMeasure * beatDuration;
-
-    let activeIdx = -1;
-    if (_songTime >= 0) {
-      const timeInMeasure = _songTime % totalMeasureDuration;
-      const currentBeat = timeInMeasure / beatDuration;
-
-      // Find closest active slot in measure
-      for (let i = pattern.slots.length - 1; i >= 0; i--) {
-        if (currentBeat >= pattern.slots[i].beat - 0.1) {
-          activeIdx = i;
-          break;
-        }
-      }
-    }
-
-    if (activeIdx !== _lastRibbonSlotIdx) {
-      if (_lastRibbonSlotIdx >= 0) {
-        const oldEl = document.getElementById(`ribbon-slot-${_lastRibbonSlotIdx}`);
-        if (oldEl) oldEl.classList.remove('active');
-      }
-      if (activeIdx >= 0) {
-        const newEl = document.getElementById(`ribbon-slot-${activeIdx}`);
-        if (newEl) newEl.classList.add('active');
-      }
-      _lastRibbonSlotIdx = activeIdx;
-    }
+    // Kept for backward compatibility
   }
 
   // ── Main Rendering Function ──────────────────────────────────────────
@@ -349,12 +294,12 @@ const SongPlayer = (() => {
     g.fillStyle = bgGrad;
     g.fillRect(0, 0, w, h);
 
-    // Layout Geometry (Generous full-screen spacing)
+    // Layout Geometry (Generous full-screen spacing with clean vertical zones)
     const hitLineX = Math.round(w * HIT_LINE_X_PERCENT);
-    const topMargin = Math.max(50, Math.round(h * 0.08));
-    const bottomMargin = Math.max(50, Math.round(h * 0.08));
-    const stringAreaTop = topMargin + 30;
-    const stringAreaBottom = h - bottomMargin - 30;
+    const topMargin = Math.max(80, Math.round(h * 0.14));
+    const bottomMargin = Math.max(40, Math.round(h * 0.07));
+    const stringAreaTop = topMargin + 42;
+    const stringAreaBottom = h - bottomMargin - 15;
     const stringSpacing = (stringAreaBottom - stringAreaTop) / 5;
 
     // 2. Nut / Headstock Zone (Left of hit line)
@@ -493,11 +438,53 @@ const SongPlayer = (() => {
       g.stroke();
     }
 
-    // Strum Zone Indicator Header
-    g.fillStyle = '#FBBF24';
-    g.font = '900 13px "Segoe UI", sans-serif';
-    g.textAlign = 'center';
-    g.fillText('🎯 ZDE ZAHRÁJ [MEZERNÍK / ŠIPKY]', hitLineX, stringAreaTop - 32);
+    // 5b. Consolidated Focal Target Cue directly above the laser line:
+    // Finds upcoming or active chord so user only needs to look at the hit line!
+    let activeTarget = null;
+    for (const note of _noteTrack) {
+      if (!note.hit && note.time >= _songTime - 0.25 && note.time <= _songTime + 2.5) {
+        activeTarget = note;
+        break;
+      }
+    }
+
+    // Floating focal target indicator above oncoming chords
+    const cueY = Math.max(22, Math.round(stringAreaTop - 85));
+    if (activeTarget) {
+      const isHitNow = Math.abs(activeTarget.time - _songTime) <= GOOD_WINDOW;
+      const isDown = (activeTarget.direction === 'down');
+      const cueColor = isHitNow ? '#FBBF24' : (isDown ? '#10B981' : '#38BDF8');
+      const arrowIcon = isDown ? '⬇' : '⬆';
+      const dirText = isDown ? 'DOLŮ' : 'NAHORU';
+      const cueText = isHitNow
+        ? `🎯 TEĎ: [ ${activeTarget.chord} ] ${arrowIcon} ${dirText}`
+        : `🎯 PŘÍŠTÍ: [ ${activeTarget.chord} ] ${arrowIcon} ${dirText}`;
+
+      g.font = '900 13px "Segoe UI", sans-serif';
+      const textW = g.measureText(cueText).width;
+      const boxW = Math.max(170, textW + 28);
+      const boxH = 28;
+
+      g.fillStyle = 'rgba(15, 23, 42, 0.92)';
+      roundRect(g, Math.round(hitLineX - boxW / 2), cueY - 14, boxW, boxH, 8);
+      g.fill();
+
+      g.strokeStyle = cueColor;
+      g.lineWidth = isHitNow ? 2.5 : 1.5;
+      roundRect(g, Math.round(hitLineX - boxW / 2), cueY - 14, boxW, boxH, 8);
+      g.stroke();
+
+      g.fillStyle = cueColor;
+      g.textAlign = 'center';
+      g.textBaseline = 'middle';
+      g.fillText(cueText, hitLineX, cueY);
+    } else {
+      g.fillStyle = '#64748B';
+      g.font = 'bold 12px "Segoe UI", sans-serif';
+      g.textAlign = 'center';
+      g.textBaseline = 'middle';
+      g.fillText('🎯 ZÁSAHOVÁ ČÁRA', hitLineX, cueY);
+    }
 
     // 6. Hit Ripple Waves
     const nowSec = performance.now() / 1000;
@@ -554,11 +541,8 @@ const SongPlayer = (() => {
       return true;
     });
 
-    // 10. Top & Bottom HUD
-    drawHUD(g, w, h);
-
-    // 11. Sync DOM Ribbon Cursor with playback
-    syncRibbonCursor();
+    // 10. Sync HTML Header HUD (Score, Combo, Progress, Time)
+    updateHTMLHUD();
   }
 
   // ── Render Individual Chord Card with Directional Arrows ─────────────
@@ -587,7 +571,7 @@ const SongPlayer = (() => {
 
     const topY = stringAreaTop + minIdx * stringSpacing - 18;
     const botY = stringAreaTop + maxIdx * stringSpacing + 18;
-    const cardW = 86;
+    const cardW = 46;
     const cardX = Math.round(x - cardW / 2);
 
     // Color theme based on stroke direction & timing judgement
@@ -596,74 +580,69 @@ const SongPlayer = (() => {
     else if (note.judgement === 'good') themeColor = '#38BDF8';
     else if (note.judgement === 'miss') themeColor = '#EF4444';
 
-    // 1. Vertical Card Beam Glow
-    const beamGrad = g.createLinearGradient(cardX, 0, cardX + cardW, 0);
-    beamGrad.addColorStop(0, themeColor + '20');
-    beamGrad.addColorStop(0.5, themeColor + '50');
-    beamGrad.addColorStop(1, themeColor + '20');
-    g.fillStyle = beamGrad;
-    roundRect(g, cardX, topY, cardW, botY - topY, 14);
+    // 1. Unified Chord & Strumming Direction Pill (Top)
+    // Consolidates chord name AND strumming pattern directly next to each other!
+    const pillW = 52;
+    const pillH = 44;
+    const pillY = topY - pillH - 8;
+    const pillX = Math.round(x - pillW / 2);
+
+    // Main dark pill
+    g.fillStyle = '#0F172A';
+    roundRect(g, pillX, pillY, pillW, pillH, 8);
     g.fill();
 
-    // 2. Card Border
     g.strokeStyle = themeColor;
-    g.lineWidth = note.accent ? 3 : 2;
-    roundRect(g, cardX, topY, cardW, botY - topY, 14);
+    g.lineWidth = note.accent ? 2.5 : 1.8;
+    roundRect(g, pillX, pillY, pillW, pillH, 8);
     g.stroke();
 
-    // 3. Chord Name Header Badge (Top)
-    if (note.chord) {
-      const bannerH = 28;
-      const bannerW = 72;
-      const bannerY = topY - bannerH - 6;
-      const bannerX = Math.round(x - bannerW / 2);
-
-      g.fillStyle = '#0F172A';
-      roundRect(g, bannerX, bannerY, bannerW, bannerH, 8);
-      g.fill();
-
-      g.strokeStyle = themeColor;
-      g.lineWidth = 2;
-      roundRect(g, bannerX, bannerY, bannerW, bannerH, 8);
-      g.stroke();
-
-      g.fillStyle = '#FFFFFF';
-      g.font = '900 16px "Segoe UI", sans-serif';
-      g.textAlign = 'center';
-      g.textBaseline = 'middle';
-      g.fillText(note.chord, x, bannerY + bannerH / 2);
-    }
-
-    // 4. Strumming Direction Arrow Badge (Center/Bottom)
-    const dirH = 24;
-    const dirW = 74;
-    const dirY = botY + 6;
-    const dirX = Math.round(x - dirW / 2);
-
-    g.fillStyle = isDown ? 'rgba(16, 185, 129, 0.25)' : 'rgba(56, 189, 248, 0.25)';
-    roundRect(g, dirX, dirY, dirW, dirH, 6);
-    g.fill();
-
-    g.strokeStyle = isDown ? '#10B981' : '#38BDF8';
-    g.lineWidth = 1.5;
-    roundRect(g, dirX, dirY, dirW, dirH, 6);
-    g.stroke();
-
+    // Chord Name (Top half of pill)
     g.fillStyle = '#FFFFFF';
-    g.font = '900 11px "Segoe UI", sans-serif';
+    g.font = '900 15px "Segoe UI", sans-serif';
     g.textAlign = 'center';
     g.textBaseline = 'middle';
-    const arrowLabel = isDown ? '⬇ DOLŮ' : '⬆ NAHORU';
-    g.fillText(arrowLabel, x, dirY + dirH / 2);
+    g.fillText(note.chord || '?', x, pillY + 13);
 
-    // 5. String Fret Pucks (Circles on each active string)
+    // Strumming Direction Badge (Bottom half of pill, directly with the chord!)
+    const dirBadgeW = 44;
+    const dirBadgeH = 16;
+    const dirBadgeX = pillX + 4;
+    const dirBadgeY = pillY + 23;
+
+    g.fillStyle = isDown ? '#10B981' : '#38BDF8';
+    roundRect(g, dirBadgeX, dirBadgeY, dirBadgeW, dirBadgeH, 4);
+    g.fill();
+
+    g.fillStyle = '#060B16';
+    g.font = '900 10px "Segoe UI", sans-serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText(isDown ? '⬇ DOLŮ' : '⬆ NAH.', x, dirBadgeY + dirBadgeH / 2);
+
+    // 2. Vertical Card Beam Glow connecting active strings
+    const beamGrad = g.createLinearGradient(cardX, 0, cardX + cardW, 0);
+    beamGrad.addColorStop(0, themeColor + '18');
+    beamGrad.addColorStop(0.5, themeColor + '40');
+    beamGrad.addColorStop(1, themeColor + '18');
+    g.fillStyle = beamGrad;
+    roundRect(g, cardX, topY, cardW, botY - topY, 10);
+    g.fill();
+
+    // Beam Border
+    g.strokeStyle = themeColor + '80';
+    g.lineWidth = note.accent ? 2.5 : 1.5;
+    roundRect(g, cardX, topY, cardW, botY - topY, 10);
+    g.stroke();
+
+    // 3. String Fret Pucks (Circles on each active string)
     for (let i = 0; i < 6; i++) {
       const fret = frets[i];
       const y = Math.round(stringAreaTop + i * stringSpacing);
       const strColor = STRINGS[i].color;
 
       if (fret >= 0) {
-        const puckRadius = 16;
+        const puckRadius = 15;
 
         // Outer Glow Ring
         g.fillStyle = strColor;
@@ -686,7 +665,7 @@ const SongPlayer = (() => {
       } else {
         // Muted String (Red ✕)
         g.fillStyle = '#EF4444';
-        g.font = '900 16px "Segoe UI", sans-serif';
+        g.font = '900 14px "Segoe UI", sans-serif';
         g.textAlign = 'center';
         g.textBaseline = 'middle';
         g.fillText('✕', x, y);
@@ -752,89 +731,39 @@ const SongPlayer = (() => {
     g.restore();
   }
 
-  // ── Heads-Up Display (HUD) ───────────────────────────────────────────
-  function drawHUD(g, w, h) {
-    // Top HUD Bar
-    g.fillStyle = 'rgba(15, 23, 42, 0.9)';
-    g.fillRect(0, 0, w, 44);
-    g.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-    g.lineWidth = 1;
-    g.beginPath();
-    g.moveTo(0, 44);
-    g.lineTo(w, 44);
-    g.stroke();
+  // ── Heads-Up Display (Clean HTML Top Bar HUD Synchronization) ───────
+  function updateHTMLHUD() {
+    // 1. Live Score
+    const scoreEl = document.getElementById('player-hud-score');
+    if (scoreEl) scoreEl.textContent = _score.toLocaleString();
 
-    // Song info
-    if (_song) {
-      g.fillStyle = '#F8FAFC';
-      g.font = 'bold 15px "Segoe UI", sans-serif';
-      g.textAlign = 'left';
-      g.textBaseline = 'middle';
-      g.fillText(`🎵 ${_song.title} — ${_song.artist}`, 20, 22);
+    // 2. Active Combo Pill (visible only when combo > 1)
+    const comboWrap = document.getElementById('player-combo-wrap');
+    const comboEl = document.getElementById('player-hud-combo');
+    if (comboWrap && comboEl) {
+      if (_combo > 1) {
+        comboWrap.style.display = 'inline-flex';
+        comboEl.textContent = `${_combo}×`;
+      } else {
+        comboWrap.style.display = 'none';
+      }
     }
 
-    // Progress Bar (Center)
+    // 3. Progress Bar & Elapsed/Total Time
     const totalTime = _noteTrack.length > 0 ? _noteTrack[_noteTrack.length - 1].time + 2.5 : 60;
-    const currentProgress = Math.max(0, Math.min(1, _songTime / totalTime));
-    const barW = Math.min(340, w * 0.3);
-    const barX = Math.round((w - barW) / 2);
-    const barY = 16;
-    const barH = 12;
+    const currentProgress = Math.max(0, Math.min(1, Math.max(0, _songTime) / totalTime));
 
-    g.fillStyle = 'rgba(255, 255, 255, 0.12)';
-    roundRect(g, barX, barY, barW, barH, 6);
-    g.fill();
-
-    if (currentProgress > 0) {
-      const fillW = Math.max(10, barW * currentProgress);
-      const progGrad = g.createLinearGradient(barX, 0, barX + fillW, 0);
-      progGrad.addColorStop(0, '#6366F1');
-      progGrad.addColorStop(1, '#10B981');
-      g.fillStyle = progGrad;
-      roundRect(g, barX, barY, fillW, barH, 6);
-      g.fill();
+    const progressFill = document.getElementById('player-progress-fill');
+    if (progressFill) {
+      progressFill.style.width = (currentProgress * 100).toFixed(1) + '%';
     }
 
-    const curSec = Math.max(0, Math.floor(_songTime));
-    const totSec = Math.floor(totalTime);
-    g.fillStyle = '#94A3B8';
-    g.font = 'bold 11px "Segoe UI", sans-serif';
-    g.textAlign = 'center';
-    g.textBaseline = 'bottom';
-    g.fillText(`${formatTime(curSec)} / ${formatTime(totSec)}`, w / 2, 14);
-
-    // Score & Combo (Right)
-    g.fillStyle = '#F8FAFC';
-    g.font = '900 16px "Segoe UI", sans-serif';
-    g.textAlign = 'right';
-    g.textBaseline = 'middle';
-    g.fillText(`Skóre: ${_score.toLocaleString()}`, w - 20, 22);
-
-    // Bottom HUD Bar
-    g.fillStyle = 'rgba(15, 23, 42, 0.85)';
-    g.fillRect(0, h - 38, w, 38);
-
-    if (_combo > 1) {
-      g.fillStyle = '#FBBF24';
-      g.font = '900 14px "Segoe UI", sans-serif';
-      g.textAlign = 'left';
-      g.textBaseline = 'middle';
-      g.fillText(`🔥 COMBO: ${_combo}× (Nejvyšší: ${_maxCombo}×)`, 20, h - 19);
-    } else {
-      g.fillStyle = '#94A3B8';
-      g.font = 'bold 12px "Segoe UI", sans-serif';
-      g.textAlign = 'left';
-      g.textBaseline = 'middle';
-      g.fillText('Stiskni [Mezerník] nebo šipky [↓ / ↑] v okamžiku, kdy akord protne laser!', 20, h - 19);
+    const timeDisplay = document.getElementById('player-time-display');
+    if (timeDisplay) {
+      const curSec = Math.max(0, Math.floor(_songTime));
+      const totSec = Math.floor(totalTime);
+      timeDisplay.textContent = `${formatTime(curSec)} / ${formatTime(totSec)}`;
     }
-
-    // Active Strumming Pattern indicator
-    const curPattern = STRUMMING_PATTERNS[_currentPatternId];
-    g.fillStyle = '#A78BFA';
-    g.font = 'bold 13px "Segoe UI", sans-serif';
-    g.textAlign = 'right';
-    g.textBaseline = 'middle';
-    g.fillText(`Vzor: ${curPattern ? curPattern.shortName : 'Táborákový'} • Tempo: ${_tempo.toFixed(2)}×`, w - 20, h - 19);
   }
 
   function roundRect(ctx, x, y, w, h, r) {
@@ -1061,6 +990,7 @@ const SongPlayer = (() => {
     _paused = false;
     _onFinish = onFinishCb || null;
 
+    updateHTMLHUD();
     updateRibbonDOM();
 
     if (typeof AudioSynth !== 'undefined') AudioSynth.ensureContext();
