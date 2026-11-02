@@ -1,4 +1,4 @@
-﻿/* ==========================================================================
+/* ==========================================================================
    MELODRIO — STYLESHEET (css/styles.css)
    Dark-mode only, Glassmorphism, Guitar Learning Web App (Czech Language)
    ========================================================================== */
@@ -2742,7 +2742,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
 
 /* ==========================================================================
-   MELODRIO PHASE 2 â€” SONG PLAYER & NOTE HIGHWAY STYLES
+   MELODRIO PHASE 2 - SONG PLAYER AND NOTE HIGHWAY STYLES
    ========================================================================== */
 .song-player-overlay {
   position: fixed;
@@ -2913,7 +2913,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
   gap: 0.5rem;
 }
 
-/* â”€â”€ Results Overlay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* --- Results Overlay --- */
 .player-results-overlay {
   position: absolute;
   inset: 0;

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Melodrio - Main Application Module
  * Handles routing, navigation, dashboard rendering, story map, profile, and app initialization.
  */
@@ -2948,12 +2948,14 @@ window.App = {
 
     if (resultsOverlay) resultsOverlay.style.display = 'none';
 
+    // Show overlay FIRST so getBoundingClientRect() returns valid non-zero dimensions
+    overlay.style.display = 'flex';
+
     // Clear stage and init canvas
     stage.innerHTML = '';
     SongPlayer.initCanvas(stage);
-
-    // Show overlay
-    overlay.style.display = 'flex';
+    SongPlayer.resizeCanvas();
+    requestAnimationFrame(() => SongPlayer.resizeCanvas());
 
     // Start playback
     SongPlayer.startSong(song, (result) => {

@@ -571,7 +571,7 @@ const Practice = (() => {
       id: 999,
       title: `Trénink akordu ${chordName}`,
       artist: 'Melodrio Cvičební režim',
-      chords: [chordName, 'Em', chordName, 'Am'],
+      chords: [chordName, chordName, chordName, chordName],
       bpm: 80,
       difficulty: 'Trénink',
       unlockLesson: 1,

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="cs">
 <head>
   <meta charset="UTF-8">
@@ -297,7 +297,7 @@
           </div>
         </section>
 
-                <!-- PRACTICE VIEW (TrĂ©nink akordĹŻ & slabĂˇ mĂ­sta - FĂˇze 2) -->
+                <!-- PRACTICE VIEW (Trénink akordů & slabá místa - Fáze 2) -->
         <section id="view-practice" class="view">
           <div id="practice-content">
             <!-- Rendered by Practice.renderPracticeView -->
@@ -340,9 +340,9 @@
         <!-- Top Header & Controls -->
         <div class="song-player-header">
           <div class="player-song-info">
-            <span class="player-badge">đźŽ¸ HERNĂŤ DRĂHA (FĂZE 2)</span>
+            <span class="player-badge">🎸 HERNÍ DRÁHA (FÁZE 2)</span>
             <h2 id="player-song-title">Skladba</h2>
-            <div id="player-song-sub" class="player-sub">Interpret â€˘ 120 BPM</div>
+            <div id="player-song-sub" class="player-sub">Interpret • 120 BPM</div>
           </div>
 
           <div class="player-top-controls">
@@ -350,26 +350,26 @@
             <div class="player-ctrl-group">
               <span class="ctrl-label">Tempo:</span>
               <div class="tempo-btn-group" id="player-tempo-buttons">
-                <button type="button" class="btn btn-sm btn-ghost tempo-btn" data-tempo="0.5" onclick="App.setPlayerTempo(0.5, this)">0.5Ă—</button>
-                <button type="button" class="btn btn-sm btn-ghost tempo-btn" data-tempo="0.75" onclick="App.setPlayerTempo(0.75, this)">0.75Ă—</button>
-                <button type="button" class="btn btn-sm btn-primary tempo-btn active" data-tempo="1.0" onclick="App.setPlayerTempo(1.0, this)">1.0Ă—</button>
-                <button type="button" class="btn btn-sm btn-ghost tempo-btn" data-tempo="1.25" onclick="App.setPlayerTempo(1.25, this)">1.25Ă—</button>
+                <button type="button" class="btn btn-sm btn-ghost tempo-btn" data-tempo="0.5" onclick="App.setPlayerTempo(0.5, this)">0.5×</button>
+                <button type="button" class="btn btn-sm btn-ghost tempo-btn" data-tempo="0.75" onclick="App.setPlayerTempo(0.75, this)">0.75×</button>
+                <button type="button" class="btn btn-sm btn-primary tempo-btn active" data-tempo="1.0" onclick="App.setPlayerTempo(1.0, this)">1.0×</button>
+                <button type="button" class="btn btn-sm btn-ghost tempo-btn" data-tempo="1.25" onclick="App.setPlayerTempo(1.25, this)">1.25×</button>
               </div>
             </div>
 
             <!-- Metronome Sound Toggle -->
             <button type="button" class="btn btn-sm btn-ghost" id="player-metro-toggle" onclick="App.togglePlayerMetronome()" title="Zapnout/Vypnout metronom">
-              âŹ±ď¸Ź <span id="player-metro-label">Metronom: Zapnuto</span>
+              ⏱️ <span id="player-metro-label">Metronom: Zapnuto</span>
             </button>
 
             <!-- Sound Mute Toggle -->
-            <button type="button" class="btn btn-sm btn-ghost" id="player-audio-toggle" onclick="App.togglePlayerAudio()" title="Zapnout/Vypnout zvuk syntezĂˇtoru">
-              đź”Š <span id="player-audio-label">Zvuk</span>
+            <button type="button" class="btn btn-sm btn-ghost" id="player-audio-toggle" onclick="App.togglePlayerAudio()" title="Zapnout/Vypnout zvuk syntezátoru">
+              🔊 <span id="player-audio-label">Zvuk</span>
             </button>
 
             <!-- Close Button -->
-            <button type="button" class="btn btn-ghost btn-close-player" onclick="App.closeSongPlayer()" title="ZavĹ™Ă­t hernĂ­ drĂˇhu (Esc)">
-              âś•
+            <button type="button" class="btn btn-ghost btn-close-player" onclick="App.closeSongPlayer()" title="Zavřít herní dráhu (Esc)">
+              ✕
             </button>
           </div>
         </div>
@@ -382,21 +382,21 @@
         <!-- Bottom Controls & Key Legend -->
         <div class="song-player-footer">
           <div class="player-keys-legend">
-            <span class="key-pill"><kbd>MezernĂ­k</kbd> Ăšder na akord</span>
-            <span class="key-pill"><kbd>1</kbd>â€“<kbd>6</kbd> KytarovĂ© struny (E aĹľ e)</span>
+            <span class="key-pill"><kbd>Mezerník</kbd> Úder na akord (strum)</span>
+            <span class="key-pill"><kbd>1</kbd>–<kbd>6</kbd> Kytarové struny (e až E)</span>
             <span class="key-pill"><kbd>P</kbd> Pauza</span>
             <span class="key-pill"><kbd>Esc</kbd> Konec</span>
           </div>
 
           <div class="player-actions">
             <button type="button" class="btn btn-secondary btn-sm" onclick="App.restartSongPlayer()">
-              đź”„ Od zaÄŤĂˇtku
+              🔄 Od začátku
             </button>
             <button type="button" class="btn btn-primary btn-sm" id="player-pause-btn" onclick="App.togglePlayerPause()">
-              âŹ¸ Pozastavit
+              ⏸ Pozastavit
             </button>
             <button type="button" class="btn btn-ghost btn-sm" onclick="App.closeSongPlayer()">
-              UkonÄŤit
+              Ukončit
             </button>
           </div>
         </div>
@@ -404,26 +404,26 @@
         <!-- Results Screen Overlay (Shown on song finish) -->
         <div id="player-results-overlay" class="player-results-overlay" style="display: none;">
           <div class="player-results-card">
-            <div class="results-trophy" id="results-trophy">đźŹ†</div>
-            <h2 id="results-title">Skladba dokonÄŤena!</h2>
-            <div id="results-song-name" class="results-song-name">NĂˇzev skladby</div>
+            <div class="results-trophy" id="results-trophy">🏆</div>
+            <h2 id="results-title">Skladba dokončena!</h2>
+            <div id="results-song-name" class="results-song-name">Název skladby</div>
 
             <div class="results-stats-grid">
               <div class="results-stat-box">
                 <div class="stat-num" id="results-score">0</div>
-                <div class="stat-label">DosaĹľenĂ© skĂłre</div>
+                <div class="stat-label">Dosažené skóre</div>
               </div>
               <div class="results-stat-box">
                 <div class="stat-num" id="results-accuracy">0 %</div>
-                <div class="stat-label">PĹ™esnost</div>
+                <div class="stat-label">Přesnost</div>
               </div>
               <div class="results-stat-box">
-                <div class="stat-num" id="results-combo">0Ă—</div>
+                <div class="stat-num" id="results-combo">0×</div>
                 <div class="stat-label">Max Combo</div>
               </div>
               <div class="results-stat-box highlight">
                 <div class="stat-num" id="results-xp">+0 XP</div>
-                <div class="stat-label">ZĂ­skanĂ© XP</div>
+                <div class="stat-label">Získané XP</div>
               </div>
             </div>
 
@@ -436,13 +436,13 @@
 
             <div class="results-actions">
               <button type="button" class="btn btn-secondary" onclick="App.restartSongPlayer()">
-                đź”„ ZahrĂˇt znovu
+                🔄 Zahrát znovu
               </button>
               <button type="button" class="btn btn-primary" onclick="App.closeSongPlayer(); App.navigate('#/practice'); Practice.switchSubTab('mistakes');">
-                đźŽŻ ProcviÄŤit chyby
+                🎯 Procvičit chyby
               </button>
               <button type="button" class="btn btn-ghost" onclick="App.closeSongPlayer()">
-                ZpÄ›t do knihovny
+                Zpět do knihovny
               </button>
             </div>
           </div>
