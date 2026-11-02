@@ -2083,8 +2083,12 @@ window.App = {
       this.renderSongsCatalog(view);
       return;
     }
-    if (toolName === 'practice' && this.isGod()) {
-      this.renderGodPractice(view);
+    if (toolName === 'practice') {
+      if (typeof Practice !== 'undefined' && typeof Practice.renderPracticeView === 'function') {
+        Practice.renderPracticeView(view);
+      } else if (this.isGod()) {
+        this.renderGodPractice(view);
+      }
       return;
     }
 
@@ -2901,6 +2905,196 @@ window.App = {
     const overlay = document.getElementById('song-modal-overlay');
     if (overlay) overlay.style.display = 'none';
   },
+
+
+  /* ==========================================================================
+     PHASE 2: INTERACTIVE SONG PLAYER / NOTE HIGHWAY CONTROLS
+     ========================================================================== */
+
+  _currentPlayingSong: null,
+  _playerMetronomeEnabled: true,
+
+  launchSongPlayerById(songId) {
+    const sId = parseInt(songId, 10);
+    const song = this.SONGS_25.find(s => s.id === sId);
+    if (!song) return;
+    this.launchSongPlayer(song);
+  },
+
+  launchSongPlayer(song) {
+    this._currentPlayingSong = song;
+    const overlay = document.getElementById('song-player-overlay');
+    const stage = document.getElementById('song-player-stage');
+    const resultsOverlay = document.getElementById('player-results-overlay');
+
+    if (!overlay || !stage) return;
+
+    // Set header info
+    const titleEl = document.getElementById('player-song-title');
+    const subEl = document.getElementById('player-song-sub');
+    if (titleEl) titleEl.textContent = song.title;
+    if (subEl) subEl.textContent = `${song.artist} • ${song.bpm} BPM • Akordy: ${song.chords.join(', ')}`;
+
+    // Reset tempo buttons
+    document.querySelectorAll('.tempo-btn').forEach(btn => {
+      const isDefault = btn.getAttribute('data-tempo') === '1.0';
+      btn.classList.toggle('active', isDefault);
+      btn.classList.toggle('btn-primary', isDefault);
+      btn.classList.toggle('btn-ghost', !isDefault);
+    });
+
+    const pauseBtn = document.getElementById('player-pause-btn');
+    if (pauseBtn) pauseBtn.textContent = '⏸ Pozastavit';
+
+    if (resultsOverlay) resultsOverlay.style.display = 'none';
+
+    // Clear stage and init canvas
+    stage.innerHTML = '';
+    SongPlayer.initCanvas(stage);
+
+    // Show overlay
+    overlay.style.display = 'flex';
+
+    // Start playback
+    SongPlayer.startSong(song, (result) => {
+      this.showSongPlayerResults(result);
+    });
+  },
+
+  closeSongPlayer() {
+    SongPlayer.stopSong();
+    SongPlayer.destroy();
+    const overlay = document.getElementById('song-player-overlay');
+    if (overlay) overlay.style.display = 'none';
+  },
+
+  togglePlayerPause() {
+    const isPaused = SongPlayer.pauseSong();
+    const pauseBtn = document.getElementById('player-pause-btn');
+    if (pauseBtn) {
+      pauseBtn.textContent = isPaused ? '▶ Pokračovat' : '⏸ Pozastavit';
+    }
+  },
+
+  restartSongPlayer() {
+    const resultsOverlay = document.getElementById('player-results-overlay');
+    if (resultsOverlay) resultsOverlay.style.display = 'none';
+
+    if (this._currentPlayingSong) {
+      const pauseBtn = document.getElementById('player-pause-btn');
+      if (pauseBtn) pauseBtn.textContent = '⏸ Pozastavit';
+
+      SongPlayer.startSong(this._currentPlayingSong, (result) => {
+        this.showSongPlayerResults(result);
+      });
+    }
+  },
+
+  setPlayerTempo(tempo, btnEl) {
+    SongPlayer.setTempo(tempo);
+    document.querySelectorAll('.tempo-btn').forEach(b => {
+      b.classList.remove('active', 'btn-primary');
+      b.classList.add('btn-ghost');
+    });
+    if (btnEl) {
+      btnEl.classList.add('active', 'btn-primary');
+      btnEl.classList.remove('btn-ghost');
+    }
+  },
+
+  togglePlayerMetronome() {
+    this._playerMetronomeEnabled = !this._playerMetronomeEnabled;
+    SongPlayer.setMetronome(this._playerMetronomeEnabled);
+    const label = document.getElementById('player-metro-label');
+    if (label) {
+      label.textContent = `Metronom: ${this._playerMetronomeEnabled ? 'Zapnuto' : 'Vypnuto'}`;
+    }
+  },
+
+  togglePlayerAudio() {
+    if (typeof AudioSynth !== 'undefined') {
+      const isMuted = AudioSynth.toggleMute();
+      const label = document.getElementById('player-audio-label');
+      if (label) {
+        label.textContent = isMuted ? 'Zvuk: Vypnuto' : 'Zvuk: Zapnuto';
+      }
+    }
+  },
+
+  showSongPlayerResults(result) {
+    const resultsOverlay = document.getElementById('player-results-overlay');
+    if (!resultsOverlay) return;
+
+    // Calculate XP: base points for playing + accuracy bonus
+    const baseXP = Math.min(250, Math.round(result.score / 15));
+    const accuracyBonus = result.accuracy >= 90 ? 150 : (result.accuracy >= 70 ? 80 : 30);
+    const totalEarnedXP = Math.max(50, baseXP + accuracyBonus);
+
+    // Add XP to player's profile!
+    if (window.Progress && typeof window.Progress.addXP === 'function') {
+      window.Progress.addXP(totalEarnedXP);
+    }
+
+    // Populate Results UI
+    const titleEl = document.getElementById('results-song-name');
+    if (titleEl) titleEl.textContent = `${result.song.title} (${result.song.artist})`;
+
+    const scoreEl = document.getElementById('results-score');
+    if (scoreEl) scoreEl.textContent = result.score.toLocaleString();
+
+    const accEl = document.getElementById('results-accuracy');
+    if (accEl) accEl.textContent = `${result.accuracy} %`;
+
+    const comboEl = document.getElementById('results-combo');
+    if (comboEl) comboEl.textContent = `${result.maxCombo}×`;
+
+    const xpEl = document.getElementById('results-xp');
+    if (xpEl) xpEl.textContent = `+${totalEarnedXP} XP`;
+
+    const breakdownEl = document.getElementById('results-breakdown');
+    if (breakdownEl) {
+      breakdownEl.innerHTML = `
+        <span style="color: #34d399;">Perfektní: ${result.perfectCount}</span>
+        <span style="color: #60a5fa; margin-left: 1rem;">Dobře: ${result.goodCount}</span>
+        <span style="color: #f87171; margin-left: 1rem;">Mimo/Zmeškáno: ${result.missCount}</span>
+      `;
+    }
+
+    // Trophy icon based on accuracy
+    const trophyEl = document.getElementById('results-trophy');
+    if (trophyEl) {
+      if (result.accuracy >= 90) trophyEl.textContent = '🥇';
+      else if (result.accuracy >= 75) trophyEl.textContent = '🥈';
+      else if (result.accuracy >= 50) trophyEl.textContent = '🥉';
+      else trophyEl.textContent = '🎸';
+    }
+
+    // Mistakes warning & recommendation
+    const mistakesAlert = document.getElementById('results-mistakes-alert');
+    if (mistakesAlert) {
+      if (result.mistakes && result.mistakes.length > 0) {
+        const uniqueChords = [...new Set(result.mistakes.map(m => m.chord).filter(Boolean))];
+        mistakesAlert.style.display = 'block';
+        mistakesAlert.innerHTML = `
+          ⚠️ <strong>Zaznamenáno ${result.mistakes.length} nepřesností!</strong><br>
+          Nejvíce ti dělaly potíže akordy: <strong>${uniqueChords.join(', ')}</strong>.<br>
+          Tyto chyby byly automaticky uloženy do tvé sekce <em>Trénink</em>, kde si je můžeš cíleně procvičit.
+        `;
+      } else {
+        mistakesAlert.style.display = 'block';
+        mistakesAlert.style.background = 'rgba(16, 185, 129, 0.15)';
+        mistakesAlert.style.borderColor = 'rgba(16, 185, 129, 0.35)';
+        mistakesAlert.style.color = '#34d399';
+        mistakesAlert.innerHTML = `
+          🌟 <strong>Čistá hra bez chyb!</strong> Skvělý rytmus a prstoklad.
+        `;
+      }
+    }
+
+    resultsOverlay.style.display = 'flex';
+  },
+
+
   /**
    * Switch UI to login screen.
    */

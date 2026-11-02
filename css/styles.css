@@ -2739,3 +2739,269 @@ input[type="range"]::-webkit-slider-thumb:hover {
   color: #fde68a;
   border: 1px solid rgba(245, 158, 11, 0.35);
 }
+
+
+/* ==========================================================================
+   MELODRIO PHASE 2 â€” SONG PLAYER & NOTE HIGHWAY STYLES
+   ========================================================================== */
+.song-player-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 7, 18, 0.92);
+  backdrop-filter: blur(12px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+}
+
+.song-player-modal {
+  width: 100%;
+  max-width: 1100px;
+  height: 90vh;
+  max-height: 720px;
+  background: #0B1120;
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  border-radius: 20px;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 40px -10px rgba(99, 102, 241, 0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.song-player-header {
+  padding: 1rem 1.5rem;
+  background: rgba(15, 23, 42, 0.85);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.player-song-info .player-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #818CF8;
+  background: rgba(99, 102, 241, 0.15);
+  padding: 0.15rem 0.55rem;
+  border-radius: 6px;
+  letter-spacing: 0.05em;
+  display: inline-block;
+  margin-bottom: 0.25rem;
+}
+
+.player-song-info h2 {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #F8FAFC;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.player-song-info .player-sub {
+  font-size: 0.85rem;
+  color: #94A3B8;
+  margin-top: 0.15rem;
+}
+
+.player-top-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.player-ctrl-group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(30, 41, 59, 0.6);
+  padding: 0.25rem 0.6rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.player-ctrl-group .ctrl-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #94A3B8;
+}
+
+.tempo-btn-group {
+  display: flex;
+  gap: 2px;
+}
+
+.tempo-btn-group .tempo-btn {
+  padding: 0.2rem 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 6px;
+}
+
+.tempo-btn-group .tempo-btn.active {
+  background: #6366F1 !important;
+  color: #FFFFFF !important;
+}
+
+.btn-close-player {
+  font-size: 1.25rem;
+  line-height: 1;
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  color: #94A3B8;
+}
+
+.btn-close-player:hover {
+  color: #F8FAFC;
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.song-player-stage {
+  flex: 1;
+  background: #0A0F1D;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.song-player-footer {
+  padding: 0.85rem 1.5rem;
+  background: rgba(15, 23, 42, 0.9);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.player-keys-legend {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.player-keys-legend .key-pill {
+  font-size: 0.8rem;
+  color: #CBD5E1;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.player-keys-legend kbd {
+  background: #1E293B;
+  border: 1px solid #475569;
+  border-radius: 5px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+  color: #38BDF8;
+  font-family: monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+}
+
+.player-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* â”€â”€ Results Overlay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.player-results-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(11, 17, 32, 0.94);
+  backdrop-filter: blur(14px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: fadeIn 0.25s ease;
+}
+
+.player-results-card {
+  max-width: 520px;
+  width: 100%;
+  text-align: center;
+}
+
+.results-trophy {
+  font-size: 3.5rem;
+  margin-bottom: 0.5rem;
+  animation: bounce 0.6s ease;
+}
+
+.player-results-card h2 {
+  font-size: 1.85rem;
+  font-weight: 900;
+  color: #F8FAFC;
+  margin-bottom: 0.25rem;
+}
+
+.results-song-name {
+  font-size: 1.05rem;
+  color: #818CF8;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+}
+
+.results-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.results-stat-box {
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 0.9rem;
+}
+
+.results-stat-box.highlight {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(16, 185, 129, 0.2));
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.results-stat-box .stat-num {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: #F8FAFC;
+  line-height: 1.1;
+}
+
+.results-stat-box.highlight .stat-num {
+  color: #34D399;
+}
+
+.results-stat-box .stat-label {
+  font-size: 0.78rem;
+  color: #94A3B8;
+  font-weight: 600;
+  margin-top: 0.25rem;
+}
+
+.results-breakdown {
+  display: flex;
+  justify-content: center;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.results-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
