@@ -346,6 +346,19 @@
           </div>
 
           <div class="player-top-controls">
+            <!-- Strumming Pattern Selector -->
+            <div class="player-ctrl-group player-pattern-group">
+              <span class="ctrl-label">🎸 Rytmus:</span>
+              <select id="player-pattern-select" class="player-select" onchange="App.setPlayerStrummingPattern(this.value)">
+                <option value="camp" selected>Táborákový (↓ · ↓ ↑ · ↑ ↓ ↑)</option>
+                <option value="basic4">Základní 4/4 (↓ · ↓ · ↓ · ↓ ·)</option>
+                <option value="folk">Country & Folk (↓ · ↓ · ↓ ↑ ↓ ↑)</option>
+                <option value="rock">Rockový tah (↓ ↑ ↓ ↑ ↓ ↑ ↓ ↑)</option>
+                <option value="ballad">Akustická balada (↓ · · · ↓ ↑ · ↑)</option>
+                <option value="waltz">Valčík 3/4 (↓ · ↓ ↑ ↓ ↑)</option>
+              </select>
+            </div>
+
             <!-- Tempo Multiplier -->
             <div class="player-ctrl-group">
               <span class="ctrl-label">Tempo:</span>
@@ -367,10 +380,29 @@
               🔊 <span id="player-audio-label">Zvuk</span>
             </button>
 
+            <!-- Fullscreen Toggle -->
+            <button type="button" class="btn btn-sm btn-ghost" id="player-fs-toggle" onclick="App.togglePlayerFullscreen()" title="Režim celé obrazovky">
+              ⛶ <span id="player-fs-label">Celá obrazovka</span>
+            </button>
+
             <!-- Close Button -->
             <button type="button" class="btn btn-ghost btn-close-player" onclick="App.closeSongPlayer()" title="Zavřít herní dráhu (Esc)">
               ✕
             </button>
+          </div>
+        </div>
+
+        <!-- Interactive Strumming Guide Ribbon -->
+        <div class="player-strum-ribbon-bar" id="player-strum-ribbon-bar">
+          <div class="strum-ribbon-badge">
+            <span class="strum-pulse-dot"></span>
+            <span id="strum-ribbon-name">Táborákový vzor</span>
+          </div>
+          <div class="strum-ribbon-slots" id="strum-ribbon-slots">
+            <!-- Rendered dynamically by SongPlayer -->
+          </div>
+          <div class="strum-ribbon-tip" id="strum-ribbon-tip">
+            💡 Údery: <kbd>Mezerník</kbd> (libovolný), <kbd>↓</kbd> / <kbd>J</kbd> (úder dolů), <kbd>↑</kbd> / <kbd>K</kbd> (úder nahoru)
           </div>
         </div>
 
@@ -382,7 +414,9 @@
         <!-- Bottom Controls & Key Legend -->
         <div class="song-player-footer">
           <div class="player-keys-legend">
-            <span class="key-pill"><kbd>Mezerník</kbd> Úder na akord (strum)</span>
+            <span class="key-pill"><kbd>Mezerník</kbd> Úder (strum)</span>
+            <span class="key-pill"><kbd>↓ / J</kbd> Úder dolů</span>
+            <span class="key-pill"><kbd>↑ / K</kbd> Úder nahoru</span>
             <span class="key-pill"><kbd>1</kbd>–<kbd>6</kbd> Kytarové struny (e až E)</span>
             <span class="key-pill"><kbd>P</kbd> Pauza</span>
             <span class="key-pill"><kbd>Esc</kbd> Konec</span>
@@ -400,7 +434,6 @@
             </button>
           </div>
         </div>
-
         <!-- Results Screen Overlay (Shown on song finish) -->
         <div id="player-results-overlay" class="player-results-overlay" style="display: none;">
           <div class="player-results-card">

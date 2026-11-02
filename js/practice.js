@@ -223,6 +223,8 @@ const Practice = (() => {
 
     if (_currentSubTab === 'atlas') {
       renderAtlasTab(content);
+    } else if (_currentSubTab === 'strumming') {
+      renderStrummingTab(content);
     } else if (_currentSubTab === 'mistakes') {
       renderMistakesTab(content);
     } else if (_currentSubTab === 'quiz') {
@@ -449,6 +451,149 @@ const Practice = (() => {
     return svg;
   }
 
+  
+  // ── Strumming Patterns Academy ───────────────────────────────────────
+  function renderStrummingTab(container) {
+    const patterns = (typeof SongPlayer !== 'undefined' && SongPlayer.getStrummingPatterns)
+      ? SongPlayer.getStrummingPatterns()
+      : {};
+
+    const patternList = Object.values(patterns);
+
+    container.innerHTML = `
+      <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <!-- Banner -->
+        <div class="card" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(16, 185, 129, 0.15)); border: 1px solid rgba(99, 102, 241, 0.35); border-radius: 20px; padding: 1.75rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+              <div style="font-size: 0.8rem; font-weight: 800; color: #a78bfa; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">
+                🎸 Kytarová rytmická akademie
+              </div>
+              <h2 style="font-size: 1.6rem; font-weight: 900; color: #f8fafc; margin: 0 0 0.4rem 0;">
+                Kytarové rytmy & údery (Strumming Patterns)
+              </h2>
+              <p style="font-size: 0.92rem; color: #cbd5e1; max-width: 680px; margin: 0; line-height: 1.5;">
+                Pravá ruka je motor kytary. Klíčem je <strong>uvolněné zápěstí a kyvadlový pohyb</strong>: ruka kmitá pravidelně nahoru a dolů jako kyvadlo.
+                Při prázdné době (·) ruka pouze mine struny ve vzduchu (tzv. <em>ghost stroke</em>).
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Patterns Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 1.25rem;">
+          ${patternList.map(p => `
+            <div class="card" style="background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; padding: 1.4rem; display: flex; flex-direction: column; justify-content: space-between; gap: 1rem;">
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                  <h3 style="font-size: 1.2rem; font-weight: 900; color: #f8fafc; margin: 0;">
+                    ${p.shortName}
+                  </h3>
+                  <span style="font-size: 0.72rem; font-weight: 800; color: #34d399; background: rgba(16, 185, 129, 0.15); padding: 2px 8px; border-radius: 6px;">
+                    ${p.beatsPerMeasure}/4 takt
+                  </span>
+                </div>
+                <p style="font-size: 0.85rem; color: #94a3b8; margin: 0 0 1rem 0; line-height: 1.4;">
+                  ${p.description}
+                </p>
+
+                <!-- Strum Slot Visualization -->
+                <div style="display: flex; gap: 4px; justify-content: space-between; background: #0F172A; padding: 0.6rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); margin-bottom: 1rem;">
+                  ${p.slots.map(s => `
+                    <div style="flex: 1; text-align: center; display: flex; flex-direction: column; align-items: center;">
+                      <span style="font-size: 0.65rem; color: #64748b; font-weight: 700;">${s.label}</span>
+                      <span style="font-size: 1.1rem; font-weight: 900; color: ${s.dir === 'down' ? '#34d399' : (s.dir === 'up' ? '#38bdf8' : '#475569')};">
+                        ${s.arrow}
+                      </span>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 0.5rem;">
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-sm"
+                  onclick="Practice.playPatternPreview('${p.id}')"
+                  style="border-radius: 8px; font-weight: 700; flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.35rem;"
+                >
+                  🔊 Poslechnout
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-primary btn-sm"
+                  onclick="Practice.startPatternWorkout('${p.id}')"
+                  style="border-radius: 8px; font-weight: 700; flex: 1.4; display: flex; align-items: center; justify-content: center; gap: 0.35rem;"
+                >
+                  🎯 Hrát na dráze ▶
+                </button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  function playPatternPreview(patternId) {
+    if (typeof AudioSynth === 'undefined') return;
+    const synth = AudioSynth;
+    synth.ensureContext();
+
+    const patterns = (typeof SongPlayer !== 'undefined' && SongPlayer.getStrummingPatterns)
+      ? SongPlayer.getStrummingPatterns()
+      : null;
+    const pattern = patterns ? patterns[patternId] : null;
+    if (!pattern) return;
+
+    const bpm = 100;
+    const beatDuration = 60 / bpm;
+    const chords = ['Em', 'C'];
+
+    for (let m = 0; m < 2; m++) {
+      const chord = chords[m];
+      pattern.slots.forEach(slot => {
+        if (!slot.dir) return;
+        const delayMs = (m * pattern.beatsPerMeasure * beatDuration + slot.beat * beatDuration) * 1000;
+        setTimeout(() => {
+          synth.playChord(chord, {
+            duration: 0.85,
+            velocity: slot.accent ? 0.65 : 0.45,
+            direction: slot.dir
+          });
+        }, delayMs);
+      });
+    }
+
+    if (window.UI && typeof window.UI.showToast === 'function') {
+      window.UI.showToast(`Přehrávám rytmus: ${pattern.shortName}`, 'info');
+    }
+  }
+
+  function startPatternWorkout(patternId) {
+    const patterns = (typeof SongPlayer !== 'undefined' && SongPlayer.getStrummingPatterns)
+      ? SongPlayer.getStrummingPatterns()
+      : null;
+    const pattern = patterns ? patterns[patternId] : null;
+    const patternName = pattern ? pattern.shortName : 'Rytmický trénink';
+
+    const workoutSong = {
+      id: 996,
+      title: `Trénink rytmu: ${patternName}`,
+      artist: 'Melodrio Kytarový trenažér',
+      strummingPattern: patternId,
+      chords: ['Em', 'C', 'G', 'D'],
+      bpm: 88,
+      difficulty: 'Trénink',
+      unlockLesson: 1,
+      lyrics: `Rytmické cvičení pro zvládnutí vzoru: ${patternName}`
+    };
+
+    if (typeof App !== 'undefined' && typeof App.launchSongPlayer === 'function') {
+      App.launchSongPlayer(workoutSong);
+    }
+  }
+
   // ── 2. Sekce chyb (Mistake Tracker) ──────────────────────────────────
   function renderMistakesTab(container) {
     const mistakes = SongPlayer.getMistakes();
@@ -616,6 +761,9 @@ const Practice = (() => {
     startChordWorkout,
     startMistakesWorkout,
     clearAllMistakes,
+    playPatternPreview,
+    startPatternWorkout,
+    renderStrummingTab,
     CHORD_LIBRARY
   };
 })();

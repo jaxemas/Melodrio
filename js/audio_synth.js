@@ -151,7 +151,7 @@ const AudioSynth = (() => {
   /**
    * Play a full chord strum.
    * @param {string} chordName   e.g. 'Em', 'C', 'G'
-   * @param {object} opts        { duration, velocity, speed }
+   * @param {object} opts        { duration, velocity, speed, direction: 'down'|'up' }
    */
   function playChord(chordName, opts = {}) {
     const shape = CHORD_SHAPES[chordName];
@@ -161,14 +161,25 @@ const AudioSynth = (() => {
     const now = ac.currentTime;
     const duration = opts.duration || 1.2;
     const velocity = opts.velocity || 0.45;
-    const strumDelay = 0.018; // delay between strings for strum effect
+    const strumDelay = opts.strumDelay || 0.016;
+    const direction = opts.direction || 'down';
 
-    shape.forEach((fret, idx) => {
+    // Downstroke: sweep low E -> high E (idx 0 -> 5)
+    // Upstroke: sweep high E -> low E (idx 5 -> 0)
+    const indices = (direction === 'up')
+      ? [5, 4, 3, 2, 1, 0]
+      : [0, 1, 2, 3, 4, 5];
+
+    let step = 0;
+    indices.forEach(idx => {
+      const fret = shape[idx];
       if (fret < 0) return; // muted string
       const baseFreq = OPEN_STRINGS[idx].freq;
       const freq = baseFreq * Math.pow(2, fret / 12);
-      const t = now + idx * strumDelay;
-      pluckString(freq, t, duration, velocity);
+      const t = now + step * strumDelay;
+      const strVel = (direction === 'up') ? velocity * 0.92 : velocity;
+      pluckString(freq, t, duration, strVel);
+      step++;
     });
   }
 
