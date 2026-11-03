@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Melodrio - Main Application Module
  * Handles routing, navigation, dashboard rendering, story map, profile, and app initialization.
  */
@@ -1282,59 +1282,174 @@ window.App = {
    * @returns {string} SVG HTML string
    */
   getStageWindingSvg(stageId, env) {
-    const bezierPath = "M 400 0 C 400 35, 240 40, 240 80 C 240 135, 340 145, 340 195 C 340 250, 530 255, 530 310 C 530 365, 630 370, 630 425 C 630 480, 540 485, 540 540 C 540 595, 350 600, 350 655 C 350 710, 230 715, 230 770 C 230 820, 400 815, 400 860 L 400 920";
+    const bezierPath = "M 400 0 C 400 45, 170 45, 170 90 C 170 175, 630 175, 630 260 C 630 345, 170 345, 170 430 C 170 515, 630 515, 630 600 C 630 685, 175 685, 175 770 C 175 855, 625 855, 625 940 C 625 1025, 185 1025, 185 1110 C 185 1195, 400 1195, 400 1260 L 400 1360";
 
     let defs = '';
+    let backdropArt = '';
     let scenerySvg = '';
 
     if (stageId === 1) {
-      // Stage 1: PraĹˇnĂˇ pÄ›Ĺˇina & kamĂ­nky
+      // Stage 1: GarĂˇĹľovĂˇ zkuĹˇebna & praĹˇnĂˇ pÄ›Ĺˇina s kamĂ­nky
       defs = `
         <linearGradient id="road-grad-1" x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" stop-color="#6e441d"/>
           <stop offset="50%" stop-color="#7c4e23"/>
           <stop offset="100%" stop-color="#5a3514"/>
         </linearGradient>
+        <radialGradient id="garage-lamp-1" cx="50%" cy="0%" r="80%">
+          <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.22"/>
+          <stop offset="60%" stop-color="#b45309" stop-opacity="0.05"/>
+          <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+        </radialGradient>
+      `;
+      backdropArt = `
+        <polygon points="400,0 200,320 600,320" fill="url(#garage-lamp-1)"/>
+        <circle cx="400" cy="8" r="7" fill="#fbbf24" opacity="0.9"/>
+        <line x1="400" y1="0" x2="400" y2="8" stroke="#78350f" stroke-width="2"/>
+        <g opacity="0.12" stroke="#d97706" stroke-width="1">
+          <line x1="20" y1="120" x2="780" y2="120"/>
+          <line x1="20" y1="280" x2="780" y2="280"/>
+          <line x1="20" y1="460" x2="780" y2="460"/>
+          <line x1="20" y1="640" x2="780" y2="640"/>
+          <line x1="20" y1="820" x2="780" y2="820"/>
+          <line x1="20" y1="1000" x2="780" y2="1000"/>
+          <line x1="20" y1="1180" x2="780" y2="1180"/>
+        </g>
+        <!-- Garage Poster 1 -->
+        <g opacity="0.75">
+          <rect x="25" y="190" width="85" height="110" rx="6" fill="#1e1814" stroke="#854d0e" stroke-width="1.5"/>
+          <rect x="30" y="195" width="75" height="40" fill="#78350f" rx="3"/>
+          <text x="67" y="222" font-size="11" font-weight="900" fill="#fde68a" text-anchor="middle">GARAGE</text>
+          <text x="67" y="252" font-size="9" font-weight="700" fill="#cbd5e1" text-anchor="middle">ROCK JAM</text>
+          <text x="67" y="278" font-size="20" text-anchor="middle">&#x1F3B8;</text>
+        </g>
+        <!-- Large Marshall Stack Amplifier Cabinet -->
+        <g opacity="0.85">
+          <rect x="675" y="360" width="100" height="150" rx="8" fill="#14110e" stroke="#78350f" stroke-width="2"/>
+          <rect x="682" y="368" width="86" height="60" rx="4" fill="#241c14" stroke="#45260c"/>
+          <rect x="682" y="438" width="86" height="64" rx="4" fill="#241c14" stroke="#45260c"/>
+          <circle cx="725" cy="398" r="20" fill="#16120e" stroke="#523924"/>
+          <circle cx="725" cy="470" r="22" fill="#16120e" stroke="#523924"/>
+          <text x="725" y="366" font-size="9" font-weight="800" fill="#fbbf24" text-anchor="middle">VALVE AMP</text>
+          <circle cx="755" cy="374" r="3" fill="#ef4444"/>
+        </g>
+        <!-- Pegboard Tool Rack -->
+        <g opacity="0.7">
+          <rect x="25" y="540" width="85" height="120" rx="6" fill="#1b1713" stroke="#523924" stroke-width="1.5"/>
+          <text x="45" y="580" font-size="22">&#x1F527;</text>
+          <text x="70" y="580" font-size="22">&#x1FA9B;</text>
+          <text x="45" y="625" font-size="20">&#x2699;&#xFE0F;</text>
+          <text x="70" y="625" font-size="22">&#x1F9F0;</text>
+          <text x="67" y="650" font-size="8" font-weight="700" fill="#94a3b8" text-anchor="middle">TOOL RACK</text>
+        </g>
+        <!-- Garage Band Poster 2 -->
+        <g opacity="0.75">
+          <rect x="685" y="720" width="85" height="110" rx="6" fill="#1a1510" stroke="#b45309" stroke-width="1.5"/>
+          <text x="727" y="755" font-size="10" font-weight="900" fill="#f59e0b" text-anchor="middle">FIRST GIG</text>
+          <text x="727" y="775" font-size="9" fill="#e2e8f0" text-anchor="middle">LIVE 2026</text>
+          <text x="727" y="808" font-size="22" text-anchor="middle">&#x1F918;</text>
+        </g>
+        <!-- Guitar Wall Hangers -->
+        <g opacity="0.7">
+          <rect x="25" y="910" width="85" height="120" rx="6" fill="#17130f" stroke="#78350f" stroke-width="1.5"/>
+          <text x="67" y="960" font-size="28" text-anchor="middle">&#x1F3B8;</text>
+          <text x="67" y="995" font-size="9" font-weight="700" fill="#fde68a" text-anchor="middle">SPARE AXE</text>
+        </g>
       `;
       scenerySvg = `
-        <text x="130" y="90" font-size="22" opacity="0.85">&#x1FA98;</text>
-        <text x="690" y="210" font-size="20" opacity="0.85">&#x1FA98;</text>
-        <text x="120" y="530" font-size="24" opacity="0.85">&#x1FA98;</text>
-        <text x="700" y="760" font-size="22" opacity="0.85">&#x1FA98;</text>
-        <text x="320" y="70" font-size="18" opacity="0.75">&#x1F33E;</text>
-        <text x="170" y="320" font-size="18" opacity="0.75">&#x1F33E;</text>
-        <text x="680" y="510" font-size="18" opacity="0.75">&#x1F33E;</text>
-        <text x="310" y="790" font-size="18" opacity="0.75">&#x1F33E;</text>
-        <text x="720" y="380" font-size="20" opacity="0.8">&#x1FAB5;</text>
-        <text x="110" y="690" font-size="20" opacity="0.8">&#x1FAB5;</text>
-        <circle cx="210" cy="740" r="4.5" fill="#a87140" opacity="0.6"/>
-        <circle cx="270" cy="80" r="3.5" fill="#8c5d2e" opacity="0.6"/>
-        <circle cx="560" cy="330" r="4" fill="#a87140" opacity="0.6"/>
-        <circle cx="600" cy="450" r="5" fill="#8c5d2e" opacity="0.6"/>
-        <circle cx="380" cy="670" r="4" fill="#a87140" opacity="0.6"/>
+        <text x="135" y="110" font-size="24" opacity="0.85">&#x1FA98;</text>
+        <text x="695" y="275" font-size="24" opacity="0.85">&#x1FA98;</text>
+        <text x="130" y="450" font-size="24" opacity="0.85">&#x1FA98;</text>
+        <text x="690" y="620" font-size="24" opacity="0.85">&#x1FA98;</text>
+        <text x="135" y="790" font-size="24" opacity="0.85">&#x1FA98;</text>
+        <text x="690" y="960" font-size="24" opacity="0.85">&#x1FA98;</text>
+        <text x="145" y="1130" font-size="24" opacity="0.85">&#x1FA98;</text>
+        <text x="350" y="1290" font-size="24" opacity="0.85">&#x1FA98;</text>
+        <text x="110" y="230" font-size="20" opacity="0.75">&#x1F33E;</text>
+        <text x="690" y="440" font-size="20" opacity="0.75">&#x1F33E;</text>
+        <text x="110" y="610" font-size="20" opacity="0.75">&#x1F33E;</text>
+        <text x="690" y="800" font-size="20" opacity="0.75">&#x1F33E;</text>
+        <text x="110" y="980" font-size="20" opacity="0.75">&#x1F33E;</text>
+        <text x="705" y="1150" font-size="20" opacity="0.75">&#x1F33E;</text>
+        <text x="115" y="370" font-size="20" opacity="0.8">&#x1FAB5;</text>
+        <text x="695" y="550" font-size="20" opacity="0.8">&#x1FAB5;</text>
+        <text x="115" y="880" font-size="20" opacity="0.8">&#x1FAB5;</text>
+        <circle cx="150" cy="190" r="5" fill="#8c5d2e" opacity="0.65"/>
+        <circle cx="660" cy="350" r="4.5" fill="#a87140" opacity="0.65"/>
+        <circle cx="155" cy="520" r="5" fill="#8c5d2e" opacity="0.65"/>
+        <circle cx="655" cy="700" r="4" fill="#a87140" opacity="0.65"/>
+        <circle cx="160" cy="870" r="5.5" fill="#8c5d2e" opacity="0.65"/>
+        <circle cx="650" cy="1040" r="4.5" fill="#a87140" opacity="0.65"/>
+        <circle cx="360" cy="1220" r="5" fill="#8c5d2e" opacity="0.65"/>
       `;
     } else if (stageId === 2) {
-      // Stage 2: ZpevnÄ›nĂˇ venkovskĂˇ cesta & lucerny
+      // Stage 2: Park & PĹ™Ă­rodnĂ­ scĂ©na
       defs = `
         <linearGradient id="road-grad-2" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stop-color="#475569"/>
-          <stop offset="50%" stop-color="#526175"/>
-          <stop offset="100%" stop-color="#3f4a5c"/>
+          <stop offset="0%" stop-color="#334155"/>
+          <stop offset="50%" stop-color="#475569"/>
+          <stop offset="100%" stop-color="#1e293b"/>
         </linearGradient>
+        <radialGradient id="park-moon-2" cx="80%" cy="10%" r="50%">
+          <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.18"/>
+          <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+        </radialGradient>
+      `;
+      backdropArt = `
+        <rect x="0" y="0" width="800" height="1360" fill="url(#park-moon-2)"/>
+        <path d="M 0 350 Q 220 280, 420 340 T 800 300 L 800 1360 L 0 1360 Z" fill="#062e18" opacity="0.22"/>
+        <path d="M 0 680 Q 250 610, 450 670 T 800 640 L 800 1360 L 0 1360 Z" fill="#041f10" opacity="0.26"/>
+        <path d="M 0 1020 Q 200 960, 440 1010 T 800 970 L 800 1360 L 0 1360 Z" fill="#03160b" opacity="0.3"/>
+        <g opacity="0.8">
+          <path d="M 20 40 Q 400 100, 780 40" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-dasharray="3,3"/>
+          <polygon points="120,53 135,78 150,55" fill="#f59e0b"/>
+          <polygon points="200,62 215,88 230,65" fill="#38bdf8"/>
+          <polygon points="280,68 295,95 310,71" fill="#ec4899"/>
+          <polygon points="360,70 375,98 390,73" fill="#10b981"/>
+          <polygon points="440,70 455,98 470,73" fill="#f59e0b"/>
+          <polygon points="520,68 535,95 550,71" fill="#38bdf8"/>
+          <polygon points="600,62 615,88 630,65" fill="#a855f7"/>
+          <polygon points="680,53 695,78 710,55" fill="#10b981"/>
+        </g>
+        <g opacity="0.75">
+          <path d="M 680 490 Q 730 420, 780 490 Z" fill="#2d1b0d" stroke="#854d0e" stroke-width="2"/>
+          <rect x="690" y="490" width="80" height="40" fill="#1b120a" stroke="#854d0e" stroke-width="1.5"/>
+          <text x="730" y="475" font-size="16" text-anchor="middle">&#x1F3A4;&#x1F3B8;</text>
+          <text x="730" y="515" font-size="9" font-weight="700" fill="#fde68a" text-anchor="middle">PARK STAGE</text>
+        </g>
+        <g opacity="0.5">
+          <polygon points="50,180 20,250 80,250" fill="#0d3b1f"/>
+          <polygon points="50,220 15,300 85,300" fill="#092815"/>
+          <rect x="46" y="300" width="8" height="25" fill="#3b2512"/>
+          <polygon points="55,750 25,820 85,820" fill="#0d3b1f"/>
+          <polygon points="55,790 20,870 90,870" fill="#092815"/>
+          <rect x="51" y="870" width="8" height="25" fill="#3b2512"/>
+          <polygon points="745,820 715,890 775,890" fill="#0d3b1f"/>
+          <polygon points="745,860 710,940 780,940" fill="#092815"/>
+          <rect x="741" y="940" width="8" height="25" fill="#3b2512"/>
+        </g>
       `;
       scenerySvg = `
-        <text x="140" y="100" font-size="22" opacity="0.9">&#x1F3EE;</text>
-        <text x="690" y="410" font-size="22" opacity="0.9">&#x1F3EE;</text>
-        <text x="140" y="750" font-size="22" opacity="0.9">&#x1F3EE;</text>
-        <text x="320" y="90" font-size="18" opacity="0.85">&#x1F33C;</text>
-        <text x="700" y="220" font-size="18" opacity="0.85">&#x1F33C;</text>
-        <text x="180" y="550" font-size="18" opacity="0.85">&#x1F33F;</text>
-        <text x="700" y="620" font-size="18" opacity="0.85">&#x1F33F;</text>
-        <text x="120" y="330" font-size="18" opacity="0.8">&#x1FAB5;</text>
-        <text x="710" y="520" font-size="18" opacity="0.8">&#x1FAB5;</text>
+        <text x="135" y="110" font-size="24" opacity="0.9">&#x1F3EE;</text>
+        <text x="695" y="280" font-size="24" opacity="0.9">&#x1F3EE;</text>
+        <text x="135" y="450" font-size="24" opacity="0.9">&#x1F3EE;</text>
+        <text x="695" y="620" font-size="24" opacity="0.9">&#x1F3EE;</text>
+        <text x="140" y="790" font-size="24" opacity="0.9">&#x1F3EE;</text>
+        <text x="690" y="960" font-size="24" opacity="0.9">&#x1F3EE;</text>
+        <text x="145" y="1130" font-size="24" opacity="0.9">&#x1F3EE;</text>
+        <text x="350" y="1285" font-size="24" opacity="0.9">&#x1F3EE;</text>
+        <text x="110" y="240" font-size="20" opacity="0.85">&#x1F33C;</text>
+        <text x="690" y="400" font-size="20" opacity="0.85">&#x1F33C;</text>
+        <text x="110" y="600" font-size="20" opacity="0.85">&#x1F33F;</text>
+        <text x="690" y="780" font-size="20" opacity="0.85">&#x1F33F;</text>
+        <text x="110" y="950" font-size="20" opacity="0.85">&#x1F33C;</text>
+        <text x="700" y="1130" font-size="20" opacity="0.85">&#x1F33F;</text>
+        <text x="150" y="360" font-size="16" opacity="0.9">&#x2728;</text>
+        <text x="650" y="710" font-size="16" opacity="0.9">&#x2728;</text>
+        <text x="150" y="870" font-size="16" opacity="0.9">&#x2728;</text>
       `;
     } else if (stageId === 3) {
-      // Stage 3: DlĂˇĹľdÄ›nĂˇ mÄ›stskĂˇ tĹ™Ă­da (koÄŤiÄŤĂ­ hlavy)
+      // Stage 3: Hospoda & StarĂ© mÄ›sto
       defs = `
         <linearGradient id="road-grad-3" x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" stop-color="#1e293b"/>
@@ -1342,16 +1457,66 @@ window.App = {
           <stop offset="100%" stop-color="#192333"/>
         </linearGradient>
       `;
+      backdropArt = `
+        <g opacity="0.16" stroke="#eab308" stroke-width="1.5">
+          <line x1="20" y1="180" x2="780" y2="180"/>
+          <line x1="20" y1="440" x2="780" y2="440"/>
+          <line x1="20" y1="720" x2="780" y2="720"/>
+          <line x1="20" y1="990" x2="780" y2="990"/>
+          <line x1="20" y1="1240" x2="780" y2="1240"/>
+        </g>
+        <g opacity="0.85">
+          <line x1="20" y1="180" x2="110" y2="180" stroke="#94a3b8" stroke-width="3"/>
+          <line x1="45" y1="180" x2="45" y2="200" stroke="#94a3b8" stroke-width="1.5"/>
+          <line x1="95" y1="180" x2="95" y2="200" stroke="#94a3b8" stroke-width="1.5"/>
+          <rect x="35" y="200" width="75" height="55" rx="6" fill="#1e1b15" stroke="#eab308" stroke-width="2"/>
+          <text x="72" y="222" font-size="9" font-weight="900" fill="#fef08a" text-anchor="middle">HOSTINEC</text>
+          <text x="72" y="244" font-size="16" text-anchor="middle">&#x1F37A;&#x1F3B8;</text>
+        </g>
+        <g opacity="0.8">
+          <ellipse cx="735" cy="400" rx="36" ry="20" fill="#2d1b0d" stroke="#854d0e" stroke-width="2"/>
+          <line x1="705" y1="400" x2="765" y2="400" stroke="#854d0e" stroke-width="1.5"/>
+          <ellipse cx="735" cy="445" rx="36" ry="20" fill="#2d1b0d" stroke="#854d0e" stroke-width="2"/>
+          <line x1="705" y1="445" x2="765" y2="445" stroke="#854d0e" stroke-width="1.5"/>
+          <text x="735" y="428" font-size="16" text-anchor="middle">&#x1F37A;</text>
+        </g>
+        <g opacity="0.8">
+          <rect x="25" y="560" width="85" height="110" rx="6" fill="#0f172a" stroke="#ca8a04" stroke-width="2"/>
+          <text x="67" y="588" font-size="9" font-weight="900" fill="#fde047" text-anchor="middle">DNES HRAJE:</text>
+          <text x="67" y="608" font-size="8" font-weight="700" fill="#fef9c3" text-anchor="middle">FOLK &amp; BLUES</text>
+          <text x="67" y="626" font-size="8" fill="#94a3b8" text-anchor="middle">JAM SESSION</text>
+          <text x="67" y="652" font-size="18" text-anchor="middle">&#x1F3BB;&#x1F3B8;</text>
+        </g>
+        <g opacity="0.75">
+          <rect x="685" y="740" width="85" height="110" rx="42" fill="rgba(234, 179, 8, 0.12)" stroke="#ca8a04" stroke-width="2.5"/>
+          <line x1="727" y1="740" x2="727" y2="850" stroke="#ca8a04" stroke-width="1.5"/>
+          <line x1="685" y1="795" x2="770" y2="795" stroke="#ca8a04" stroke-width="1.5"/>
+          <circle cx="727" cy="795" r="14" fill="none" stroke="#ca8a04" stroke-width="1.5"/>
+        </g>
+        <g opacity="0.7">
+          <rect x="25" y="930" width="80" height="110" rx="40" fill="#131b29" stroke="#64748b" stroke-width="2"/>
+          <text x="65" y="990" font-size="24" text-anchor="middle">&#x1F377;</text>
+          <text x="65" y="1022" font-size="8" font-weight="700" fill="#fef08a" text-anchor="middle">SKL&Iacute;PEK</text>
+        </g>
+      `;
       scenerySvg = `
-        <text x="140" y="80" font-size="24" opacity="0.95">&#x1F4A1;</text>
-        <text x="690" y="420" font-size="24" opacity="0.95">&#x1F4A1;</text>
-        <text x="140" y="750" font-size="24" opacity="0.95">&#x1F4A1;</text>
-        <text x="710" y="200" font-size="22" opacity="0.9">&#x1F37A;</text>
-        <text x="140" y="530" font-size="22" opacity="0.9">&#x1F3B8;</text>
-        <text x="690" y="660" font-size="22" opacity="0.9">&#x1F377;</text>
+        <text x="135" y="110" font-size="24" opacity="0.95">&#x1F4A1;</text>
+        <text x="695" y="280" font-size="24" opacity="0.95">&#x1F4A1;</text>
+        <text x="135" y="450" font-size="24" opacity="0.95">&#x1F4A1;</text>
+        <text x="695" y="620" font-size="24" opacity="0.95">&#x1F4A1;</text>
+        <text x="140" y="790" font-size="24" opacity="0.95">&#x1F4A1;</text>
+        <text x="690" y="960" font-size="24" opacity="0.95">&#x1F4A1;</text>
+        <text x="145" y="1130" font-size="24" opacity="0.95">&#x1F4A1;</text>
+        <text x="350" y="1285" font-size="24" opacity="0.95">&#x1F4A1;</text>
+        <text x="110" y="240" font-size="22" opacity="0.9">&#x1F37A;</text>
+        <text x="690" y="390" font-size="22" opacity="0.9">&#x1F37A;</text>
+        <text x="110" y="620" font-size="22" opacity="0.9">&#x1F377;</text>
+        <text x="690" y="770" font-size="22" opacity="0.9">&#x1F377;</text>
+        <text x="110" y="950" font-size="22" opacity="0.9">&#x1F3B8;</text>
+        <text x="700" y="1130" font-size="22" opacity="0.9">&#x1F37A;</text>
       `;
     } else if (stageId === 4) {
-      // Stage 4: AsfaltovĂ˝ rockovĂ˝ bulvĂˇr
+      // Stage 4: RockovĂ˝ klub
       defs = `
         <linearGradient id="road-grad-4" x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" stop-color="#0b0f19"/>
@@ -1359,24 +1524,77 @@ window.App = {
           <stop offset="100%" stop-color="#080b12"/>
         </linearGradient>
         <filter id="neon-glow-4">
-          <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+          <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
           <feMerge>
             <feMergeNode in="coloredBlur"/>
             <feMergeNode in="SourceGraphic"/>
           </feMerge>
         </filter>
+        <linearGradient id="purple-spot-4" x1="0%" y1="0%" x2="50%" y2="100%">
+          <stop offset="0%" stop-color="#c084fc" stop-opacity="0.25"/>
+          <stop offset="100%" stop-color="#a855f7" stop-opacity="0"/>
+        </linearGradient>
+        <linearGradient id="cyan-spot-4" x1="100%" y1="0%" x2="50%" y2="100%">
+          <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.25"/>
+          <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
+        </linearGradient>
+      `;
+      backdropArt = `
+        <polygon points="120,0 20,450 300,450" fill="url(#purple-spot-4)"/>
+        <polygon points="680,0 500,480 780,480" fill="url(#cyan-spot-4)"/>
+        <g opacity="0.85">
+          <rect x="25" y="190" width="88" height="60" rx="8" fill="#130b20" stroke="#ec4899" stroke-width="2" filter="url(#neon-glow-4)"/>
+          <text x="69" y="218" font-size="11" font-weight="900" fill="#f472b6" text-anchor="middle">&#x26A1; CLUB 99 &#x26A1;</text>
+          <text x="69" y="238" font-size="8" font-weight="700" fill="#cbd5e1" text-anchor="middle">ROCK VENUE</text>
+        </g>
+        <g opacity="0.75" transform="translate(685, 360)">
+          <rect x="0" y="50" width="8" height="40" rx="2" fill="#38bdf8"/>
+          <rect x="12" y="30" width="8" height="60" rx="2" fill="#a855f7"/>
+          <rect x="24" y="10" width="8" height="80" rx="2" fill="#ec4899"/>
+          <rect x="36" y="25" width="8" height="65" rx="2" fill="#f43f5e"/>
+          <rect x="48" y="40" width="8" height="50" rx="2" fill="#fbbf24"/>
+          <rect x="60" y="20" width="8" height="70" rx="2" fill="#38bdf8"/>
+          <rect x="72" y="45" width="8" height="45" rx="2" fill="#a855f7"/>
+        </g>
+        <g opacity="0.85">
+          <rect x="25" y="550" width="88" height="75" rx="8" fill="#0f172a" stroke="#06b6d4" stroke-width="2" filter="url(#neon-glow-4)"/>
+          <text x="69" y="578" font-size="10" font-weight="900" fill="#22d3ee" text-anchor="middle">ON STAGE</text>
+          <text x="69" y="608" font-size="20" text-anchor="middle">&#x1F3B8;&#x26A1;</text>
+        </g>
+        <g opacity="0.75" transform="translate(685, 740)">
+          <rect x="0" y="25" width="8" height="65" rx="2" fill="#ec4899"/>
+          <rect x="12" y="10" width="8" height="80" rx="2" fill="#38bdf8"/>
+          <rect x="24" y="35" width="8" height="55" rx="2" fill="#a855f7"/>
+          <rect x="36" y="50" width="8" height="40" rx="2" fill="#fbbf24"/>
+          <rect x="48" y="15" width="8" height="75" rx="2" fill="#22c55e"/>
+          <rect x="60" y="40" width="8" height="50" rx="2" fill="#f43f5e"/>
+          <rect x="72" y="20" width="8" height="70" rx="2" fill="#38bdf8"/>
+        </g>
+        <g opacity="0.8">
+          <rect x="25" y="930" width="85" height="85" rx="8" fill="#141124" stroke="#a855f7" stroke-width="2"/>
+          <circle cx="67" cy="972" r="30" fill="#090714" stroke="#4c1d95" stroke-width="2"/>
+          <circle cx="67" cy="972" r="10" fill="#ec4899"/>
+          <circle cx="67" cy="972" r="3" fill="#ffffff"/>
+        </g>
       `;
       scenerySvg = `
-        <text x="140" y="90" font-size="24" opacity="0.9">&#x1F4FB;</text>
-        <text x="700" y="420" font-size="24" opacity="0.9">&#x1F4FB;</text>
-        <text x="140" y="750" font-size="24" opacity="0.9">&#x1F4FB;</text>
-        <text x="310" y="80" font-size="20" opacity="0.85">&#x1F7E3;</text>
-        <text x="690" y="220" font-size="22" opacity="0.9">&#x26A1;</text>
-        <text x="160" y="530" font-size="22" opacity="0.9">&#x1F526;</text>
-        <text x="700" y="650" font-size="22" opacity="0.9">&#x26A1;</text>
+        <text x="135" y="110" font-size="24" opacity="0.9">&#x1F4FB;</text>
+        <text x="695" y="280" font-size="24" opacity="0.9">&#x1F4FB;</text>
+        <text x="135" y="450" font-size="24" opacity="0.9">&#x1F4FB;</text>
+        <text x="695" y="620" font-size="24" opacity="0.9">&#x1F4FB;</text>
+        <text x="140" y="790" font-size="24" opacity="0.9">&#x1F4FB;</text>
+        <text x="690" y="960" font-size="24" opacity="0.9">&#x1F4FB;</text>
+        <text x="145" y="1130" font-size="24" opacity="0.9">&#x1F4FB;</text>
+        <text x="350" y="1285" font-size="24" opacity="0.9">&#x1F4FB;</text>
+        <text x="110" y="240" font-size="22" opacity="0.9">&#x26A1;</text>
+        <text x="690" y="390" font-size="22" opacity="0.9">&#x26A1;</text>
+        <text x="110" y="620" font-size="22" opacity="0.9">&#x1F526;</text>
+        <text x="690" y="770" font-size="22" opacity="0.9">&#x26A1;</text>
+        <text x="110" y="950" font-size="22" opacity="0.9">&#x1F3A4;</text>
+        <text x="700" y="1130" font-size="22" opacity="0.9">&#x26A1;</text>
       `;
     } else if (stageId === 5) {
-      // Stage 5: HvÄ›zdnĂˇ mramorovĂˇ arĂ©na
+      // Stage 5: Megastadion pro 80 000 divĂˇkĹŻ
       defs = `
         <linearGradient id="road-grad-5" x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" stop-color="#0f172a"/>
@@ -1384,16 +1602,58 @@ window.App = {
           <stop offset="100%" stop-color="#090d16"/>
         </linearGradient>
       `;
+      backdropArt = `
+        <line x1="30" y1="20" x2="400" y2="500" stroke="#f8fafc" stroke-width="2" opacity="0.25"/>
+        <line x1="30" y1="20" x2="600" y2="700" stroke="#38bdf8" stroke-width="2" opacity="0.25"/>
+        <line x1="770" y1="20" x2="400" y2="500" stroke="#f43f5e" stroke-width="2" opacity="0.25"/>
+        <line x1="770" y1="20" x2="200" y2="700" stroke="#f8fafc" stroke-width="2" opacity="0.25"/>
+        <g opacity="0.8">
+          <rect x="25" y="160" width="30" height="90" fill="#0f172a" stroke="#64748b" stroke-width="1.5"/>
+          <circle cx="32" cy="170" r="4" fill="#ffffff"/><circle cx="48" cy="170" r="4" fill="#ffffff"/>
+          <circle cx="32" cy="185" r="4" fill="#ffffff"/><circle cx="48" cy="185" r="4" fill="#ffffff"/>
+          <circle cx="32" cy="200" r="4" fill="#ffffff"/><circle cx="48" cy="200" r="4" fill="#ffffff"/>
+        </g>
+        <g opacity="0.8">
+          <rect x="745" y="160" width="30" height="90" fill="#0f172a" stroke="#64748b" stroke-width="1.5"/>
+          <circle cx="752" cy="170" r="4" fill="#ffffff"/><circle cx="768" cy="170" r="4" fill="#ffffff"/>
+          <circle cx="752" cy="185" r="4" fill="#ffffff"/><circle cx="768" cy="185" r="4" fill="#ffffff"/>
+          <circle cx="752" cy="200" r="4" fill="#ffffff"/><circle cx="768" cy="200" r="4" fill="#ffffff"/>
+        </g>
+        <g opacity="0.45" fill="#f8fafc">
+          <circle cx="35" cy="320" r="1.5"/><circle cx="55" cy="335" r="2"/><circle cx="75" cy="315" r="1.5"/><circle cx="95" cy="340" r="2.5"/>
+          <circle cx="705" cy="320" r="1.5"/><circle cx="725" cy="335" r="2"/><circle cx="745" cy="315" r="2.5"/><circle cx="765" cy="340" r="1.5"/>
+          <circle cx="35" cy="520" r="2"/><circle cx="55" cy="540" r="1.5"/><circle cx="80" cy="515" r="2.5"/><circle cx="95" cy="535" r="1.5"/>
+          <circle cx="705" cy="520" r="2"/><circle cx="730" cy="540" r="2.5"/><circle cx="750" cy="515" r="1.5"/><circle cx="770" cy="535" r="2"/>
+          <circle cx="35" cy="720" r="1.5"/><circle cx="60" cy="735" r="2.5"/><circle cx="85" cy="715" r="2"/><circle cx="100" cy="740" r="1.5"/>
+          <circle cx="700" cy="720" r="2.5"/><circle cx="725" cy="735" r="1.5"/><circle cx="745" cy="715" r="2"/><circle cx="765" cy="740" r="2.5"/>
+          <circle cx="40" cy="920" r="2"/><circle cx="65" cy="940" r="1.5"/><circle cx="85" cy="915" r="2.5"/><circle cx="105" cy="935" r="1.5"/>
+          <circle cx="695" cy="920" r="1.5"/><circle cx="720" cy="940" r="2"/><circle cx="745" cy="915" r="2.5"/><circle cx="770" cy="935" r="1.5"/>
+        </g>
+        <g opacity="0.8">
+          <rect x="25" y="570" width="88" height="90" rx="8" fill="#1e1022" stroke="#f43f5e" stroke-width="2"/>
+          <text x="69" y="605" font-size="10" font-weight="900" fill="#fda4af" text-anchor="middle">STADIUM</text>
+          <text x="69" y="622" font-size="8" font-weight="700" fill="#38bdf8" text-anchor="middle">80 000 FANS</text>
+          <text x="69" y="648" font-size="18" text-anchor="middle">&#x1F3DF;&#xFE0F;</text>
+        </g>
+      `;
       scenerySvg = `
-        <text x="140" y="80" font-size="24" opacity="0.95">&#x2728;</text>
-        <text x="310" y="70" font-size="24" opacity="0.95">&#x1F386;</text>
-        <text x="690" y="210" font-size="24" opacity="0.95">&#x1F387;</text>
-        <text x="700" y="420" font-size="26" opacity="0.95">&#x1F386;</text>
-        <text x="140" y="750" font-size="24" opacity="0.95">&#x2728;</text>
-        <text x="700" y="660" font-size="22" opacity="0.95">&#x1F389;</text>
+        <text x="135" y="110" font-size="24" opacity="0.95">&#x2728;</text>
+        <text x="695" y="280" font-size="24" opacity="0.95">&#x2728;</text>
+        <text x="135" y="450" font-size="24" opacity="0.95">&#x2728;</text>
+        <text x="695" y="620" font-size="24" opacity="0.95">&#x2728;</text>
+        <text x="140" y="790" font-size="24" opacity="0.95">&#x2728;</text>
+        <text x="690" y="960" font-size="24" opacity="0.95">&#x2728;</text>
+        <text x="145" y="1130" font-size="24" opacity="0.95">&#x2728;</text>
+        <text x="350" y="1285" font-size="24" opacity="0.95">&#x2728;</text>
+        <text x="110" y="240" font-size="24" opacity="0.95">&#x1F386;</text>
+        <text x="690" y="390" font-size="24" opacity="0.95">&#x1F387;</text>
+        <text x="110" y="620" font-size="24" opacity="0.95">&#x1F386;</text>
+        <text x="690" y="770" font-size="24" opacity="0.95">&#x1F389;</text>
+        <text x="110" y="950" font-size="24" opacity="0.95">&#x1F387;</text>
+        <text x="700" y="1130" font-size="24" opacity="0.95">&#x1F386;</text>
       `;
     } else if (stageId === 6) {
-      // Stage 6: ZlatĂˇ nebeskĂˇ stezka k Olympu
+      // Stage 6: MytickĂ˝ kytarovĂ˝ Olymp
       defs = `
         <linearGradient id="road-grad-6" x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" stop-color="#f59e0b"/>
@@ -1408,31 +1668,81 @@ window.App = {
             <feMergeNode in="SourceGraphic"/>
           </feMerge>
         </filter>
+        <linearGradient id="aurora-grad-6" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#34d399" stop-opacity="0.35"/>
+          <stop offset="50%" stop-color="#38bdf8" stop-opacity="0.3"/>
+          <stop offset="100%" stop-color="#c084fc" stop-opacity="0.35"/>
+        </linearGradient>
+      `;
+      backdropArt = `
+        <path d="M 0 120 Q 200 40, 400 100 T 800 60 L 800 240 Q 600 280, 400 220 T 0 250 Z" fill="url(#aurora-grad-6)" opacity="0.4" filter="url(#celestial-glow-6)"/>
+        <path d="M 0 550 L 180 320 L 320 480 L 520 280 L 680 440 L 800 360 L 800 1360 L 0 1360 Z" fill="#140e2b" opacity="0.35"/>
+        <polygon points="180,320 155,360 205,360" fill="#fde68a" opacity="0.5"/>
+        <polygon points="520,280 485,335 555,335" fill="#fde68a" opacity="0.6"/>
+        <g opacity="0.75">
+          <rect x="25" y="440" width="22" height="180" rx="3" fill="#cbd5e1" stroke="#f8fafc" stroke-width="1.5"/>
+          <line x1="32" y1="440" x2="32" y2="620" stroke="#94a3b8" stroke-width="1"/>
+          <line x1="39" y1="440" x2="39" y2="620" stroke="#94a3b8" stroke-width="1"/>
+          <rect x="20" y="432" width="32" height="10" rx="2" fill="#fbbf24"/>
+          <rect x="20" y="618" width="32" height="10" rx="2" fill="#fbbf24"/>
+          <rect x="75" y="460" width="22" height="180" rx="3" fill="#cbd5e1" stroke="#f8fafc" stroke-width="1.5"/>
+          <line x1="82" y1="460" x2="82" y2="640" stroke="#94a3b8" stroke-width="1"/>
+          <line x1="89" y1="460" x2="89" y2="640" stroke="#94a3b8" stroke-width="1"/>
+          <rect x="70" y="452" width="32" height="10" rx="2" fill="#fbbf24"/>
+          <rect x="70" y="638" width="32" height="10" rx="2" fill="#fbbf24"/>
+        </g>
+        <g opacity="0.75">
+          <rect x="700" y="700" width="22" height="180" rx="3" fill="#cbd5e1" stroke="#f8fafc" stroke-width="1.5"/>
+          <line x1="707" y1="700" x2="707" y2="880" stroke="#94a3b8" stroke-width="1"/>
+          <line x1="714" y1="700" x2="714" y2="880" stroke="#94a3b8" stroke-width="1"/>
+          <rect x="695" y="692" width="32" height="10" rx="2" fill="#fbbf24"/>
+          <rect x="695" y="878" width="32" height="10" rx="2" fill="#fbbf24"/>
+          <rect x="750" y="720" width="22" height="180" rx="3" fill="#cbd5e1" stroke="#f8fafc" stroke-width="1.5"/>
+          <line x1="757" y1="720" x2="757" y2="900" stroke="#94a3b8" stroke-width="1"/>
+          <line x1="764" y1="720" x2="764" y2="900" stroke="#94a3b8" stroke-width="1"/>
+          <rect x="745" y="712" width="32" height="10" rx="2" fill="#fbbf24"/>
+          <rect x="745" y="898" width="32" height="10" rx="2" fill="#fbbf24"/>
+        </g>
+        <g opacity="0.85">
+          <rect x="25" y="940" width="85" height="100" rx="10" fill="#1f1435" stroke="#fbbf24" stroke-width="2"/>
+          <text x="67" y="990" font-size="32" text-anchor="middle">&#x1FA98;</text>
+          <text x="67" y="1022" font-size="9" font-weight="900" fill="#fde68a" text-anchor="middle">OLYMPUS</text>
+        </g>
       `;
       scenerySvg = `
-        <text x="120" y="80" font-size="28" opacity="0.95">&#x2601;&#xFE0F;&#x2728;</text>
-        <text x="680" y="420" font-size="28" opacity="0.95">&#x2601;&#xFE0F;&#x2728;</text>
-        <text x="120" y="740" font-size="28" opacity="0.95">&#x2601;&#xFE0F;&#x2728;</text>
-        <text x="310" y="70" font-size="26" opacity="0.95">&#x1F31F;</text>
-        <text x="690" y="210" font-size="24" opacity="0.95">&#x1FA90;</text>
-        <text x="150" y="520" font-size="24" opacity="0.95">&#x1F451;</text>
-        <text x="700" y="660" font-size="24" opacity="0.95">&#x2728;</text>
+        <text x="135" y="110" font-size="28" opacity="0.95">&#x2601;&#xFE0F;&#x2728;</text>
+        <text x="695" y="280" font-size="28" opacity="0.95">&#x2601;&#xFE0F;&#x2728;</text>
+        <text x="135" y="450" font-size="28" opacity="0.95">&#x2601;&#xFE0F;&#x2728;</text>
+        <text x="695" y="620" font-size="28" opacity="0.95">&#x2601;&#xFE0F;&#x2728;</text>
+        <text x="140" y="790" font-size="28" opacity="0.95">&#x2601;&#xFE0F;&#x2728;</text>
+        <text x="690" y="960" font-size="28" opacity="0.95">&#x2601;&#xFE0F;&#x2728;</text>
+        <text x="145" y="1130" font-size="28" opacity="0.95">&#x2601;&#xFE0F;&#x2728;</text>
+        <text x="350" y="1285" font-size="28" opacity="0.95">&#x2601;&#xFE0F;&#x2728;</text>
+        <text x="110" y="240" font-size="26" opacity="0.95">&#x1F31F;</text>
+        <text x="690" y="390" font-size="24" opacity="0.95">&#x1FA90;</text>
+        <text x="110" y="620" font-size="24" opacity="0.95">&#x1F451;</text>
+        <text x="690" y="770" font-size="24" opacity="0.95">&#x2728;</text>
+        <text x="110" y="950" font-size="24" opacity="0.95">&#x1FA90;</text>
+        <text x="700" y="1130" font-size="26" opacity="0.95">&#x1F31F;</text>
       `;
     }
 
     return `
-      <svg class="stage-winding-svg" viewBox="0 0 800 920" preserveAspectRatio="none" aria-hidden="true">
+      <svg class="stage-winding-svg" viewBox="0 0 800 1360" preserveAspectRatio="none" aria-hidden="true">
         <defs>
           ${defs}
         </defs>
 
+        <!-- Thematic Stage Backdrop Artwork -->
+        ${backdropArt}
+
         <!-- Ground Terrain Shadow Base -->
         <path d="${bezierPath}"
-              fill="none" stroke="rgba(0,0,0,0.55)" stroke-width="72" stroke-linecap="round" stroke-linejoin="round" />
+              fill="none" stroke="rgba(0,0,0,0.6)" stroke-width="74" stroke-linecap="round" stroke-linejoin="round" />
 
         <!-- Road Curbs / Shoulder Edges -->
         <path d="${bezierPath}"
-              fill="none" stroke="${env.edgeStroke}" stroke-width="62" stroke-linecap="round" stroke-linejoin="round"
+              fill="none" stroke="${env.edgeStroke}" stroke-width="64" stroke-linecap="round" stroke-linejoin="round"
               ${stageId === 4 ? 'filter="url(#neon-glow-4)"' : (stageId === 6 ? 'filter="url(#celestial-glow-6)"' : '')} />
 
         <!-- Road Surface Ribbon -->
@@ -1545,16 +1855,17 @@ window.App = {
       }
     };
 
-    // 8 Serpentine S-Curve coordinates (in percentage and vertical pixels)
+    // 8 Wide Serpentine S-Curve coordinates (in percentage and vertical pixels)
+    // Spans 21% to 79% side-to-side with 170px vertical steps for zero overlapping!
     const nodeCoords = [
-      { left: 30, top: 80, dir: 'dir-right' },
-      { left: 42.5, top: 195, dir: 'dir-right' },
-      { left: 66.25, top: 310, dir: 'dir-left' },
-      { left: 78.75, top: 425, dir: 'dir-left' },
-      { left: 67.5, top: 540, dir: 'dir-left' },
-      { left: 43.75, top: 655, dir: 'dir-right' },
-      { left: 28.75, top: 770, dir: 'dir-right' },
-      { left: 50, top: 860, dir: 'dir-right' }
+      { left: 21.25, top: 90, dir: 'dir-right' },
+      { left: 78.75, top: 260, dir: 'dir-left' },
+      { left: 21.25, top: 430, dir: 'dir-right' },
+      { left: 78.75, top: 600, dir: 'dir-left' },
+      { left: 21.875, top: 770, dir: 'dir-right' },
+      { left: 78.125, top: 940, dir: 'dir-left' },
+      { left: 23.125, top: 1110, dir: 'dir-right' },
+      { left: 50, top: 1260, dir: 'dir-right' }
     ];
 
     let html = `
@@ -1564,7 +1875,7 @@ window.App = {
             &#x1F5FA;&#xFE0F; Cesta hudebn&iacute;ka: Velk&eacute; kytarov&eacute; turn&eacute;
           </h2>
           <p style="color: #94a3b8; font-size: 0.95rem; max-width: 600px; margin: 0 auto;">
-            Sleduj klikatou kytarovou stezku ze strany na stranu: od pra&scaron;n&eacute; p&#x11B;&scaron;iny s kam&iacute;nky u gar&aacute;&#x17E;e a&#x17E; po hv&#x11B;zdn&yacute; mramor a bo&#x17E;sk&yacute; Olymp!
+            Sleduj klikatou kytarovou stezku ze strany na stranu: od gar&aacute;&#x17E;e p&#x159;es park, hospodsk&yacute; jam a rockov&yacute; klub a&#x17E; po stadion a bo&#x17E;sk&yacute; Olymp!
           </p>
         </div>
     `;
@@ -1624,11 +1935,6 @@ window.App = {
                   <div class="gate-stage-desc">
                     ${env.scene} &bull; Lekce ${stage.lessons[0]}&ndash;${stage.lessons[1]} &bull; ${stage.minXp}&ndash;${stage.maxXp} XP
                   </div>
-                  <div>
-                    <span class="gate-terrain-badge ${env.terrainBadgeClass}">
-                      Povrch: ${env.terrain}
-                    </span>
-                  </div>
                 </div>
               </div>
 
@@ -1643,9 +1949,9 @@ window.App = {
             </div>
           </div>
 
-          <!-- Sinuous Serpentine Winding Track Wrap -->
+          <!-- Sinuous Serpentine Winding Track Wrap (Height: 1360px for spacious layout) -->
           <div class="stage-track-wrap">
-            <!-- Dynamic Vector Winding Road with Environmental Props -->
+            <!-- Dynamic Vector Winding Road with Thematic Backdrop & Scenery -->
             ${this.getStageWindingSvg(stageId, env)}
 
             <!-- 8 Serpentine Nodes Placed along the S-Curve -->
@@ -1753,7 +2059,6 @@ window.App = {
             ${isOlympUnlocked ? '&#x1F451; Odem&#x10D;eno &mdash; Jsi Kytarov&yacute; B&#x16F;h!' : '&#x1F512; Vy&#x17E;aduje dokon&#x10D;en&iacute; v&scaron;ech 48 lekc&iacute;'}
           </div>
         </div>
-      </div>
       </div>
     `;
 

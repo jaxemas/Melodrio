@@ -1,4 +1,4 @@
-﻿/* ==========================================================================
+/* ==========================================================================
    MELODRIO — STYLESHEET (css/styles.css)
    Dark-mode only, Glassmorphism, Guitar Learning Web App (Czech Language)
    ========================================================================== */
@@ -4529,13 +4529,59 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
 .stage-section {
   position: relative;
-  margin-bottom: 4rem;
+  margin-bottom: 5rem;
+  border-radius: 26px;
+  padding: 1.5rem 1.25rem 2rem 1.25rem;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.stage-section.stage-theme-1 {
+  background: radial-gradient(ellipse at 50% 15%, rgba(180, 83, 9, 0.14) 0%, rgba(15, 23, 42, 0.35) 60%),
+              linear-gradient(180deg, rgba(38, 24, 12, 0.45) 0%, rgba(15, 23, 42, 0.85) 100%);
+  border: 1px solid rgba(180, 83, 9, 0.28);
+  box-shadow: 0 12px 35px -10px rgba(180, 83, 9, 0.2);
+}
+
+.stage-section.stage-theme-2 {
+  background: radial-gradient(ellipse at 50% 15%, rgba(16, 185, 129, 0.14) 0%, rgba(15, 23, 42, 0.35) 60%),
+              linear-gradient(180deg, rgba(6, 44, 25, 0.45) 0%, rgba(15, 23, 42, 0.85) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.28);
+  box-shadow: 0 12px 35px -10px rgba(16, 185, 129, 0.2);
+}
+
+.stage-section.stage-theme-3 {
+  background: radial-gradient(ellipse at 50% 15%, rgba(234, 179, 8, 0.14) 0%, rgba(15, 23, 42, 0.35) 60%),
+              linear-gradient(180deg, rgba(45, 35, 10, 0.45) 0%, rgba(15, 23, 42, 0.85) 100%);
+  border: 1px solid rgba(234, 179, 8, 0.28);
+  box-shadow: 0 12px 35px -10px rgba(234, 179, 8, 0.2);
+}
+
+.stage-section.stage-theme-4 {
+  background: radial-gradient(ellipse at 50% 15%, rgba(168, 85, 247, 0.16) 0%, rgba(15, 23, 42, 0.35) 60%),
+              linear-gradient(180deg, rgba(35, 10, 50, 0.45) 0%, rgba(15, 23, 42, 0.85) 100%);
+  border: 1px solid rgba(168, 85, 247, 0.32);
+  box-shadow: 0 12px 40px -10px rgba(168, 85, 247, 0.25);
+}
+
+.stage-section.stage-theme-5 {
+  background: radial-gradient(ellipse at 50% 15%, rgba(244, 63, 94, 0.16) 0%, rgba(15, 23, 42, 0.35) 60%),
+              linear-gradient(180deg, rgba(50, 10, 25, 0.45) 0%, rgba(15, 23, 42, 0.85) 100%);
+  border: 1px solid rgba(244, 63, 94, 0.32);
+  box-shadow: 0 12px 40px -10px rgba(244, 63, 94, 0.25);
+}
+
+.stage-section.stage-theme-6 {
+  background: radial-gradient(ellipse at 50% 15%, rgba(245, 158, 11, 0.22) 0%, rgba(236, 72, 153, 0.12) 40%, rgba(15, 23, 42, 0.4) 75%),
+              linear-gradient(180deg, rgba(40, 20, 55, 0.55) 0%, rgba(15, 23, 42, 0.9) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  box-shadow: 0 12px 45px -10px rgba(245, 158, 11, 0.35);
 }
 
 .stage-track-wrap {
   position: relative;
   width: 100%;
-  height: 920px;
+  height: 1360px;
   margin: 1.5rem 0 2rem 0;
   overflow: visible;
 }
