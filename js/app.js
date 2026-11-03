@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Melodrio - Main Application Module
  * Handles routing, navigation, dashboard rendering, story map, profile, and app initialization.
  */
@@ -963,22 +963,29 @@ window.App = {
             </div>
           </div>
 
-          <div style="display: flex; gap: 0.6rem; margin-top: 0.5rem;">
+          <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap;">
             <button class="btn btn-primary btn-sm" onclick="App.playChordOfTheDay('${chord.name}')" style="
-              flex: 1; font-weight: 700; border-radius: 10px;
+              flex: 1; min-width: 130px; font-weight: 700; border-radius: 10px;
               background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
               border-color: #fbbf24;
-              display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+              display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem;
             ">
               <span>&#x1F50A;</span>
-              <span>Poslechnout akord</span>
+              <span>Zahr&aacute;t akord</span>
             </button>
-            <button class="btn btn-secondary btn-sm" onclick="App.practiceChord('${chord.name}')" style="
-              border-radius: 10px; font-weight: 700;
+            <button class="btn btn-secondary btn-sm" onclick="App.arpeggiateChordOfTheDay('${chord.name}')" style="
+              flex: 1; min-width: 110px; font-weight: 700; border-radius: 10px;
+              display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem;
+            ">
+              <span>&#x1F3B6;</span>
+              <span>Vybrnkat</span>
+            </button>
+            <button class="btn btn-ghost btn-sm" onclick="App.practiceChord('${chord.name}')" style="
+              border-radius: 10px; font-weight: 700; border: 1px solid rgba(255,255,255,0.12);
               display: inline-flex; align-items: center; gap: 0.35rem;
             ">
               <span>&#x1F3AF;</span>
-              <span>Tr&eacute;novat p&#x159;echody</span>
+              <span>Hmatn&iacute;k</span>
             </button>
           </div>
         </div>
@@ -998,6 +1005,19 @@ window.App = {
     }
     if (window.UI) {
       window.UI.showToast(`&#x1F50A; Hraje akord ${chordName}`, 'info');
+    }
+  },
+
+  /**
+   * Action: Arpeggiate chord of the day using synthesizer
+   * @param {string} chordName
+   */
+  arpeggiateChordOfTheDay(chordName) {
+    if (typeof AudioSynth !== 'undefined' && typeof AudioSynth.arpeggiateChord === 'function') {
+      AudioSynth.arpeggiateChord(chordName, { pattern: 'pima' });
+    }
+    if (window.UI) {
+      window.UI.showToast(`&#x1F3B6; Vybrnk&aacute;v&aacute;n&iacute; akordu dne: ${chordName} (P-I-M-A)`, 'info');
     }
   },
 

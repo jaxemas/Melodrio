@@ -4728,6 +4728,130 @@ input[type="range"]::-webkit-slider-thumb:hover {
   box-shadow: 0 0 14px rgba(245, 158, 11, 0.35);
 }
 
+/* Fingerpicking & String Plucking Deck */
+.string-plucking-deck {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 640px) {
+  .string-plucking-deck {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.string-pluck-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.35rem;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 0;
+  width: 100%;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+.string-pluck-btn:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: #8b5cf6;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+.string-pluck-btn:active,
+.string-pluck-btn.is-plucking {
+  background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
+  border-color: #ffffff;
+  transform: scale(0.95);
+  box-shadow: 0 0 16px rgba(139, 92, 246, 0.8);
+}
+
+.string-pluck-btn .str-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #94a3b8;
+}
+
+.string-pluck-btn .str-note {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #f8fafc;
+  margin: 0.15rem 0;
+}
+
+.string-pluck-btn .str-fret {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #a78bfa;
+}
+
+.string-pluck-btn.is-muted .str-note,
+.string-pluck-btn.is-muted .str-fret {
+  color: #f87171;
+}
+
+/* Fingerpicking pattern step card */
+.fingerpicking-step-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #0f172a;
+  padding: 0.65rem 0.85rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow-x: auto;
+}
+
+.finger-step-chip {
+  flex: 1;
+  min-width: 48px;
+  text-align: center;
+  padding: 0.4rem 0.3rem;
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.finger-step-chip.highlight {
+  background: rgba(139, 92, 246, 0.3);
+  border-color: #8b5cf6;
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+}
+
+.finger-step-chip .f-name {
+  font-size: 0.82rem;
+  font-weight: 900;
+  color: #38bdf8;
+}
+
+.finger-step-chip .f-str {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  font-weight: 700;
+}
+
+.finger-badge-pill {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #7dd3fc;
+}
+
 @media (max-width: 768px) {
   .mission-hub-grid {
     grid-template-columns: 1fr;

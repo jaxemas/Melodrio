@@ -1,7 +1,7 @@
 /**
  * Melodrio Phase 2 — Web Audio Guitar Synthesizer
- * Generates realistic-sounding guitar chord strums and individual string plucks
- * using the Web Audio API (no external samples needed).
+ * Generates realistic-sounding guitar chord strums, arpeggiated fingerpicking patterns,
+ * and individual string plucks using the Web Audio API (no external samples needed).
  *
  * Architecture note: In Phase 3, microphone input will be added alongside this
  * synthesizer using the same AudioContext.
@@ -48,106 +48,265 @@ const AudioSynth = (() => {
     { name: 'E4', freq: NOTE_FREQ['E4'] || 329.63 },   // String 1 (thinnest)
   ];
 
-  // ── Chord Definitions (fret numbers per string, -1 = muted) ──────────
-  // Order: [E2, A2, D3, G3, B3, E4] = strings 6,5,4,3,2,1
+  // ── Complete Chord Definitions (fret numbers per string, -1 = muted) ───
+  // Order: [E2, A2, D3, G3, B3, E4] = strings 6, 5, 4, 3, 2, 1
   const CHORD_SHAPES = {
-    'Em':  [0, 2, 2, 0, 0, 0],
-    'Am':  [-1, 0, 2, 2, 1, 0],
-    'C':   [-1, 3, 2, 0, 1, 0],
-    'G':   [3, 2, 0, 0, 0, 3],
-    'D':   [-1, -1, 0, 2, 3, 2],
-    'Dm':  [-1, -1, 0, 2, 3, 1],
-    'E':   [0, 2, 2, 1, 0, 0],
-    'A':   [-1, 0, 2, 2, 2, 0],
-    'F':   [1, 3, 3, 2, 1, 1],
-    'B7':  [-1, 2, 1, 2, 0, 2],
-    'A7':  [-1, 0, 2, 0, 2, 0],
-    'D7':  [-1, -1, 0, 2, 1, 2],
-    'E7':  [0, 2, 0, 1, 0, 0],
-    'G7':  [3, 2, 0, 0, 0, 1],
-    'C7':  [-1, 3, 2, 3, 1, 0],
-    'Bm':  [-1, 2, 4, 4, 3, 2],
+    // Základní mollové (Minor)
+    'Em':   [0, 2, 2, 0, 0, 0],
+    'Am':   [-1, 0, 2, 2, 1, 0],
+    'Dm':   [-1, -1, 0, 2, 3, 1],
+    'Bm':   [-1, 2, 4, 4, 3, 2],
+    'Hm':   [-1, 2, 4, 4, 3, 2], // Czech alias for Bm
+    'F#m':  [2, 4, 4, 2, 2, 2],
+    'Fism': [2, 4, 4, 2, 2, 2], // Czech alias for F#m
+    'Fm':   [1, 3, 3, 1, 1, 1],
+    'Gm':   [3, 5, 5, 3, 3, 3],
+    'Cm':   [-1, 3, 5, 5, 4, 3],
+
+    // Základní durové (Major)
+    'C':    [-1, 3, 2, 0, 1, 0],
+    'G':    [3, 2, 0, 0, 0, 3],
+    'D':    [-1, -1, 0, 2, 3, 2],
+    'E':    [0, 2, 2, 1, 0, 0],
+    'A':    [-1, 0, 2, 2, 2, 0],
+    'F':    [1, 3, 3, 2, 1, 1],
+    'B':    [-1, 2, 4, 4, 4, 2],
+    'H':    [-1, 2, 4, 4, 4, 2], // Czech alias for B
+
+    // Dominantní septakordy (Dominant 7th)
+    'B7':   [-1, 2, 1, 2, 0, 2],
+    'H7':   [-1, 2, 1, 2, 0, 2], // Czech alias for B7
+    'A7':   [-1, 0, 2, 0, 2, 0],
+    'D7':   [-1, -1, 0, 2, 1, 2],
+    'E7':   [0, 2, 0, 1, 0, 0],
+    'G7':   [3, 2, 0, 0, 0, 1],
+    'C7':   [-1, 3, 2, 3, 1, 0],
+
+    // Mollové 7 & Rozšířené akordy (add9, sus4, m7)
+    'Am7':  [-1, 0, 2, 0, 1, 0],
+    'Em7':  [0, 2, 2, 0, 3, 0],
+    'Dm7':  [-1, -1, 0, 2, 1, 1],
+    'Cadd9':[-1, 3, 2, 0, 3, 3],
+    'Dsus4':[-1, -1, 0, 2, 3, 3],
+    'Asus4':[-1, 0, 2, 2, 3, 0]
+  };
+
+  // ── Standard Fingerpicking Patterns (Vybrnkávací vzory) ───────────────
+  const FINGERPICKING_PATTERNS = {
+    'pima': {
+      id: 'pima',
+      name: 'Vzestupné arpeggio (P-i-m-a)',
+      shortName: 'P-i-m-a',
+      timeSig: '4/4',
+      desc: 'Základní vybrnkávání: palec zahraje basový tón akordu, poté prsty postupně rozezní struny 3, 2 a 1.',
+      steps: [
+        { finger: 'P', stringType: 'bass', label: 'Bas (P)' },
+        { finger: 'i', stringNum: 3, label: '3. struna (i)' },
+        { finger: 'm', stringNum: 2, label: '2. struna (m)' },
+        { finger: 'a', stringNum: 1, label: '1. struna (a)' }
+      ]
+    },
+    'camp': {
+      id: 'camp',
+      name: 'Táborový vzor (P-3-2-1-2-3)',
+      shortName: 'P-3-2-1-2-3',
+      timeSig: '6/8',
+      desc: 'Nejznámější český táborákový a folkový vzor pro 3/4 a 6/8 balady (Nedvědi, Nohavica, trampské písně).',
+      steps: [
+        { finger: 'P', stringType: 'bass', label: 'Bas (P)' },
+        { finger: 'i', stringNum: 3, label: '3. struna (i)' },
+        { finger: 'm', stringNum: 2, label: '2. struna (m)' },
+        { finger: 'a', stringNum: 1, label: '1. struna (a)' },
+        { finger: 'm', stringNum: 2, label: '2. struna (m)' },
+        { finger: 'i', stringNum: 3, label: '3. struna (i)' }
+      ]
+    },
+    'ballad': {
+      id: 'ballad',
+      name: 'Akustická balada (P-2-3-1-3-2)',
+      shortName: 'P-2-3-1-3-2',
+      timeSig: '4/4',
+      desc: 'Lyrický vzor vhodný pro rockové balady a melodické písně (např. Dust in the Wind, Hallelujah).',
+      steps: [
+        { finger: 'P', stringType: 'bass', label: 'Bas (P)' },
+        { finger: 'm', stringNum: 2, label: '2. struna (m)' },
+        { finger: 'i', stringNum: 3, label: '3. struna (i)' },
+        { finger: 'a', stringNum: 1, label: '1. struna (a)' },
+        { finger: 'i', stringNum: 3, label: '3. struna (i)' },
+        { finger: 'm', stringNum: 2, label: '2. struna (m)' }
+      ]
+    },
+    'pinch': {
+      id: 'pinch',
+      name: 'Travis picking / Pinch (Bas + souzvuk)',
+      shortName: 'Pinch & Pick',
+      timeSig: '4/4',
+      desc: 'Tradiční country a folk technika: palec a prsteník štípnou souzvuk basu s výškou, následovaný střídavou dohrávkou.',
+      steps: [
+        { finger: 'P+a', stringType: 'bass+1', label: 'Souzvuk (P+a)' },
+        { finger: 'm', stringNum: 2, label: '2. struna (m)' },
+        { finger: 'P', stringType: 'alt_bass', label: 'Altern. bas (P)' },
+        { finger: 'i', stringNum: 3, label: '3. struna (i)' }
+      ]
+    }
   };
 
   // ── Plucked String Synthesis ─────────────────────────────────────────
   /**
-   * Attempt Karplus-Strong-inspired pluck via oscillator + filtered noise burst.
-   * @param {number} freq     Fundamental frequency in Hz
+   * Karplus-Strong-inspired pluck via dual oscillator + filtered noise burst.
+   * @param {number} freq       Fundamental frequency in Hz
    * @param {number} startTime  AudioContext time to begin
    * @param {number} duration   Note duration in seconds
    * @param {number} velocity   0-1 loudness
    */
-  function pluckString(freq, startTime, duration, velocity = 0.45) {
+  function pluckString(freq, startTime, duration, velocity = 0.5) {
     const ac = ensureContext();
     const t = startTime;
 
-    // --- Oscillator (fundamental + slight detune for warmth) ---
+    // --- Oscillator (fundamental triangle + slight detuned sine for warm harmonic richness) ---
     const osc = ac.createOscillator();
     osc.type = 'triangle';
     osc.frequency.value = freq;
 
     const osc2 = ac.createOscillator();
     osc2.type = 'sine';
-    osc2.frequency.value = freq * 1.002; // tiny detune
+    osc2.frequency.value = freq * 1.002; // natural chorus shimmer
 
-    // --- Amplitude envelope (fast attack, natural decay) ---
+    // Sub-harmonic for low bass strings (E2, A2)
+    let subOsc = null;
+    let subGain = null;
+    if (freq < 150) {
+      subOsc = ac.createOscillator();
+      subOsc.type = 'sine';
+      subOsc.frequency.value = freq;
+      subGain = ac.createGain();
+      subGain.gain.setValueAtTime(0, t);
+      subGain.gain.linearRampToValueAtTime(velocity * 0.22, t + 0.008);
+      subGain.gain.exponentialRampToValueAtTime(0.001, t + duration * 0.85);
+      subOsc.connect(subGain);
+    }
+
+    // --- Amplitude envelopes (fast tactile attack, natural exponential decay) ---
     const ampEnv = ac.createGain();
     ampEnv.gain.setValueAtTime(0, t);
-    ampEnv.gain.linearRampToValueAtTime(velocity * 0.35, t + 0.005);
+    ampEnv.gain.linearRampToValueAtTime(velocity * 0.38, t + 0.005);
     ampEnv.gain.exponentialRampToValueAtTime(0.001, t + duration);
 
     const ampEnv2 = ac.createGain();
     ampEnv2.gain.setValueAtTime(0, t);
-    ampEnv2.gain.linearRampToValueAtTime(velocity * 0.15, t + 0.005);
+    ampEnv2.gain.linearRampToValueAtTime(velocity * 0.16, t + 0.005);
     ampEnv2.gain.exponentialRampToValueAtTime(0.001, t + duration);
 
-    // --- Low-pass filter (simulates guitar body resonance) ---
+    // --- Low-pass filter (simulates soundboard acoustic body resonance) ---
     const lpf = ac.createBiquadFilter();
     lpf.type = 'lowpass';
-    lpf.frequency.setValueAtTime(freq * 6, t);
-    lpf.frequency.exponentialRampToValueAtTime(freq * 1.5, t + duration * 0.7);
-    lpf.Q.value = 1.2;
+    const cutoff = Math.min(10000, freq * 7.5);
+    lpf.frequency.setValueAtTime(cutoff, t);
+    lpf.frequency.exponentialRampToValueAtTime(Math.max(120, freq * 1.8), t + duration * 0.7);
+    lpf.Q.value = 1.35;
 
-    // --- Noise burst for pick attack ---
-    const noiseLen = 0.04;
-    const noiseBuf = ac.createBuffer(1, ac.sampleRate * noiseLen, ac.sampleRate);
+    // --- Noise burst for fingernail / plectrum pluck attack ---
+    const noiseLen = 0.038;
+    const noiseBuf = ac.createBuffer(1, Math.floor(ac.sampleRate * noiseLen), ac.sampleRate);
     const noiseData = noiseBuf.getChannelData(0);
     for (let i = 0; i < noiseData.length; i++) {
-      noiseData[i] = (Math.random() * 2 - 1) * 0.5;
+      noiseData[i] = (Math.random() * 2 - 1) * 0.45;
     }
     const noiseNode = ac.createBufferSource();
     noiseNode.buffer = noiseBuf;
 
     const noiseGain = ac.createGain();
-    noiseGain.gain.setValueAtTime(velocity * 0.2, t);
+    noiseGain.gain.setValueAtTime(velocity * 0.24, t);
     noiseGain.gain.exponentialRampToValueAtTime(0.001, t + noiseLen);
 
     const noiseFilter = ac.createBiquadFilter();
     noiseFilter.type = 'bandpass';
-    noiseFilter.frequency.value = freq * 3;
-    noiseFilter.Q.value = 2;
+    noiseFilter.frequency.value = Math.min(8000, freq * 3.2);
+    noiseFilter.Q.value = 2.2;
 
-    // --- Wiring ---
+    // --- Signal Graph Wiring ---
     osc.connect(ampEnv);
     osc2.connect(ampEnv2);
     ampEnv.connect(lpf);
     ampEnv2.connect(lpf);
+    if (subGain) subGain.connect(lpf);
     lpf.connect(masterGain);
 
     noiseNode.connect(noiseFilter);
     noiseFilter.connect(noiseGain);
     noiseGain.connect(masterGain);
 
-    // --- Schedule ---
+    // --- Start & Stop Scheduling ---
     osc.start(t);
     osc.stop(t + duration + 0.05);
     osc2.start(t);
     osc2.stop(t + duration + 0.05);
+    if (subOsc) {
+      subOsc.start(t);
+      subOsc.stop(t + duration + 0.05);
+    }
     noiseNode.start(t);
     noiseNode.stop(t + noiseLen + 0.01);
   }
 
-  // ── Strum a Chord ────────────────────────────────────────────────────
+  // ── Muted String Pluck (Dead note / X on fretboard) ───────────────────
+  function playMutedString(stringNum) {
+    const ac = ensureContext();
+    const t = ac.currentTime;
+    const noiseLen = 0.045;
+    const noiseBuf = ac.createBuffer(1, Math.floor(ac.sampleRate * noiseLen), ac.sampleRate);
+    const noiseData = noiseBuf.getChannelData(0);
+    for (let i = 0; i < noiseData.length; i++) {
+      noiseData[i] = (Math.random() * 2 - 1) * 0.35;
+    }
+    const noiseNode = ac.createBufferSource();
+    noiseNode.buffer = noiseBuf;
+
+    const noiseGain = ac.createGain();
+    noiseGain.gain.setValueAtTime(0.14, t);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, t + noiseLen);
+
+    const filter = ac.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 320;
+
+    noiseNode.connect(filter);
+    filter.connect(noiseGain);
+    noiseGain.connect(masterGain);
+
+    noiseNode.start(t);
+    noiseNode.stop(t + noiseLen + 0.01);
+  }
+
+  // ── Pluck a Single Chord String ──────────────────────────────────────
+  /**
+   * Pluck a specific string (1-6) of a chord shape.
+   * If muted, plays realistic dead string click.
+   * If fretted, plays exact note frequency.
+   * @param {string} chordName
+   * @param {number} stringNum 1-6 (1=high E, 6=low E)
+   */
+  function pluckChordString(chordName, stringNum) {
+    if (stringNum < 1 || stringNum > 6) return null;
+    const shape = CHORD_SHAPES[chordName];
+    if (!shape) {
+      playString(stringNum, 0);
+      return { muted: false, stringNum, fret: 0 };
+    }
+    const idx = 6 - stringNum;
+    const fret = shape[idx];
+    if (fret < 0) {
+      playMutedString(stringNum);
+      return { muted: true, stringNum, fret: -1 };
+    }
+    const baseFreq = OPEN_STRINGS[idx].freq;
+    const freq = baseFreq * Math.pow(2, fret / 12);
+    const ac = ensureContext();
+    pluckString(freq, ac.currentTime, 1.8, 0.58);
+    return { muted: false, stringNum, fret, freq };
+  }
+
+  // ── Strum a Chord (Full multi-string stroke) ──────────────────────────
   /**
    * Play a full chord strum.
    * @param {string} chordName   e.g. 'Em', 'C', 'G'
@@ -159,8 +318,8 @@ const AudioSynth = (() => {
 
     const ac = ensureContext();
     const now = ac.currentTime;
-    const duration = opts.duration || 1.2;
-    const velocity = opts.velocity || 0.45;
+    const duration = opts.duration || 1.4;
+    const velocity = opts.velocity || 0.48;
     const strumDelay = opts.strumDelay || 0.016;
     const direction = opts.direction || 'down';
 
@@ -183,19 +342,146 @@ const AudioSynth = (() => {
     });
   }
 
-  // ── Play Single String ──────────────────────────────────────────────
+  // ── Arpeggiate a Chord (Fingerpicking sequence) ───────────────────────
   /**
-   * Play a single guitar string (open or fretted).
-   * @param {number} stringNum 1-6 (1=high E, 6=low E)
-   * @param {number} fret      0=open, 1-24
+   * Play a fingerpicking arpeggio on the chord.
+   * @param {string} chordName
+   * @param {object} opts { pattern: 'pima'|'camp'|'ballad'|'pinch'|'check_clean', tempo: 1.0, onPluck: (str, finger) => void }
    */
-  function playString(stringNum, fret = 0) {
+  function arpeggiateChord(chordName, opts = {}) {
+    const shape = CHORD_SHAPES[chordName];
+    if (!shape) return [];
+
+    const patternId = opts.pattern || 'pima';
+    const tempo = Math.max(0.4, Math.min(2.5, opts.tempo || 1.0));
+    const onPluck = opts.onPluck || null;
+
+    // Find the primary bass string for this chord (lowest unmuted string)
+    let bassIdx = 0;
+    for (let i = 0; i < 6; i++) {
+      if (shape[i] >= 0) { bassIdx = i; break; }
+    }
+    const bassStringNum = 6 - bassIdx; // 6, 5, or 4
+
+    let sequence = [];
+    if (patternId === 'pima') {
+      // Bass -> 3rd -> 2nd -> 1st
+      sequence = [
+        { str: bassStringNum, delay: 0, finger: 'P' },
+        { str: 3, delay: 0.28 / tempo, finger: 'i' },
+        { str: 2, delay: 0.56 / tempo, finger: 'm' },
+        { str: 1, delay: 0.84 / tempo, finger: 'a' }
+      ];
+    } else if (patternId === 'camp') {
+      // Táborový vzor (6/8): Bass -> 3 -> 2 -> 1 -> 2 -> 3
+      sequence = [
+        { str: bassStringNum, delay: 0, finger: 'P' },
+        { str: 3, delay: 0.22 / tempo, finger: 'i' },
+        { str: 2, delay: 0.44 / tempo, finger: 'm' },
+        { str: 1, delay: 0.66 / tempo, finger: 'a' },
+        { str: 2, delay: 0.88 / tempo, finger: 'm' },
+        { str: 3, delay: 1.10 / tempo, finger: 'i' }
+      ];
+    } else if (patternId === 'ballad') {
+      // Balada: Bass -> 2 -> 3 -> 1 -> 3 -> 2
+      sequence = [
+        { str: bassStringNum, delay: 0, finger: 'P' },
+        { str: 2, delay: 0.24 / tempo, finger: 'm' },
+        { str: 3, delay: 0.48 / tempo, finger: 'i' },
+        { str: 1, delay: 0.72 / tempo, finger: 'a' },
+        { str: 3, delay: 0.96 / tempo, finger: 'i' },
+        { str: 2, delay: 1.20 / tempo, finger: 'm' }
+      ];
+    } else if (patternId === 'pinch') {
+      // Travis picking: Bass + 1 simultaneously, then 2, then alt bass, then 3
+      const altBass = (bassStringNum === 6) ? 4 : (bassStringNum === 5 ? 4 : 5);
+      sequence = [
+        { str: bassStringNum, delay: 0, finger: 'P' },
+        { str: 1, delay: 0, finger: 'a' },
+        { str: 2, delay: 0.28 / tempo, finger: 'm' },
+        { str: altBass, delay: 0.56 / tempo, finger: 'P' },
+        { str: 3, delay: 0.84 / tempo, finger: 'i' }
+      ];
+    } else if (patternId === 'check_clean') {
+      // String-by-string cleanliness check (all playable strings from low to high slowly)
+      let d = 0;
+      for (let s = 6; s >= 1; s--) {
+        const fret = shape[6 - s];
+        if (fret >= 0) {
+          sequence.push({ str: s, delay: d, finger: '🔍' });
+          d += 0.45 / tempo;
+        }
+      }
+    } else {
+      // Default: sweep all playable strings
+      let d = 0;
+      for (let s = 6; s >= 1; s--) {
+        const fret = shape[6 - s];
+        if (fret >= 0) {
+          sequence.push({ str: s, delay: d, finger: 'P' });
+          d += 0.24 / tempo;
+        }
+      }
+    }
+
+    sequence.forEach(step => {
+      setTimeout(() => {
+        pluckChordString(chordName, step.str);
+        if (typeof onPluck === 'function') {
+          onPluck(step.str, step.finger);
+        }
+      }, step.delay * 1000);
+    });
+
+    return sequence;
+  }
+
+  // ── Musical Tone Information per String in a Chord ───────────────────
+  function getChordNoteNames(chordName) {
+    const shape = CHORD_SHAPES[chordName] || [-1, -1, -1, -1, -1, -1];
+    const stringNames = ['E', 'A', 'D', 'G', 'B', 'e'];
+    const result = [];
+    for (let s = 6; s >= 1; s--) {
+      const idx = 6 - s;
+      const fret = shape[idx];
+      const openName = stringNames[idx];
+      if (fret < 0) {
+        result.push({
+          stringNum: s,
+          stringName: openName,
+          fret: -1,
+          fretLabel: '✕',
+          noteName: `${openName} (✕ Tlumeno)`,
+          isMuted: true
+        });
+      } else {
+        const baseFreq = OPEN_STRINGS[idx].freq;
+        const freq = baseFreq * Math.pow(2, fret / 12);
+        const midi = Math.round(69 + 12 * Math.log2(freq / 440));
+        const noteIdx = (midi - 12) % 12;
+        const octave = Math.floor((midi - 12) / 12);
+        const note = NOTE_NAMES[noteIdx] + octave;
+        result.push({
+          stringNum: s,
+          stringName: openName,
+          fret: fret,
+          fretLabel: fret === 0 ? '0 (volná)' : `${fret}. pražec`,
+          noteName: `${note}`,
+          isMuted: false
+        });
+      }
+    }
+    return result;
+  }
+
+  // ── Play Single String (Open or Fretted) ─────────────────────────────
+  function playString(stringNum, fret = 0, duration = 1.4, velocity = 0.55) {
     if (stringNum < 1 || stringNum > 6) return;
-    const idx = 6 - stringNum; // convert 1-based (high E first) to array index
+    const idx = 6 - stringNum;
     const baseFreq = OPEN_STRINGS[idx].freq;
     const freq = baseFreq * Math.pow(2, fret / 12);
     const ac = ensureContext();
-    pluckString(freq, ac.currentTime, 1.0, 0.5);
+    pluckString(freq, ac.currentTime, duration, velocity);
   }
 
   // ── Metronome Click ─────────────────────────────────────────────────
@@ -269,6 +555,11 @@ const AudioSynth = (() => {
     ensureContext,
     playChord,
     playString,
+    playMutedString,
+    pluckChordString,
+    arpeggiateChord,
+    getChordNoteNames,
+    FINGERPICKING_PATTERNS,
     playClick,
     playFeedback,
     setVolume,
