@@ -993,7 +993,7 @@ window.App = {
   continueCurrentLesson() {
     const { completed } = this.getProgressData();
     let currentId = 1;
-    for (let i = 1; i <= 16; i++) {
+    for (let i = 1; i <= 48; i++) {
       if (!completed.includes(i)) {
         currentId = i;
         break;
@@ -1015,7 +1015,7 @@ window.App = {
 
     // Determine the current active lesson (first uncompleted)
     let currentLessonId = 1;
-    for (let i = 1; i <= 16; i++) {
+    for (let i = 1; i <= 48; i++) {
       if (!completed.includes(i)) {
         currentLessonId = i;
         break;
@@ -1040,9 +1040,10 @@ window.App = {
     `;
 
     // Render Stage 1 (Garáž, 1-8) and Stage 2 (Otevřená scéna, 9-16)
-    [1, 2].forEach(stageId => {
+    [1, 2, 3, 4, 5, 6].forEach(stageId => {
       const stage = this.STAGES.find(s => s.id === stageId);
-      const isStageUnlocked = stageId === 1 || xp >= stage.minXp || completed.some(id => id >= 8);
+      const prevStageLastLesson = stageId > 1 ? this.STAGES.find(s => s.id === stageId - 1).lessons[1] : 0;
+      const isStageUnlocked = isGod || stageId === 1 || xp >= stage.minXp || completed.includes(prevStageLastLesson);
       const isStageCompleted = stage.lessons.length > 0 &&
         Array.from({ length: stage.lessons[1] - stage.lessons[0] + 1 }, (_, i) => stage.lessons[0] + i)
           .every(id => completed.includes(id));
@@ -1128,7 +1129,6 @@ window.App = {
       `;
 
       // Render individual lesson nodes for this stage
-      const isGod = this.isGod();
       for (let lessonId = stage.lessons[0]; lessonId <= stage.lessons[1]; lessonId++) {
         const isCompleted = completed.includes(lessonId);
         const isCurrent = lessonId === currentLessonId;
@@ -1259,60 +1259,37 @@ window.App = {
       `;
     });
 
-    // Render Locked Stages 3 to 6
+    // Render Hall of Fame: Stage 7 (Olymp đź‘‘)
+    const isOlympUnlocked = isGod || completed.length >= 48;
     html += `
-      <div class="locked-stages-section" style="margin-top: 2rem;">
-        <div style="text-align: center; margin-bottom: 1.5rem;">
-          <h3 style="color: ${isGod ? '#fde68a' : '#64748b'}; font-size: 1.15rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
-            ${isGod ? '👑 Další etapy (Administrátorský přístup Bůh)' : '🔒 Další etapy (Připravují se)'}
-          </h3>
-        </div>
-    `;
-
-    [3, 4, 5, 6].forEach(stageId => {
-      const stage = this.STAGES.find(s => s.id === stageId);
-      html += `
-        <div class="card stage-header ${isGod ? 'god-unlocked' : 'locked'}" style="
-          background: ${isGod ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(245, 158, 11, 0.08) 100%)' : 'rgba(15, 23, 42, 0.5)'};
-          border: 1px ${isGod ? 'solid rgba(245, 158, 11, 0.4)' : 'dashed rgba(255, 255, 255, 0.1)'};
-          border-radius: 16px;
-          padding: 1.25rem 1.75rem;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 1rem;
-          opacity: ${isGod ? '1' : '0.65'};
+      <div class="olymp-stage-section" style="margin-top: 3.5rem; text-align: center; margin-bottom: 2rem;">
+        <div class="card p-6" style="
+          background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(245, 158, 11, 0.12) 100%);
+          border: 2px solid ${isOlympUnlocked ? 'rgba(245, 158, 11, 0.6)' : 'rgba(255, 255, 255, 0.1)'};
+          border-radius: 20px;
+          padding: 2.25rem;
+          max-width: 650px;
+          margin: 0 auto;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         ">
-          <div style="display: flex; align-items: center; gap: 1rem;">
-            <div style="font-size: 2rem; ${isGod ? '' : 'filter: grayscale(80%);'}">${stage.icon}</div>
-            <div>
-              <div style="font-weight: 700; font-size: 1.15rem; color: ${isGod ? '#fde68a' : '#94a3b8'};">
-                ${stage.id}. Etapa: ${stage.name} ${isGod ? '👑' : ''}
-              </div>
-              <div style="font-size: 0.85rem; color: ${isGod ? '#cbd5e1' : '#64748b'};">
-                ${isGod ? '⚡ Administrátorský přístup aktivní (připraveno pro další výstupy)' : `Vyžaduje hodnost <strong>${stage.rank}</strong> (${stage.minXp}+ XP)`}
-              </div>
-            </div>
-          </div>
-          <div style="
-            background: ${isGod ? 'rgba(245, 158, 11, 0.2)' : 'rgba(30, 41, 59, 0.6)'};
-            border: 1px solid ${isGod ? 'rgba(245, 158, 11, 0.4)' : 'transparent'};
-            padding: 0.35rem 0.75rem;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            color: ${isGod ? '#fde68a' : '#94a3b8'};
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
+          <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">đź‘‘</div>
+          <h3 style="font-size: 1.5rem; font-weight: 800; color: #fde68a; margin-bottom: 0.35rem;">
+            7. Etapa: SĂ­Ĺ slĂˇvy â€” Olymp
+          </h3>
+          <p style="color: #cbd5e1; font-size: 0.95rem; margin-bottom: 1.25rem;">
+            Vrchol hudebnĂ­ cesty Melodria. Odemkne se po ĂşspÄ›ĹˇnĂ©m zvlĂˇdnutĂ­ vĹˇech 48 lekcĂ­ na Stadionu!
+          </p>
+          <span class="badge" style="
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.5);
+            font-weight: 800;
+            font-size: 0.9rem;
+            padding: 0.4rem 1.2rem;
+            border-radius: 9999px;
           ">
-            <span>${isGod ? '👑 Odemčeno (Bůh)' : '🔒 Zamčeno'}</span>
-          </div>
-        </div>
-      `;
-    });
-
-    html += `
+            ${isOlympUnlocked ? 'âšˇ OdemÄŤeno â€” Jsi kytarovĂ˝ bĹŻh!' : 'đź”’ VyĹľaduje dokonÄŤenĂ­ vĹˇech 48 lekcĂ­'}
+          </span>
         </div>
       </div>
     `;
@@ -1448,7 +1425,7 @@ window.App = {
 
     const { completed } = this.getProgressData();
     let currentLessonId = 1;
-    for (let i = 1; i <= 16; i++) {
+    for (let i = 1; i <= 48; i++) {
       if (!completed.includes(i)) {
         currentLessonId = i;
         break;
@@ -1975,31 +1952,31 @@ window.App = {
 
   // 25 Song Repertoire with unlock conditions tied to lessons
   SONGS_25: [
-    { id: 1, strummingPattern: 'camp', title: 'Stánky', artist: 'Nedvědi', difficulty: 'Snadná', bpm: 105, unlockLesson: 11, chords: ['D', 'G', 'A'], lyrics: "U stánků na levnou krásu postávaj a smějou se času,\ns kapkou rumu v kafi marně touží po lidech...\nJen konce všech těch lásek zbyly někde v prachu cest." },
-    { id: 2, strummingPattern: 'camp', title: 'Bedna od vodky', artist: 'Miki Ryvola', difficulty: 'Snadná', bpm: 120, unlockLesson: 13, chords: ['C', 'F', 'G', 'Am'], lyrics: "Pět neděl v chládku jsem si poseděl,\nteď v kapse prachy mám a starej cíl.\nV hospodě na rohu chci chvíli pít,\na starou bednu od vodky zas mít." },
-    { id: 3, strummingPattern: 'folk', title: 'Slavíci z Madridu', artist: 'Waldemar Matuška', difficulty: 'Snadná', bpm: 110, unlockLesson: 9, chords: ['Am', 'E', 'Dm'], lyrics: "Nebe je modrý a zlatý, bílá je sluneční zář,\nhorko a sváteční šaty, vřava a lhostejná tvář.\nLalalalala lalala lalala lalalalala..." },
-    { id: 4, strummingPattern: 'camp', title: 'Severní vítr', artist: 'Jaroslav Uhlíř', difficulty: 'Snadná', bpm: 95, unlockLesson: 13, chords: ['C', 'Am', 'F', 'G'], lyrics: "Jdu s děravou patou, mám horečku zlatou,\njsem chudý, jsem sláb, nemocen.\nHlava mě pálí a v modravé dáli\nse leskne a třpytí můj sen..." },
-    { id: 5, strummingPattern: 'basic4', title: "Knockin' on Heaven's Door", artist: 'Bob Dylan', difficulty: 'Snadná', bpm: 68, unlockLesson: 14, chords: ['G', 'D', 'Am', 'C'], lyrics: "Mama, take this badge off of me,\nI can't use it anymore.\nIt's gettin' dark, too dark for me to see,\nFeels like I'm knockin' on heaven's door." },
-    { id: 6, strummingPattern: 'ballad', title: 'Let It Be', artist: 'The Beatles', difficulty: 'Střední', bpm: 72, unlockLesson: 13, chords: ['C', 'G', 'Am', 'F'], lyrics: "When I find myself in times of trouble,\nMother Mary comes to me,\nSpeaking words of wisdom: Let it be.\nAnd in my hour of darkness she is standing right in front of me..." },
-    { id: 7, strummingPattern: 'camp', title: 'Wonderwall', artist: 'Oasis', difficulty: 'Střední', bpm: 88, unlockLesson: 14, chords: ['Em', 'G', 'D', 'A7sus4'], lyrics: "Today is gonna be the day that they're gonna throw it back to you.\nBy now you should've somehow realized what you gotta do.\nI don't believe that anybody feels the way I do about you now." },
-    { id: 8, strummingPattern: 'rock', title: 'Zombie', artist: 'The Cranberries', difficulty: 'Snadná', bpm: 84, unlockLesson: 8, chords: ['Em', 'C', 'G', 'D'], lyrics: "Another head hangs lowly, child is slowly taken.\nAnd the violence caused such silence, who are we mistaken?\nIn your head, in your head, they are fighting..." },
-    { id: 9, strummingPattern: 'waltz', title: 'Hallelujah', artist: 'Leonard Cohen', difficulty: 'Střední', bpm: 58, unlockLesson: 13, chords: ['C', 'Am', 'F', 'G', 'E'], lyrics: "Now I've heard there was a secret chord\nThat David played, and it pleased the Lord,\nBut you don't really care for music, do ya?\nIt goes like this: the fourth, the fifth, the minor fall, the major lift..." },
+    { id: 1, strummingPattern: 'camp', title: 'Stánky', artist: 'Nedvědi', difficulty: 'Snadná', bpm: 105, unlockLesson: 19, chords: ['D', 'G', 'A'], lyrics: "U stánků na levnou krásu postávaj a smějou se času,\ns kapkou rumu v kafi marně touží po lidech...\nJen konce všech těch lásek zbyly někde v prachu cest." },
+    { id: 2, strummingPattern: 'camp', title: 'Bedna od vodky', artist: 'Miki Ryvola', difficulty: 'Snadná', bpm: 120, unlockLesson: 24, chords: ['C', 'F', 'G', 'Am'], lyrics: "Pět neděl v chládku jsem si poseděl,\nteď v kapse prachy mám a starej cíl.\nV hospodě na rohu chci chvíli pít,\na starou bednu od vodky zas mít." },
+    { id: 3, strummingPattern: 'folk', title: 'Slavíci z Madridu', artist: 'Waldemar Matuška', difficulty: 'Snadná', bpm: 110, unlockLesson: 18, chords: ['Am', 'E', 'Dm'], lyrics: "Nebe je modrý a zlatý, bílá je sluneční zář,\nhorko a sváteční šaty, vřava a lhostejná tvář.\nLalalalala lalala lalala lalalalala..." },
+    { id: 4, strummingPattern: 'camp', title: 'Severní vítr', artist: 'Jaroslav Uhlíř', difficulty: 'Snadná', bpm: 95, unlockLesson: 34, chords: ['C', 'Am', 'F', 'G'], lyrics: "Jdu s děravou patou, mám horečku zlatou,\njsem chudý, jsem sláb, nemocen.\nHlava mě pálí a v modravé dáli\nse leskne a třpytí můj sen..." },
+    { id: 5, strummingPattern: 'basic4', title: "Knockin' on Heaven's Door", artist: 'Bob Dylan', difficulty: 'Snadná', bpm: 68, unlockLesson: 15, chords: ['G', 'D', 'Am', 'C'], lyrics: "Mama, take this badge off of me,\nI can't use it anymore.\nIt's gettin' dark, too dark for me to see,\nFeels like I'm knockin' on heaven's door." },
+    { id: 6, strummingPattern: 'ballad', title: 'Let It Be', artist: 'The Beatles', difficulty: 'Střední', bpm: 72, unlockLesson: 35, chords: ['C', 'G', 'Am', 'F'], lyrics: "When I find myself in times of trouble,\nMother Mary comes to me,\nSpeaking words of wisdom: Let it be.\nAnd in my hour of darkness she is standing right in front of me..." },
+    { id: 7, strummingPattern: 'camp', title: 'Wonderwall', artist: 'Oasis', difficulty: 'Střední', bpm: 88, unlockLesson: 26, chords: ['Em', 'G', 'D', 'A7sus4'], lyrics: "Today is gonna be the day that they're gonna throw it back to you.\nBy now you should've somehow realized what you gotta do.\nI don't believe that anybody feels the way I do about you now." },
+    { id: 8, strummingPattern: 'rock', title: 'Zombie', artist: 'The Cranberries', difficulty: 'Snadná', bpm: 84, unlockLesson: 16, chords: ['Em', 'C', 'G', 'D'], lyrics: "Another head hangs lowly, child is slowly taken.\nAnd the violence caused such silence, who are we mistaken?\nIn your head, in your head, they are fighting..." },
+    { id: 9, strummingPattern: 'waltz', title: 'Hallelujah', artist: 'Leonard Cohen', difficulty: 'Střední', bpm: 58, unlockLesson: 40, chords: ['C', 'Am', 'F', 'G', 'E'], lyrics: "Now I've heard there was a secret chord\nThat David played, and it pleased the Lord,\nBut you don't really care for music, do ya?\nIt goes like this: the fourth, the fifth, the minor fall, the major lift..." },
     { id: 10, strummingPattern: 'folk', title: 'Stand By Me', artist: 'Ben E. King', difficulty: 'Snadná', bpm: 118, unlockLesson: 10, chords: ['A', 'F#m', 'D', 'E'], lyrics: "When the night has come and the land is dark,\nAnd the moon is the only light we'll see.\nNo, I won't be afraid, oh, I won't be afraid,\nJust as long as you stand, stand by me." },
-    { id: 11, strummingPattern: 'waltz', title: 'House of the Rising Sun', artist: 'The Animals', difficulty: 'Pokročilá', bpm: 78, unlockLesson: 13, chords: ['Am', 'C', 'D', 'F', 'E'], lyrics: "There is a house in New Orleans they call the Rising Sun,\nAnd it's been the ruin of many a poor boy,\nAnd God, I know I'm one." },
-    { id: 12, strummingPattern: 'ballad', title: 'Wish You Were Here', artist: 'Pink Floyd', difficulty: 'Střední', bpm: 60, unlockLesson: 14, chords: ['Em', 'G', 'A7sus4', 'C', 'D'], lyrics: "So, so you think you can tell Heaven from Hell?\nBlue skies from pain?\nCan you tell a green field from a cold steel rail?\nA smile from a veil? Do you think you can tell?" },
-    { id: 13, strummingPattern: 'camp', title: 'Riptide', artist: 'Vance Joy', difficulty: 'Snadná', bpm: 102, unlockLesson: 13, chords: ['Am', 'G', 'C', 'F'], lyrics: "I was scared of dentists and the dark,\nI was scared of pretty girls and starting conversations.\nOh, all my friends are turning green,\nYou're the magician's assistant in their dreams." },
-    { id: 14, strummingPattern: 'basic4', title: 'Hey Jude', artist: 'The Beatles', difficulty: 'Střední', bpm: 74, unlockLesson: 13, chords: ['F', 'C', 'C7', 'Bb'], lyrics: "Hey Jude, don't make it bad,\nTake a sad song and make it better.\nRemember to let her into your heart,\nThen you can start to make it better." },
+    { id: 11, strummingPattern: 'waltz', title: 'House of the Rising Sun', artist: 'The Animals', difficulty: 'Pokročilá', bpm: 78, unlockLesson: 37, chords: ['Am', 'C', 'D', 'F', 'E'], lyrics: "There is a house in New Orleans they call the Rising Sun,\nAnd it's been the ruin of many a poor boy,\nAnd God, I know I'm one." },
+    { id: 12, strummingPattern: 'ballad', title: 'Wish You Were Here', artist: 'Pink Floyd', difficulty: 'Střední', bpm: 60, unlockLesson: 38, chords: ['Em', 'G', 'A7sus4', 'C', 'D'], lyrics: "So, so you think you can tell Heaven from Hell?\nBlue skies from pain?\nCan you tell a green field from a cold steel rail?\nA smile from a veil? Do you think you can tell?" },
+    { id: 13, strummingPattern: 'camp', title: 'Riptide', artist: 'Vance Joy', difficulty: 'Snadná', bpm: 102, unlockLesson: 34, chords: ['Am', 'G', 'C', 'F'], lyrics: "I was scared of dentists and the dark,\nI was scared of pretty girls and starting conversations.\nOh, all my friends are turning green,\nYou're the magician's assistant in their dreams." },
+    { id: 14, strummingPattern: 'basic4', title: 'Hey Jude', artist: 'The Beatles', difficulty: 'Střední', bpm: 74, unlockLesson: 39, chords: ['F', 'C', 'C7', 'Bb'], lyrics: "Hey Jude, don't make it bad,\nTake a sad song and make it better.\nRemember to let her into your heart,\nThen you can start to make it better." },
     { id: 15, strummingPattern: 'folk', title: 'A Horse with No Name', artist: 'America', difficulty: 'Snadná', bpm: 122, unlockLesson: 6, chords: ['Em', 'D6/9'], lyrics: "On the first part of the journey, I was looking at all the life.\nThere were plants and birds and rocks and things,\nThere was sand and hills and rings.\nThe ocean is a desert with its life underground..." },
-    { id: 16, strummingPattern: 'rock', title: 'Černí andělé', artist: 'Lucie', difficulty: 'Střední', bpm: 124, unlockLesson: 14, chords: ['Em', 'G', 'D', 'C'], lyrics: "Černí andělé v nás křídla rozprostřou,\ntisíc let už bdí a čekaj nad Prahou.\nSex je náš a dělá dobře mně i tobě,\nčerný anděl hlídá nás." },
-    { id: 17, strummingPattern: 'folk', title: 'Tisíc mil', artist: 'Waldemar Matuška', difficulty: 'Snadná', bpm: 90, unlockLesson: 14, chords: ['G', 'Em', 'C', 'D'], lyrics: "V nohách mám už tisíc mil,\nstovky měst a stovky řek,\nnikde klid a nikde cíl,\njenom stín a prach a vděk..." },
-    { id: 18, strummingPattern: 'waltz', title: 'Kometa', artist: 'Jaromír Nohavica', difficulty: 'Střední', bpm: 110, unlockLesson: 9, chords: ['Am', 'Dm', 'E', 'C'], lyrics: "Spatřil jsem kometu, oblohou letěla,\nchtěl jsem jí zazpívat, ona mi zmizela.\nJako srnka, když v křoví zhasne,\njako když rozkvete poupě krásné..." },
-    { id: 19, strummingPattern: 'rock', title: 'Jarošovský pivovar', artist: 'Argema', difficulty: 'Snadná', bpm: 130, unlockLesson: 14, chords: ['G', 'D', 'Em', 'C'], lyrics: "Léta tam stál, stát bude dál,\nten náš slavný pivovar.\nKde se pivo vaří, tam se dobře daří,\ntam je svět náš..." },
-    { id: 20, strummingPattern: 'camp', title: 'Svařené víno', artist: 'Sem Tam', difficulty: 'Snadná', bpm: 98, unlockLesson: 14, chords: ['C', 'F', 'G'], lyrics: "Když venku mrzne, až praští mráz,\nsvařené víno zahřeje nás.\nHřebíček, skořice, plamínek plápolá,\ntenhle večer na kytaru zavolá..." },
+    { id: 16, strummingPattern: 'rock', title: 'Černí andělé', artist: 'Lucie', difficulty: 'Střední', bpm: 124, unlockLesson: 29, chords: ['Em', 'G', 'D', 'C'], lyrics: "Černí andělé v nás křídla rozprostřou,\ntisíc let už bdí a čekaj nad Prahou.\nSex je náš a dělá dobře mně i tobě,\nčerný anděl hlídá nás." },
+    { id: 17, strummingPattern: 'folk', title: 'Tisíc mil', artist: 'Waldemar Matuška', difficulty: 'Snadná', bpm: 90, unlockLesson: 22, chords: ['G', 'Em', 'C', 'D'], lyrics: "V nohách mám už tisíc mil,\nstovky měst a stovky řek,\nnikde klid a nikde cíl,\njenom stín a prach a vděk..." },
+    { id: 18, strummingPattern: 'waltz', title: 'Kometa', artist: 'Jaromír Nohavica', difficulty: 'Střední', bpm: 110, unlockLesson: 20, chords: ['Am', 'Dm', 'E', 'C'], lyrics: "Spatřil jsem kometu, oblohou letěla,\nchtěl jsem jí zazpívat, ona mi zmizela.\nJako srnka, když v křoví zhasne,\njako když rozkvete poupě krásné..." },
+    { id: 19, strummingPattern: 'rock', title: 'Jarošovský pivovar', artist: 'Argema', difficulty: 'Snadná', bpm: 130, unlockLesson: 23, chords: ['G', 'D', 'Em', 'C'], lyrics: "Léta tam stál, stát bude dál,\nten náš slavný pivovar.\nKde se pivo vaří, tam se dobře daří,\ntam je svět náš..." },
+    { id: 20, strummingPattern: 'camp', title: 'Svařené víno', artist: 'Sem Tam', difficulty: 'Snadná', bpm: 98, unlockLesson: 21, chords: ['C', 'F', 'G'], lyrics: "Když venku mrzne, až praští mráz,\nsvařené víno zahřeje nás.\nHřebíček, skořice, plamínek plápolá,\ntenhle večer na kytaru zavolá..." },
     { id: 21, strummingPattern: 'ballad', title: 'Bláznova ukolébavka', artist: 'Pavel Dobeš', difficulty: 'Snadná', bpm: 100, unlockLesson: 11, chords: ['D', 'A', 'G'], lyrics: "Máš, má ovečko, dávno spát,\ni píseň ptáků už doznává,\nzavři svá očka a nechej si zdát,\no tom, jak tě mám rád..." },
-    { id: 22, strummingPattern: 'rock', title: 'Sweet Home Alabama', artist: 'Lynyrd Skynyrd', difficulty: 'Střední', bpm: 98, unlockLesson: 15, chords: ['D', 'C', 'G'], lyrics: "Big wheels keep on turnin',\nCarry me home to see my kin.\nSingin' songs about the south-land,\nI miss 'ole 'Bama once again and I think it's a sin." },
-    { id: 23, strummingPattern: 'folk', title: 'Take Me Home, Country Roads', artist: 'John Denver', difficulty: 'Snadná', bpm: 82, unlockLesson: 15, chords: ['G', 'Em', 'D', 'C'], lyrics: "Almost Heaven, West Virginia,\nBlue Ridge Mountains, Shenandoah River.\nLife is old there, older than the trees,\nYounger than the mountains, growin' like a breeze." },
+    { id: 22, strummingPattern: 'rock', title: 'Sweet Home Alabama', artist: 'Lynyrd Skynyrd', difficulty: 'Střední', bpm: 98, unlockLesson: 30, chords: ['D', 'C', 'G'], lyrics: "Big wheels keep on turnin',\nCarry me home to see my kin.\nSingin' songs about the south-land,\nI miss 'ole 'Bama once again and I think it's a sin." },
+    { id: 23, strummingPattern: 'folk', title: 'Take Me Home, Country Roads', artist: 'John Denver', difficulty: 'Snadná', bpm: 82, unlockLesson: 27, chords: ['G', 'Em', 'D', 'C'], lyrics: "Almost Heaven, West Virginia,\nBlue Ridge Mountains, Shenandoah River.\nLife is old there, older than the trees,\nYounger than the mountains, growin' like a breeze." },
     { id: 24, strummingPattern: 'ballad', title: "Ain't No Sunshine", artist: 'Bill Withers', difficulty: 'Střední', bpm: 78, unlockLesson: 8, chords: ['Am', 'Em', 'G', 'Dm'], lyrics: "Ain't no sunshine when she's gone,\nIt's not warm when she's away.\nAin't no sunshine when she's gone,\nAnd she's always gone too long anytime she goes away." },
-    { id: 25, strummingPattern: 'waltz', title: 'Perfect', artist: 'Ed Sheeran', difficulty: 'Snadná', bpm: 63, unlockLesson: 15, chords: ['G', 'Em', 'C', 'D'], lyrics: "I found a love for me,\nDarling, just dive right in and follow my lead.\nWell, I found a girl, beautiful and sweet,\nOh, I never knew you were the someone waiting for me." }
+    { id: 25, strummingPattern: 'waltz', title: 'Perfect', artist: 'Ed Sheeran', difficulty: 'Snadná', bpm: 63, unlockLesson: 48, chords: ['G', 'Em', 'C', 'D'], lyrics: "I found a love for me,\nDarling, just dive right in and follow my lead.\nWell, I found a girl, beautiful and sweet,\nOh, I never knew you were the someone waiting for me." }
   ],
 
   // Metronome State

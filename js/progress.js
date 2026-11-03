@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Melodrio - Kytarová škola (Progress Module)
  * Spravuje XP, úrovně, tituly (ranky), odznaky (badges) a denní sérii (streak).
  * Veškerá data jsou perzistována v localStorage pod klíčem 'melodrio_progress'.
@@ -21,6 +21,10 @@ const BADGES = [
   { id: 'ten_lessons', name: 'Učeň', icon: '🎓', description: 'Dokončil jsi 10 lekcí' },
   { id: 'all_stage1', name: 'Z garáže ven!', icon: '🏠', description: 'Dokončil jsi všechny lekce v Garáži' },
   { id: 'all_stage2', name: 'Na scéně', icon: '🎤', description: 'Dokončil jsi všechny lekce na Otevřené scéně' },
+  { id: 'all_stage3', name: 'Hospodský bard', icon: '🍺', description: 'Dokončil jsi všechny lekce v Hospodě' },
+  { id: 'all_stage4', name: 'Klubová hvězda', icon: '🎪', description: 'Dokončil jsi všechny lekce v Klubu' },
+  { id: 'all_stage5', name: 'Koncertní virtuos', icon: '🎭', description: 'Dokončil jsi všechny lekce v Koncertním sále' },
+  { id: 'all_stage6', name: 'Mistr stadionu', icon: '🏟️', description: 'Dokončil jsi všechny lekce na Stadionu a ovládl kytaru!' },
   { id: 'perfect_quiz', name: 'Bezchybný', icon: '💯', description: 'Dokončil jsi kvíz bez jediné chyby' },
   { id: 'three_perfect', name: 'Trojitá dokonalost', icon: '🏆', description: '3 kvízy v řadě bez chyby' },
   { id: 'streak_3', name: 'Třídenní série', icon: '🔥', description: '3 dny cvičení v řadě' },
@@ -350,12 +354,21 @@ window.Progress = {
         this._checkAndAwardBadge('all_stage1');
       }
 
-      // Kontrola dokončení 2. fáze (Otevřená scéna - lekce 9 až 15)
-      const stage2Lessons = [9, 10, 11, 12, 13, 14, 15];
-      const stage2Completed = stage2Lessons.every(lessonId => data.completedLessons.includes(lessonId));
-      if (stage2Completed) {
-        this._checkAndAwardBadge('all_stage2');
-      }
+      // Kontrola dokončení všech 6 fází (po 8 lekcích)
+      const stageDefs = [
+        { id: 'all_stage1', range: [1, 8] },
+        { id: 'all_stage2', range: [9, 16] },
+        { id: 'all_stage3', range: [17, 24] },
+        { id: 'all_stage4', range: [25, 32] },
+        { id: 'all_stage5', range: [33, 40] },
+        { id: 'all_stage6', range: [41, 48] }
+      ];
+      stageDefs.forEach(sd => {
+        const needed = Array.from({ length: sd.range[1] - sd.range[0] + 1 }, (_, i) => sd.range[0] + i);
+        if (needed.every(id => data.completedLessons.includes(id))) {
+          this._checkAndAwardBadge(sd.id);
+        }
+      });
     }
     this._save(data);
 
@@ -544,8 +557,16 @@ window.Progress = {
     const stage1Percent = isGod ? 100 : Math.round((stage1Done / 8) * 100);
     const stage2Done = isGod ? 8 : data.completedLessons.filter(id => id >= 9 && id <= 16).length;
     const stage2Percent = isGod ? 100 : Math.round((stage2Done / 8) * 100);
-    const totalLessonsDone = isGod ? 16 : data.completedLessons.length;
-    const totalCoursePercent = isGod ? 100 : Math.min(100, Math.round((totalLessonsDone / 16) * 100));
+    const stage3Done = isGod ? 8 : data.completedLessons.filter(id => id >= 17 && id <= 24).length;
+    const stage3Percent = isGod ? 100 : Math.round((stage3Done / 8) * 100);
+    const stage4Done = isGod ? 8 : data.completedLessons.filter(id => id >= 25 && id <= 32).length;
+    const stage4Percent = isGod ? 100 : Math.round((stage4Done / 8) * 100);
+    const stage5Done = isGod ? 8 : data.completedLessons.filter(id => id >= 33 && id <= 40).length;
+    const stage5Percent = isGod ? 100 : Math.round((stage5Done / 8) * 100);
+    const stage6Done = isGod ? 8 : data.completedLessons.filter(id => id >= 41 && id <= 48).length;
+    const stage6Percent = isGod ? 100 : Math.round((stage6Done / 8) * 100);
+    const totalLessonsDone = isGod ? 48 : data.completedLessons.length;
+    const totalCoursePercent = isGod ? 100 : Math.min(100, Math.round((totalLessonsDone / 48) * 100));
 
     // 2. Skupina: Aktivita, Vytrvalost & Mistrovství
     // PRO BOHA: Nekonečný streak (∞ dní) se zlatým zvýrazněním!
@@ -567,7 +588,7 @@ window.Progress = {
         id: 'journey',
         name: 'Cesta žáka (Lekce & Postup)',
         icon: '📚',
-        badgeIds: ['first_lesson', 'five_lessons', 'ten_lessons', 'all_stage1', 'all_stage2']
+        badgeIds: ['first_lesson', 'five_lessons', 'ten_lessons', 'all_stage1', 'all_stage2', 'all_stage3', 'all_stage4', 'all_stage5', 'all_stage6']
       },
       {
         id: 'xp',

@@ -1075,6 +1075,175 @@ const Practice = (() => {
     }
   }
 
+  // ── Review Tab (Opakování lekcí 1–48) ──────────────────────────────────
+  let _reviewStage = 1;
+  let _reviewLessonId = 1;
+
+  function setReviewStage(stageId) {
+    _reviewStage = Number(stageId);
+    const stageLessons = window.Lessons ? window.Lessons.getLessonsByStage(_reviewStage) : [];
+    if (stageLessons.length > 0) {
+      _reviewLessonId = stageLessons[0].id;
+    }
+    const content = document.getElementById('practice-tab-content');
+    if (content) renderReviewTab(content);
+  }
+
+  function setReviewLesson(lessonId) {
+    _reviewLessonId = Number(lessonId);
+    const content = document.getElementById('practice-tab-content');
+    if (content) renderReviewTab(content);
+  }
+
+  function renderReviewTab(container) {
+    const allStages = [
+      { id: 1, name: 'Garáž', emoji: '🏠', range: '1–8' },
+      { id: 2, name: 'Otevřená scéna', emoji: '🎤', range: '9–16' },
+      { id: 3, name: 'Hospoda', emoji: '🍺', range: '17–24' },
+      { id: 4, name: 'Klub', emoji: '🎪', range: '25–32' },
+      { id: 5, name: 'Koncertní sál', emoji: '🎭', range: '33–40' },
+      { id: 6, name: 'Stadion', emoji: '🏟️', range: '41–48' }
+    ];
+
+    const lessonsInStage = window.Lessons ? window.Lessons.getLessonsByStage(_reviewStage) : [];
+    const activeLesson = window.Lessons ? (window.Lessons.getLesson(_reviewLessonId) || lessonsInStage[0]) : null;
+
+    let lessonSong = null;
+    if (activeLesson && activeLesson.unlockedSongId && window.App && Array.isArray(window.App.SONGS_25)) {
+      lessonSong = window.App.SONGS_25.find(s => s.id === activeLesson.unlockedSongId);
+    }
+
+    const isTheory = activeLesson ? activeLesson.type === 'theory' : false;
+
+    container.innerHTML = `
+      <div class="animate-fadeIn">
+        <div style="margin-bottom: 1.5rem;">
+          <h3 style="font-size: 1.35rem; font-weight: 800; color: #f8fafc; margin-bottom: 0.25rem;">
+            📚 Opakování a procvičování podle lekcí (1–48)
+          </h3>
+          <p style="color: #94a3b8; font-size: 0.9rem; margin: 0;">
+            Vyber si etapu a konkrétní lekci a okamžitě si zopakuj teorii, hmatník nebo herní cvičení v dálnici.
+          </p>
+        </div>
+
+        <!-- Stage selector buttons -->
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem; flex-wrap: wrap;">
+          ${allStages.map(st => `
+            <button
+              class="btn btn-sm ${st.id === _reviewStage ? 'btn-primary' : 'btn-secondary'}"
+              onclick="Practice.setReviewStage(${st.id})"
+              style="border-radius: 8px; font-weight: 700;"
+            >
+              ${st.emoji} ${st.id}. ${st.name} (${st.range})
+            </button>
+          `).join('')}
+        </div>
+
+        <!-- Lesson dropdown / chips -->
+        <div style="display: flex; gap: 0.4rem; margin-bottom: 1.75rem; flex-wrap: wrap;">
+          ${lessonsInStage.map(les => {
+            const isSelected = activeLesson && les.id === activeLesson.id;
+            return `
+              <button
+                class="btn btn-sm ${isSelected ? 'btn-primary' : 'btn-ghost'}"
+                onclick="Practice.setReviewLesson(${les.id})"
+                style="border-radius: 8px; font-size: 0.85rem; font-weight: 700; ${isSelected ? 'box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);' : 'border: 1px solid rgba(255, 255, 255, 0.08);'}"
+              >
+                ${les.id}. ${les.title.length > 22 ? les.title.substring(0, 20) + '…' : les.title}
+              </button>
+            `;
+          }).join('')}
+        </div>
+
+        <!-- Active Lesson Detail Card -->
+        ${activeLesson ? `
+          <div class="card p-6 bg-surface-2 border border-surface-border rounded-2xl" style="background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem;">
+              <div>
+                <span class="badge" style="background: ${isTheory ? 'rgba(139, 92, 246, 0.2)' : 'rgba(16, 185, 129, 0.2)'}; color: ${isTheory ? '#c4b5fd' : '#6ee7b7'}; border: 1px solid ${isTheory ? 'rgba(139, 92, 246, 0.4)' : 'rgba(16, 185, 129, 0.4)'}; font-weight: 700;">
+                  ${isTheory ? '📘 Teoretická lekce' : '🎸 Praktická lekce'}
+                </span>
+                <span class="badge" style="margin-left: 0.5rem; background: rgba(245, 158, 11, 0.15); color: #fbbf24;">
+                  ⭐ +${activeLesson.xpReward} XP
+                </span>
+                <h2 style="font-size: 1.5rem; font-weight: 800; color: #ffffff; margin-top: 0.5rem; margin-bottom: 0.35rem;">
+                  ${activeLesson.id}. ${activeLesson.title}
+                </h2>
+                <p style="color: #94a3b8; font-size: 0.95rem; margin: 0;">
+                  ${activeLesson.description}
+                </p>
+              </div>
+
+              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <button class="btn btn-secondary" onclick="window.location.hash = '#/lesson/${activeLesson.id}'" style="border-radius: 10px; font-weight: 700;">
+                  📖 Otevřít celou lekci
+                </button>
+              </div>
+            </div>
+
+            <!-- Content preview & Action box -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin-top: 1.5rem;">
+              <!-- Practice workout card -->
+              ${activeLesson.practiceWorkout ? `
+                <div class="card p-4 bg-surface-3 rounded-xl border border-primary" style="border-left: 4px solid #3b82f6;">
+                  <h4 style="font-weight: 800; color: #60a5fa; font-size: 1.05rem; margin-bottom: 0.35rem;">
+                    🎯 Cvičení v herní dálnici
+                  </h4>
+                  <p style="color: #cbd5e1; font-size: 0.85rem; margin-bottom: 0.75rem;">
+                    ${activeLesson.practiceWorkout.title || 'Procvičení látky lekce'}<br>
+                    Akordy: <strong>${(activeLesson.practiceWorkout.chords || []).join(' – ')}</strong> &bull; Rytmus: <strong>${activeLesson.practiceWorkout.strummingPattern || '4/4'}</strong> &bull; Tempo: <strong>${activeLesson.practiceWorkout.bpm || 80} BPM</strong>
+                  </p>
+                  <p style="color: #f59e0b; font-size: 0.75rem; margin-bottom: 1rem;">
+                    💡 <em>Připraveno pro 3. fázi: Zde se ve 3. fázi zapne kontrola mikrofonem!</em>
+                  </p>
+                  <button class="btn btn-primary" onclick="Lessons.startLessonWorkout(Lessons.getLesson(${activeLesson.id}))" style="font-weight: 700; width: 100%; border-radius: 8px;">
+                    🚀 Spustit trénink v dálnici
+                  </button>
+                </div>
+              ` : `
+                <div class="card p-4 bg-surface-3 rounded-xl border border-surface-border">
+                  <h4 style="font-weight: 800; color: #c4b5fd; font-size: 1.05rem; margin-bottom: 0.35rem;">
+                    📝 Teoretický kvíz & pojmy
+                  </h4>
+                  <p style="color: #cbd5e1; font-size: 0.85rem; margin-bottom: 1rem;">
+                    Tato lekce obsahuje ${activeLesson.steps.length} výukových kroků a ${activeLesson.quiz.length} ověřovacích kvízových otázek.
+                  </p>
+                  <button class="btn btn-primary" onclick="window.location.hash = '#/lesson/${activeLesson.id}'" style="font-weight: 700; width: 100%; border-radius: 8px;">
+                    ✍️ Spustit kvíz k lekci
+                  </button>
+                </div>
+              `}
+
+              <!-- Unlocked song card -->
+              ${lessonSong ? `
+                <div class="card p-4 bg-surface-3 rounded-xl border border-accent" style="border-left: 4px solid #f59e0b;">
+                  <h4 style="font-weight: 800; color: #fbbf24; font-size: 1.05rem; margin-bottom: 0.35rem;">
+                    🎉 Odemčená píseň k lekci
+                  </h4>
+                  <p style="color: #ffffff; font-weight: 700; font-size: 0.95rem; margin-bottom: 0.2rem;">
+                    „${lessonSong.title}“
+                  </p>
+                  <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 1rem;">
+                    ${lessonSong.artist} &bull; Obtížnost: ${lessonSong.difficulty} &bull; Akordy: ${(lessonSong.chords || []).join(' – ')}
+                  </p>
+                  <button class="btn btn-secondary" onclick="App.launchSongPlayer(App.SONGS_25.find(s => s.id === ${lessonSong.id}))" style="font-weight: 700; width: 100%; border-radius: 8px;">
+                    ▶️ Zahrát odemčenou píseň
+                  </button>
+                </div>
+              ` : `
+                <div class="card p-4 bg-surface-3 rounded-xl border border-surface-border flex items-center justify-center text-center">
+                  <p style="color: #64748b; font-size: 0.85rem; margin: 0;">
+                    Tip: Postupuj dál kurzem pro odemčení dalších písní ze zpěvníku!
+                  </p>
+                </div>
+              `}
+            </div>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }
+
   // ── Public API ───────────────────────────────────────────────────────
   return {
     renderPracticeView,
@@ -1089,6 +1258,9 @@ const Practice = (() => {
     startPatternWorkout,
     renderStrummingTab,
     renderTransitionsTab,
+    setReviewStage,
+    setReviewLesson,
+    renderReviewTab,
     selectTransitionPair,
     setTransChordA,
     setTransChordB,
