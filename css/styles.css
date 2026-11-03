@@ -3110,3 +3110,563 @@ input[type="range"]::-webkit-slider-thumb:hover {
   justify-content: center;
   flex-wrap: wrap;
 }
+
+
+/* ==========================================================================
+   ENHANCED LESSON PILLS & SONG REWARD BOXES
+   ========================================================================== */
+
+.lesson-pill-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  backdrop-filter: blur(8px);
+}
+
+.lesson-pill-type.pill-theory {
+  background: rgba(99, 102, 241, 0.12);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.lesson-pill-type.pill-practice {
+  background: rgba(16, 185, 129, 0.12);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.lesson-pill-type .pill-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.lesson-pill-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.lesson-pill-status.pill-completed {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.lesson-pill-status.pill-completed.god-gold {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+}
+
+.lesson-pill-status.pill-current {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+}
+
+.lesson-pill-status.pill-locked {
+  background: rgba(30, 41, 59, 0.6);
+  color: #64748b;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Song Reward Container inside Lesson Cards */
+.lesson-song-reward-box {
+  border-radius: 12px;
+  padding: 0.65rem 0.85rem;
+  margin-top: 0.65rem;
+  margin-bottom: 0.65rem;
+  transition: all 0.2s ease;
+}
+
+.lesson-song-reward-box.is-unlocked {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(30, 41, 59, 0.7) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.28);
+  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.06);
+}
+
+.lesson-song-reward-box.is-locked {
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.reward-box-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.35rem;
+}
+
+.reward-badge-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #fbbf24;
+}
+
+.lesson-song-reward-box.is-locked .reward-badge-tag {
+  color: #94a3b8;
+}
+
+.reward-badge-hint {
+  font-size: 0.68rem;
+  color: #94a3b8;
+}
+
+.reward-box-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.reward-song-details {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.reward-song-note {
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+
+.reward-song-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.reward-song-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #f8fafc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.reward-song-sub {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.reward-play-btn {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  border-radius: 8px;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.reward-play-btn:hover {
+  background: #f59e0b;
+  color: #0f172a;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
+  transform: translateY(-1px);
+}
+
+.reward-lock-icon {
+  font-size: 0.85rem;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   AUTHENTIC WINDING JOURNEY ROAD (Cesta hudebníka)
+   ========================================================================== */
+
+.story-journey-road {
+  position: relative;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 1rem 0 4rem 0;
+}
+
+/* Highway Stage Portals */
+.journey-stage-gate {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
+  border-radius: 20px;
+  padding: 1.5rem 2rem;
+  margin-bottom: 2.5rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(16px);
+  transition: all 0.3s ease;
+}
+
+.journey-stage-gate.unlocked {
+  border: 1px solid rgba(139, 92, 246, 0.35);
+}
+
+.journey-stage-gate.completed {
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  box-shadow: 0 10px 30px rgba(16, 185, 129, 0.1);
+}
+
+.journey-stage-gate.locked {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  opacity: 0.7;
+}
+
+.gate-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.gate-stage-info {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.gate-stage-icon-wrap {
+  width: 58px;
+  height: 58px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+  box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.08);
+}
+
+.gate-stage-title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #f8fafc;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.gate-stage-desc {
+  font-size: 0.88rem;
+  color: #94a3b8;
+  margin-top: 0.25rem;
+}
+
+.gate-status-pill {
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.35rem 0.9rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.gate-status-pill.completed {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.gate-status-pill.active {
+  background: rgba(139, 92, 246, 0.2);
+  color: #c4b5fd;
+  border: 1px solid rgba(139, 92, 246, 0.4);
+}
+
+.gate-status-pill.locked {
+  background: rgba(30, 41, 59, 0.7);
+  color: #64748b;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Winding Highway Track */
+.journey-track-wrap {
+  position: relative;
+  padding: 2rem 0;
+}
+
+/* Asphalt Road strip background */
+.journey-road-ribbon {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 52px;
+  transform: translateX(-50%);
+  background: #1e293b;
+  border-left: 3px solid rgba(255, 255, 255, 0.12);
+  border-right: 3px solid rgba(255, 255, 255, 0.12);
+  border-radius: 26px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.6), inset 0 0 10px rgba(0, 0, 0, 0.8);
+  z-index: 1;
+}
+
+/* Yellow / amber road center dashed line */
+.journey-road-ribbon::after {
+  content: '';
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 50%;
+  width: 3px;
+  transform: translateX(-50%);
+  background: repeating-linear-gradient(
+    to bottom,
+    #f59e0b 0px,
+    #f59e0b 14px,
+    transparent 14px,
+    transparent 28px
+  );
+  opacity: 0.85;
+}
+
+.journey-nodes-stream {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 2.25rem;
+}
+
+/* Winding Row */
+.journey-node-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+}
+
+.journey-node-row.offset-left .journey-node-pack {
+  flex-direction: row;
+  justify-content: flex-end;
+  padding-right: calc(50% + 36px);
+  text-align: right;
+}
+
+.journey-node-row.offset-right .journey-node-pack {
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  padding-left: calc(50% + 36px);
+  text-align: left;
+}
+
+.journey-node-pack {
+  display: flex;
+  align-items: center;
+  gap: 1.15rem;
+  width: 100%;
+  max-width: 640px;
+  box-sizing: border-box;
+}
+
+/* 3D Milestone Pin */
+.journey-milestone-pin {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.15rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease;
+  position: relative;
+  z-index: 3;
+}
+
+.journey-milestone-pin:hover {
+  transform: scale(1.15);
+}
+
+.journey-milestone-pin.completed {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  border: 3px solid #34d399;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.3);
+}
+
+.journey-milestone-pin.completed.god-aura {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border: 3px solid #fbbf24;
+  box-shadow: 0 0 24px rgba(245, 158, 11, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.4);
+}
+
+.journey-milestone-pin.current {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+  color: #ffffff;
+  border: 3px solid #a78bfa;
+  box-shadow: 0 0 25px rgba(139, 92, 246, 0.7);
+}
+
+.journey-milestone-pin.locked {
+  background: #0f172a;
+  color: #475569;
+  border: 2px solid #334155;
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+/* Waypoint Card */
+.journey-waypoint-card {
+  background: rgba(30, 41, 59, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 0.75rem 1.1rem;
+  max-width: 250px;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.journey-waypoint-card:hover {
+  border-color: rgba(139, 92, 246, 0.4);
+  transform: translateY(-2px);
+}
+
+.journey-waypoint-card.is-completed {
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.journey-waypoint-card.is-current {
+  border-color: rgba(139, 92, 246, 0.5);
+  background: rgba(30, 41, 59, 0.95);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.25);
+}
+
+.waypoint-top-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.journey-node-row.offset-left .waypoint-top-meta {
+  justify-content: flex-end;
+}
+
+.waypoint-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #f8fafc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 0.2rem;
+}
+
+.waypoint-reward-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #fbbf24;
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin-top: 0.25rem;
+}
+
+/* Olymp Shrine Monument Card */
+.olymp-shrine-container {
+  margin-top: 4.5rem;
+  margin-bottom: 3rem;
+  text-align: center;
+}
+
+.olymp-monument-card {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(245, 158, 11, 0.15) 100%);
+  border-radius: 24px;
+  padding: 2.75rem 2rem;
+  max-width: 680px;
+  margin: 0 auto;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(245, 158, 11, 0.15);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  transition: all 0.3s ease;
+}
+
+.olymp-monument-card.unlocked {
+  border: 2px solid rgba(245, 158, 11, 0.7);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 50px rgba(245, 158, 11, 0.35);
+}
+
+.olymp-monument-card.locked {
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  opacity: 0.8;
+}
+
+.olymp-crown-glow {
+  font-size: 4rem;
+  line-height: 1;
+  margin-bottom: 0.75rem;
+  filter: drop-shadow(0 0 15px rgba(245, 158, 11, 0.6));
+}
+
+.olymp-title {
+  font-size: 1.85rem;
+  font-weight: 900;
+  color: #fde68a;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.01em;
+}
+
+.olymp-subtitle {
+  color: #cbd5e1;
+  font-size: 1rem;
+  line-height: 1.5;
+  max-width: 520px;
+  margin: 0 auto 1.5rem auto;
+}
+
+.olymp-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  font-weight: 800;
+  font-size: 0.95rem;
+  padding: 0.5rem 1.5rem;
+  border-radius: 9999px;
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.25);
+}

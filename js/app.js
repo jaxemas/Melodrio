@@ -269,6 +269,9 @@ window.App = {
    * @param {string} viewId - ID of view element e.g. 'view-dashboard'
    */
   showView(viewId) {
+    if (viewId && !viewId.startsWith('view-')) {
+      viewId = 'view-' + viewId;
+    }
     const allViews = document.querySelectorAll('.view');
     allViews.forEach(v => {
       v.classList.remove('active');
@@ -297,6 +300,13 @@ window.App = {
    * Get unified user statistics from Progress module or localStorage.
    */
   getProgressData() {
+    if (this.isGod()) {
+      return {
+        xp: 12500,
+        streak: 1,
+        completed: Array.from({ length: 48 }, (_, i) => i + 1)
+      };
+    }
     const p = window.Progress;
     let xp = 0;
     let streak = 0;
@@ -450,7 +460,7 @@ window.App = {
           <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1.5rem;">
             <div>
               <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
-                <span style="font-size: 2.2rem; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));">${user.avatar || '🎸'}</span>
+                <span style="font-size: 2.2rem; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));">${isGod ? '&#x1F451;' : ((user.avatar && !user.avatar.includes('đ') && user.avatar.length <= 4) ? user.avatar : '&#x1F3B8;')}</span>
                 <h1 style="margin: 0; font-size: 2rem; font-weight: 800; color: #f8fafc; letter-spacing: -0.02em;">
                   Ahoj, ${user.name}!
                 </h1>
@@ -629,7 +639,7 @@ window.App = {
             ">🎸</div>
             <div>
               <div style="font-size: 0.85rem; color: #94a3b8; font-weight: 500;">Dokončené lekce</div>
-              <div style="font-size: 1.45rem; font-weight: 800; color: #f8fafc;">${completedCount} / 15</div>
+              <div style="font-size: 1.45rem; font-weight: 800; color: #f8fafc;">${completedCount} / 48</div>
             </div>
           </div>
         </div>
@@ -1022,230 +1032,168 @@ window.App = {
       }
     }
 
+    const stageEnvironments = {
+      1: { scene: 'Gar&aacute;&#x17E;ov&aacute; zku&scaron;ebna', mood: 'Prvn&iacute; kr&#x16F;&#x10D;ky, dr&#x17E;en&iacute; a t&oacute;ny', icon: '&#x1F3E0;', accent: '#f59e0b' },
+      2: { scene: 'Park &amp; Otev&#x159;en&aacute; sc&eacute;na', mood: 'Prvn&iacute; vystoupen&iacute; pod &scaron;ir&yacute;m nebem', icon: '&#x1F3A4;', accent: '#38bdf8' },
+      3: { scene: 'Star&eacute; m&#x11B;sto &amp; Hospoda', mood: 'Ve&#x10D;ern&iacute; hospodsk&aacute; jam session', icon: '&#x1F37A;', accent: '#eab308' },
+      4: { scene: 'No&#x10D;n&iacute; rockov&yacute; klub', mood: 'Neonov&aacute; sv&#x11B;tla, blues a ostr&eacute; riffy', icon: '&#x1F3AA;', accent: '#a855f7' },
+      5: { scene: 'Koncertn&iacute; filharmonie', mood: '&#x10C;erven&yacute; koberec a akustick&aacute; preciznost', icon: '&#x1F3AD;', accent: '#f43f5e' },
+      6: { scene: 'Megastadion pro 80 000 div&aacute;k&#x16F;', mood: 'Velkolep&aacute; show sv&#x11B;tel a oh&#x148;ostroj&#x16F;', icon: '&#x1F3DF;&#xFE0F;', accent: '#10b981' }
+    };
+
     let html = `
-      <div class="story-map-container" style="
-        position: relative;
-        padding: 1rem 0 3rem 0;
-        max-width: 100%;
-        margin: 0 auto;
-      ">
-        <div style="text-align: center; margin-bottom: 2rem;">
-          <h2 style="font-size: 1.75rem; font-weight: 800; color: #f8fafc; margin-bottom: 0.35rem;">
-            🗺️ Hudební cesta kytaristy
+      <div class="story-journey-road">
+        <div style="text-align: center; margin-bottom: 2.5rem;">
+          <h2 style="font-size: 2rem; font-weight: 900; color: #f8fafc; margin-bottom: 0.4rem; letter-spacing: -0.01em;">
+            &#x1F5FA;&#xFE0F; Cesta hudebn&iacute;ka: Velk&eacute; kytarov&eacute; turn&eacute;
           </h2>
-          <p style="color: #94a3b8; font-size: 0.95rem;">
-            Postupuj lekci po lekci od garážových začátků až k vyprodaným stadionům.
+          <p style="color: #94a3b8; font-size: 0.95rem; max-width: 600px; margin: 0 auto;">
+            Pro&#x17E;ij autentickou hudebn&iacute; cestu od zku&scaron;ebny v gar&aacute;&#x17E;i p&#x159;es hospody a kluby a&#x17E; po vyprodan&eacute; stadiony a bo&#x17E;sk&yacute; Olymp!
           </p>
         </div>
     `;
 
-    // Render Stage 1 (Garáž, 1-8) and Stage 2 (Otevřená scéna, 9-16)
+    // Render Stages 1 to 6
     [1, 2, 3, 4, 5, 6].forEach(stageId => {
       const stage = this.STAGES.find(s => s.id === stageId);
+      const env = stageEnvironments[stageId] || { scene: stage.name, mood: '', icon: stage.icon, accent: '#8b5cf6' };
       const prevStageLastLesson = stageId > 1 ? this.STAGES.find(s => s.id === stageId - 1).lessons[1] : 0;
       const isStageUnlocked = isGod || stageId === 1 || xp >= stage.minXp || completed.includes(prevStageLastLesson);
-      const isStageCompleted = stage.lessons.length > 0 &&
+      const isStageCompleted = isGod || (stage.lessons.length > 0 &&
         Array.from({ length: stage.lessons[1] - stage.lessons[0] + 1 }, (_, i) => stage.lessons[0] + i)
-          .every(id => completed.includes(id));
+          .every(id => completed.includes(id)));
 
-      const storyStageSpacing = stageId > 1 ? 'margin-top: 4.5rem; margin-bottom: 3.5rem;' : 'margin-bottom: 3.5rem;';
+      const completedInStage = isGod
+        ? (stage.lessons[1] - stage.lessons[0] + 1)
+        : Array.from({ length: stage.lessons[1] - stage.lessons[0] + 1 }, (_, i) => stage.lessons[0] + i)
+            .filter(id => completed.includes(id)).length;
+      const totalInStage = stage.lessons[1] - stage.lessons[0] + 1;
+
       html += `
-        <div class="stage-section" style="${storyStageSpacing}">
-          <!-- Stage Header -->
-          <div class="stage-header" style="
-            background: linear-gradient(135deg, rgba(30, 41, 59, 0.85) 0%, rgba(15, 23, 42, 0.9) 100%);
-            border: 1px solid ${isStageCompleted ? 'rgba(16, 185, 129, 0.4)' : (isStageUnlocked ? 'rgba(139, 92, 246, 0.4)' : 'rgba(255, 255, 255, 0.08)')};
-            border-radius: 16px;
-            padding: 1.25rem 1.75rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            backdrop-filter: blur(12px);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-          ">
-            <div style="display: flex; align-items: center; gap: 1rem;">
-              <div style="font-size: 2.2rem;">${stage.icon}</div>
-              <div>
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                  <h3 style="margin: 0; font-size: 1.35rem; font-weight: 800; color: #f8fafc;">
-                    ${stage.id}. Etapa: ${stage.name}
-                  </h3>
-                  <span class="rank-badge" style="
-                    background: rgba(139, 92, 246, 0.15);
-                    border: 1px solid rgba(139, 92, 246, 0.35);
-                    color: #c4b5fd;
-                    padding: 0.2rem 0.6rem;
-                    border-radius: 6px;
-                    font-size: 0.75rem;
-                    font-weight: 700;
-                  ">
-                    ${stage.rank} (${stage.minXp} - ${stage.maxXp} XP)
-                  </span>
+        <div class="stage-section" style="margin-bottom: 3.5rem;">
+          <!-- Highway Stage Portal Gate -->
+          <div class="journey-stage-gate ${isStageCompleted ? 'completed' : (isStageUnlocked ? 'unlocked' : 'locked')}">
+            <div class="gate-top-row">
+              <div class="gate-stage-info">
+                <div class="gate-stage-icon-wrap" style="color: ${env.accent};">
+                  ${env.icon}
                 </div>
-                <div style="color: #94a3b8; font-size: 0.85rem; margin-top: 0.2rem;">
-                  Lekce ${stage.lessons[0]} až ${stage.lessons[1]}
+                <div>
+                  <h3 class="gate-stage-title">
+                    ${stage.id}. Etapa: ${stage.name}
+                    <span class="rank-badge" style="
+                      background: rgba(139, 92, 246, 0.15);
+                      border: 1px solid rgba(139, 92, 246, 0.35);
+                      color: #c4b5fd;
+                      padding: 0.2rem 0.6rem;
+                      border-radius: 6px;
+                      font-size: 0.75rem;
+                      font-weight: 700;
+                    ">
+                      ${stage.rank}
+                    </span>
+                  </h3>
+                  <div class="gate-stage-desc">
+                    ${env.scene} &bull; Lekce ${stage.lessons[0]}&ndash;${stage.lessons[1]} &bull; ${stage.minXp}&ndash;${stage.maxXp} XP
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div>
-              ${isStageCompleted
-                ? '<span style="color: #10B981; font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 0.3rem;">✅ Splněno</span>'
-                : (isStageUnlocked
-                    ? '<span style="color: #A78BFA; font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 0.3rem;">⚡ Probíhá</span>'
-                    : '<span style="color: #64748b; font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 0.3rem;">🔒 Zamčeno</span>')
-              }
+              <div>
+                ${isStageCompleted
+                  ? `<span class="gate-status-pill completed"><span class="badge-icon">&#x2705;</span> Spln&#x11B;no (${completedInStage}/${totalInStage})</span>`
+                  : (isStageUnlocked
+                      ? `<span class="gate-status-pill active"><span class="badge-icon">&#x26A1;</span> Prob&iacute;h&aacute; (${completedInStage}/${totalInStage})</span>`
+                      : '<span class="gate-status-pill locked"><span class="badge-icon">&#x1F512;</span> Zam&#x10D;eno</span>')
+                }
+              </div>
             </div>
           </div>
 
-          <!-- Vertical Timeline with Nodes -->
-          <div class="timeline-path-container" style="
-            position: relative;
-            padding: 1.5rem 0;
-          ">
-            <!-- Vertical connecting line -->
-            <div class="timeline-vertical-line" style="
-              position: absolute;
-              top: 0;
-              bottom: 0;
-              left: 50%;
-              width: 4px;
-              background: linear-gradient(180deg, #10B981 0%, #8B5CF6 60%, rgba(255, 255, 255, 0.1) 100%);
-              transform: translateX(-50%);
-              border-radius: 2px;
-              z-index: 1;
-            "></div>
+          <!-- Winding Road Track with Milestones -->
+          <div class="journey-track-wrap">
+            <!-- Asphalt Road strip with amber dashed center line -->
+            <div class="journey-road-ribbon" aria-hidden="true"></div>
 
-            <div class="timeline-nodes-list" style="
-              position: relative;
-              z-index: 2;
-              display: flex;
-              flex-direction: column;
-              gap: 2.5rem;
-            ">
+            <div class="journey-nodes-stream">
       `;
 
-      // Render individual lesson nodes for this stage
+      // Render 8 lesson nodes for this stage
       for (let lessonId = stage.lessons[0]; lessonId <= stage.lessons[1]; lessonId++) {
-        const isCompleted = completed.includes(lessonId);
-        const isCurrent = lessonId === currentLessonId;
+        const isCompleted = isGod || completed.includes(lessonId);
+        const isCurrent = !isGod && (lessonId === currentLessonId);
         const isLocked = !isGod && !isCompleted && !isCurrent;
         const info = this.getLessonInfo(lessonId);
+        const isTheory = info.type === 'theory';
 
-        // Alternating zigzag offset for game path appearance
-        const isLeft = lessonId % 2 !== 0;
+        // Alternating zigzag pattern along the road
+        const isLeft = (lessonId % 2 !== 0);
+        const rowClass = isLeft ? 'offset-left' : 'offset-right';
 
-        let nodeClass = 'lesson-node';
-        let nodeIcon = lessonId;
-        let nodeBorderColor = '#475569';
-        let nodeBgColor = 'rgba(30, 41, 59, 0.8)';
-        let nodeShadow = 'none';
+        let pinClass = 'journey-milestone-pin';
+        let pinIcon = lessonId;
 
         if (isCompleted) {
-          nodeClass += ' completed';
-          nodeIcon = '✓';
-          nodeBorderColor = '#10B981';
-          nodeBgColor = 'rgba(16, 185, 129, 0.2)';
-          nodeShadow = '0 0 16px rgba(16, 185, 129, 0.45)';
+          pinClass += isGod ? ' completed god-aura' : ' completed';
+          pinIcon = isGod ? '&#x1F451;' : '&#x2713;';
         } else if (isCurrent) {
-          nodeClass += ' current animate-glow';
-          nodeIcon = lessonId;
-          nodeBorderColor = '#8B5CF6';
-          nodeBgColor = 'rgba(139, 92, 246, 0.35)';
-          nodeShadow = '0 0 24px rgba(139, 92, 246, 0.7)';
-        } else if (isGod) {
-          nodeClass += ' god-unlocked';
-          nodeIcon = '⚡';
-          nodeBorderColor = '#F59E0B';
-          nodeBgColor = 'rgba(245, 158, 11, 0.2)';
-          nodeShadow = '0 0 16px rgba(245, 158, 11, 0.4)';
+          pinClass += ' current animate-glow';
+          pinIcon = '&#x25B6;';
         } else {
-          nodeClass += ' locked';
-          nodeIcon = '🔒';
-          nodeBorderColor = '#334155';
-          nodeBgColor = 'rgba(15, 23, 42, 0.7)';
+          pinClass += ' locked';
+          pinIcon = '&#x1F512;';
+        }
+
+        // Song reward pill if this lesson unlocks a song
+        let songRewardPill = '';
+        if (window.App && Array.isArray(window.App.SONGS_25)) {
+          const s = window.App.SONGS_25.find(song => song.unlockLesson === lessonId || (info.unlockedSongId && song.id === info.unlockedSongId));
+          if (s) {
+            songRewardPill = `
+              <div class="waypoint-reward-pill" title="Odemkne skladbu: ${s.title} (${s.artist})">
+                &#x1F381; &#x1F3B5; ${s.title}
+              </div>
+            `;
+          }
         }
 
         html += `
-          <div class="timeline-node-row" style="
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            width: 100%;
-          ">
-            <!-- Node Clickable Wrapper -->
-            <div class="node-wrapper" style="
-              display: flex;
-              align-items: center;
-              gap: 1.25rem;
-              flex-direction: ${isLeft ? 'row' : 'row-reverse'};
-              width: 100%;
-              max-width: 600px;
-              justify-content: ${isLeft ? 'flex-end' : 'flex-start'};
-              padding: ${isLeft ? '0 50% 0 0' : '0 0 0 50%'};
-              box-sizing: border-box;
-            ">
-              <!-- Interactive Lesson Circle Node -->
+          <div class="journey-node-row ${rowClass}">
+            <div class="journey-node-pack">
+              <!-- Waypoint Card -->
               <div
-                class="${nodeClass}"
-                data-lesson-id="${lessonId}"
+                class="journey-waypoint-card ${isCompleted ? 'is-completed' : (isCurrent ? 'is-current' : '')}"
                 onclick="App.onNodeClick(${lessonId}, ${isLocked})"
-                title="${info.title}${isGod && !isCompleted ? ' (Odemčeno Bůh)' : ''}"
-                style="
-                  width: 58px;
-                  height: 58px;
-                  border-radius: 50%;
-                  background: ${nodeBgColor};
-                  border: 3px solid ${nodeBorderColor};
-                  box-shadow: ${nodeShadow};
-                  color: ${isCompleted ? '#10B981' : (isCurrent ? '#ffffff' : (isGod ? '#fde68a' : '#94a3b8'))};
-                  font-size: ${isCompleted ? '1.5rem' : '1.15rem'};
-                  font-weight: 800;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  cursor: ${isLocked ? 'not-allowed' : 'pointer'};
-                  opacity: ${isLocked ? '0.6' : '1'};
-                  transition: transform 0.2s ease, box-shadow 0.2s ease;
-                  flex-shrink: 0;
-                  z-index: 3;
-                "
-                onmouseover="if (!${isLocked}) this.style.transform='scale(1.1)';"
-                onmouseout="this.style.transform='scale(1)';"
+                title="${info.title}"
               >
-                ${nodeIcon}
+                <div class="waypoint-top-meta">
+                  <span class="lesson-pill-type ${isTheory ? 'pill-theory' : 'pill-practice'}" style="padding: 2px 7px; font-size: 0.68rem;">
+                    ${isTheory ? '&#x1F4D8; Teorie' : '&#x1F3B8; Praxe'}
+                  </span>
+                  <span>+${info.xpReward || info.xp || 50} XP</span>
+                </div>
+                <div class="waypoint-title">
+                  Lekce ${lessonId}: ${info.title}
+                </div>
+                ${songRewardPill}
+                <div style="margin-top: 0.25rem;">
+                  ${isCompleted
+                    ? `<span style="color: ${isGod ? '#fbbf24' : '#34d399'}; font-size: 0.72rem; font-weight: 700;">${isGod ? '&#x1F451; Hotovo (B&#x16F;h)' : '&#x2713; Spln&#x11B;no'}</span>`
+                    : (isCurrent
+                        ? '<span style="color: #a78bfa; font-size: 0.72rem; font-weight: 700;">&#x25B6; Na &#x159;ad&#x11B;</span>'
+                        : '<span style="color: #64748b; font-size: 0.72rem;">&#x1F512; Zam&#x10D;eno</span>')
+                  }
+                </div>
               </div>
 
-              <!-- Lesson Info Pill Card -->
+              <!-- 3D Milestone Pin -->
               <div
-                class="lesson-info-pill"
+                class="${pinClass}"
+                data-lesson-id="${lessonId}"
                 onclick="App.onNodeClick(${lessonId}, ${isLocked})"
-                style="
-                  background: rgba(30, 41, 59, 0.75);
-                  border: 1px solid ${isCurrent ? 'rgba(139, 92, 246, 0.4)' : (isGod && !isCompleted ? 'rgba(245, 158, 11, 0.4)' : 'rgba(255, 255, 255, 0.08)')};
-                  border-radius: 12px;
-                  padding: 0.65rem 1rem;
-                  cursor: ${isLocked ? 'not-allowed' : 'pointer'};
-                  opacity: ${isLocked ? '0.5' : '1'};
-                  transition: all 0.2s ease;
-                  max-width: 230px;
-                  backdrop-filter: blur(8px);
-                  text-align: ${isLeft ? 'right' : 'left'};
-                "
+                title="${info.title}"
               >
-                <div style="font-size: 0.75rem; font-weight: 700; color: ${isCurrent ? '#a78bfa' : (isGod && !isCompleted ? '#fde68a' : '#94a3b8')};">
-                  Lekce ${lessonId} • +${info.xp || 50} XP
-                </div>
-                <div style="font-size: 0.9rem; font-weight: 700; color: #f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                  ${info.title}
-                </div>
-                <div style="font-size: 0.75rem; color: ${isCompleted ? '#10B981' : (isCurrent ? '#a78bfa' : (isGod ? '#fde68a' : '#64748b'))}; margin-top: 0.15rem; font-weight: ${isGod ? '700' : 'normal'};">
-                  ${isCompleted ? '✓ Dokončeno' : (isCurrent ? '▶ Probíhá' : (isGod ? '⚡ Odemčeno (Bůh)' : '🔒 Zamčeno'))}
-                </div>
+                ${pinIcon}
               </div>
             </div>
           </div>
@@ -1259,38 +1207,23 @@ window.App = {
       `;
     });
 
-    // Render Hall of Fame: Stage 7 (Olymp đź‘‘)
+    // Render Stage 7: Olymp (SĂ­Ĺ slĂˇvy)
     const isOlympUnlocked = isGod || completed.length >= 48;
     html += `
-      <div class="olymp-stage-section" style="margin-top: 3.5rem; text-align: center; margin-bottom: 2rem;">
-        <div class="card p-6" style="
-          background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(245, 158, 11, 0.12) 100%);
-          border: 2px solid ${isOlympUnlocked ? 'rgba(245, 158, 11, 0.6)' : 'rgba(255, 255, 255, 0.1)'};
-          border-radius: 20px;
-          padding: 2.25rem;
-          max-width: 650px;
-          margin: 0 auto;
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-        ">
-          <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">đź‘‘</div>
-          <h3 style="font-size: 1.5rem; font-weight: 800; color: #fde68a; margin-bottom: 0.35rem;">
-            7. Etapa: SĂ­Ĺ slĂˇvy â€” Olymp
+      <div class="olymp-shrine-container">
+        <div class="olymp-monument-card ${isOlympUnlocked ? 'unlocked' : 'locked'}">
+          <div class="olymp-crown-glow">&#x1F451;</div>
+          <h3 class="olymp-title">
+            7. Etapa: S&iacute;&ncaron; sl&aacute;vy &mdash; Olymp
           </h3>
-          <p style="color: #cbd5e1; font-size: 0.95rem; margin-bottom: 1.25rem;">
-            Vrchol hudebnĂ­ cesty Melodria. Odemkne se po ĂşspÄ›ĹˇnĂ©m zvlĂˇdnutĂ­ vĹˇech 48 lekcĂ­ na Stadionu!
+          <p class="olymp-subtitle">
+            Vrchol hudebn&iacute; cesty Melodria. Zde s&iacute;dl&iacute; skute&#x10D;n&iacute; kytarov&iacute; mist&#x159;i a hudebn&iacute; legendy. Zvl&aacute;dnut&iacute;m v&scaron;ech etap jsi dos&aacute;hl hudebn&iacute; nesmrtelnosti!
           </p>
-          <span class="badge" style="
-            background: rgba(245, 158, 11, 0.2);
-            color: #fbbf24;
-            border: 1px solid rgba(245, 158, 11, 0.5);
-            font-weight: 800;
-            font-size: 0.9rem;
-            padding: 0.4rem 1.2rem;
-            border-radius: 9999px;
-          ">
-            ${isOlympUnlocked ? 'âšˇ OdemÄŤeno â€” Jsi kytarovĂ˝ bĹŻh!' : 'đź”’ VyĹľaduje dokonÄŤenĂ­ vĹˇech 48 lekcĂ­'}
-          </span>
+          <div class="olymp-status-badge">
+            ${isOlympUnlocked ? '&#x1F451; Odem&#x10D;eno &mdash; Jsi Kytarov&yacute; B&#x16F;h!' : '&#x1F512; Vy&#x17E;aduje dokon&#x10D;en&iacute; v&scaron;ech 48 lekc&iacute;'}
+          </div>
         </div>
+      </div>
       </div>
     `;
 
@@ -1326,7 +1259,10 @@ window.App = {
     const rankInfo = this.getRankInfo(xp);
 
     const displayName = isGod ? 'God (Administrátor)' : user.name;
-    const displayAvatar = isGod ? '👑' : (user.avatar || '🎸');
+        let displayAvatar = isGod ? '&#x1F451;' : (user.avatar || '&#x1F3B8;');
+    if (typeof displayAvatar === 'string' && (displayAvatar.includes('đ') || displayAvatar.includes('?') || displayAvatar.length > 4)) {
+      displayAvatar = '&#x1F3B8;';
+    }
 
     // Update #sidebar-user
     const sidebarUser = document.getElementById('sidebar-user');
@@ -1629,7 +1565,7 @@ window.App = {
             flex-shrink: 0;
             box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
           ">
-            ${user.avatar || '🎸'}
+            ${isGod ? '&#x1F451;' : ((user.avatar && !user.avatar.includes('đ') && user.avatar.length <= 4) ? user.avatar : '&#x1F3B8;')}
           </div>
 
           <div style="flex: 1;">
@@ -1806,13 +1742,13 @@ window.App = {
    * God Mode / Admin Action: Unlock all 15 lessons
    */
   godUnlockAllLessons() {
-    const all = Array.from({ length: 15 }, (_, i) => i + 1);
+    const all = Array.from({ length: 48 }, (_, i) => i + 1);
     localStorage.setItem('melodrio_completed_lessons', JSON.stringify(all));
     if (window.Progress && typeof window.Progress.initGodMode === 'function') {
       window.Progress.initGodMode();
     }
     if (window.UI) {
-      window.UI.showToast('🔓 Všech 15 lekcí bylo odemčeno a zpřístupněno!', 'success');
+      window.UI.showToast('🔓 Všech 48 lekcí bylo odemčeno a zpřístupněno!', 'success');
       window.UI.showConfetti();
     }
     this.renderDashboard();
@@ -1823,14 +1759,14 @@ window.App = {
    * God Mode / Admin Action: Complete all 15 lessons with max XP
    */
   godCompleteAllLessons() {
-    const all = Array.from({ length: 15 }, (_, i) => i + 1);
+    const all = Array.from({ length: 48 }, (_, i) => i + 1);
     localStorage.setItem('melodrio_completed_lessons', JSON.stringify(all));
-    localStorage.setItem('melodrio_xp', '10000');
+    localStorage.setItem('melodrio_xp', '12500');
     if (window.Progress && typeof window.Progress.initGodMode === 'function') {
       window.Progress.initGodMode();
     }
     if (window.UI) {
-      window.UI.showToast('✅ Všech 15 lekcí dokončeno se 100% skóre!', 'success');
+      window.UI.showToast('✅ Všech 48 lekcí dokončeno se 100% skóre!', 'success');
       window.UI.showConfetti();
     }
     this.renderDashboard();
@@ -1841,15 +1777,15 @@ window.App = {
    * God Mode / Admin Action: Set maximum XP (10 000 XP - Olymp)
    */
   godSetMaxXP() {
-    localStorage.setItem('melodrio_xp', '10000');
+    localStorage.setItem('melodrio_xp', '12500');
     if (window.Progress && window.Progress.state) {
-      window.Progress.state.xp = 10000;
+      window.Progress.state.xp = 12500;
       if (typeof window.Progress.save === 'function') {
         window.Progress.save();
       }
     }
     if (window.UI) {
-      window.UI.showToast('⭐ Nastaveno 10 000 XP – dosažena hodnost Bůh kytary!', 'success');
+      window.UI.showToast('⭐ Nastaveno 12 500 XP – dosažena hodnost Bůh kytary!', 'success');
       window.UI.showConfetti();
     }
     this.renderDashboard();

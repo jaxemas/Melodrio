@@ -154,7 +154,7 @@ window.Lessons = {
       const stageLessons = this.getLessonsByStage(stage.id);
       if (stageLessons.length === 0) return;
 
-      const stageCompletedCount = stageLessons.filter(l => completedIds.includes(l.id)).length;
+      const stageCompletedCount = isGod ? stageLessons.length : stageLessons.filter(l => completedIds.includes(l.id)).length;
       const stageSpacingStyle = stageIndex > 0 ? 'margin-top: 3.5rem; margin-bottom: 3rem;' : 'margin-bottom: 3rem;';
 
       html += `
@@ -184,67 +184,83 @@ window.Lessons = {
       `;
 
       stageLessons.forEach(lesson => {
-        const isCompleted = completedIds.includes(lesson.id);
+        const isCompleted = isGod || completedIds.includes(lesson.id);
         const prevCompleted = lesson.id === 1 || completedIds.includes(lesson.id - 1);
         const isUnlocked = isGod || isCompleted || prevCompleted;
         const isCurrent = !isGod && !isCompleted && isUnlocked;
 
         let statusClass = 'locked';
-        let statusBadge = '<span class="badge locked">🔒 Zamčeno</span>';
-        let buttonText = 'Zamčeno';
+        let statusBadge = '<span class="lesson-pill-status pill-locked"><span class="status-icon">&#x1F512;</span> Zam&#x10D;eno</span>';
+        let buttonText = 'Zam&#x10D;eno';
         let buttonClass = 'btn btn-ghost btn-sm';
         let disabledAttr = 'disabled';
 
         if (isCompleted) {
-          statusClass = 'completed';
-          statusBadge = '<span class="badge earned">✓ Dokončeno</span>';
-          buttonText = 'Zopakovat lekci';
-          buttonClass = 'btn btn-secondary btn-sm';
+          statusClass = isGod ? 'completed god-completed' : 'completed';
+          statusBadge = `<span class="lesson-pill-status pill-completed ${isGod ? 'god-gold' : ''}"><span class="status-icon">${isGod ? '&#x1F451;' : '&#x2713;'}</span> Dokon&#x10D;eno</span>`;
+          buttonText = isGod ? 'Spustit lekci &#x26A1;' : 'Zopakovat lekci';
+          buttonClass = isGod ? 'btn btn-primary btn-sm' : 'btn btn-secondary btn-sm';
           disabledAttr = '';
         } else if (isCurrent) {
           statusClass = 'current active';
-          statusBadge = '<span class="badge" style="background: rgba(59, 130, 246, 0.25); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4);">🎯 Na řadě</span>';
-          buttonText = 'Spustit lekci →';
+          statusBadge = '<span class="lesson-pill-status pill-current"><span class="status-pulse"></span> &#x25B6; Na &#x159;ad&#x11B;</span>';
+          buttonText = 'Spustit lekci &rarr;';
           buttonClass = 'btn btn-primary btn-sm';
-          disabledAttr = '';
-        } else if (isGod) {
-          statusClass = 'current god-unlocked active';
-          statusBadge = '<span class="badge" style="background: rgba(245, 158, 11, 0.25); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.5);">⚡ Odemčeno (Bůh)</span>';
-          buttonText = 'Spustit lekci ⚡';
-          buttonClass = 'btn btn-secondary btn-sm';
           disabledAttr = '';
         }
 
         const isTheory = lesson.type === 'theory';
-        const typeBadge = `<span class="badge" style="background: ${isTheory ? 'rgba(139, 92, 246, 0.15)' : 'rgba(16, 185, 129, 0.15)'}; color: ${isTheory ? '#c4b5fd' : '#6ee7b7'}; border: 1px solid ${isTheory ? 'rgba(139, 92, 246, 0.3)' : 'rgba(16, 185, 129, 0.3)'}; font-weight: 700;">${isTheory ? '📘 Teorie' : '🎸 Praxe'}</span>`;
+        const typeBadge = `<span class="lesson-pill-type ${isTheory ? 'pill-theory' : 'pill-practice'}">
+          <span class="pill-dot"></span> ${isTheory ? '&#x1F4D8; Teorie' : '&#x1F3B8; Praxe'}
+        </span>`;
 
-        let songBadge = '';
-        if (lesson.unlockedSongId && window.App && Array.isArray(window.App.SONGS_25)) {
-          const s = window.App.SONGS_25.find(song => song.id === lesson.unlockedSongId);
+        let songRewardHtml = '';
+        if (window.App && Array.isArray(window.App.SONGS_25)) {
+          const s = window.App.SONGS_25.find(song => song.unlockLesson === lesson.id || (lesson.unlockedSongId && song.id === lesson.unlockedSongId));
           if (s) {
-            songBadge = `<span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); font-size: 0.75rem;" title="Odemkne píseň: ${s.title}">🎵 ${s.title}</span>`;
+            const isSongUnlocked = isGod || isCompleted;
+            songRewardHtml = `
+              <div class="lesson-song-reward-box ${isSongUnlocked ? 'is-unlocked' : 'is-locked'}">
+                <div class="reward-box-top">
+                  <span class="reward-badge-tag">${isSongUnlocked ? '&#x2728; Odem&#x10D;en&aacute; skladba' : '&#x1F381; Odm&#x11B;na za lekci'}</span>
+                  <span class="reward-badge-hint">${isSongUnlocked ? 'P&#x159;ipraveno ke hran&iacute;' : 'Odemkne se po spln&#x11B;n&iacute;'}</span>
+                </div>
+                <div class="reward-box-body">
+                  <div class="reward-song-details">
+                    <span class="reward-song-note">&#x1F3B5;</span>
+                    <div class="reward-song-text">
+                      <span class="reward-song-name">${s.title}</span>
+                      <span class="reward-song-sub">${s.artist} &bull; ${s.difficulty}</span>
+                    </div>
+                  </div>
+                  ${isSongUnlocked ? `
+                    <button type="button" class="reward-play-btn" onclick="event.stopPropagation(); window.App.launchSongPlayer(window.App.SONGS_25.find(song => song.id === ${s.id}))" title="Zahr&aacute;t skladbu v d&aacute;lnici">
+                      <span>&#x25B6;</span> Hr&aacute;t
+                    </button>
+                  ` : '<span class="reward-lock-icon" title="Odemkne se po &uacute;sp&#x11B;&scaron;n&eacute;m dokon&#x10D;en&iacute; lekce">&#x1F512;</span>'}
+                </div>
+              </div>
+            `;
           }
         }
 
         html += `
           <div class="lesson-card card ${statusClass} ${isUnlocked ? 'cursor-pointer' : 'opacity-60'}" data-lesson-id="${lesson.id}">
-            <div class="lesson-card-header flex justify-between items-center mb-2">
-              <div class="flex items-center gap-1.5 flex-wrap">
-                ${typeBadge}
-                ${songBadge}
-              </div>
+            <div class="lesson-card-header flex justify-between items-center mb-3">
+              ${typeBadge}
               ${statusBadge}
             </div>
             <div class="lesson-card-body">
               <span class="lesson-number text-xs text-muted font-bold uppercase tracking-wider">Lekce ${lesson.id}</span>
               <h3 class="lesson-card-title text-xl font-bold mt-1 mb-2">${lesson.title}</h3>
-              <p class="lesson-card-desc text-sm text-muted mb-4">${lesson.description}</p>
+              <p class="lesson-card-desc text-sm text-muted mb-3">${lesson.description}</p>
+              ${songRewardHtml}
             </div>
             <div class="lesson-card-footer flex justify-between items-center pt-3 border-t border-surface-border mt-auto">
               <div class="lesson-meta flex items-center gap-2 text-xs text-muted">
-                <span>⭐ +${lesson.xpReward} XP</span>
-                <span>•</span>
-                <span>${lesson.steps.length} kroků + kvíz</span>
+                <span>&#x2B50; +${lesson.xpReward} XP</span>
+                <span>&bull;</span>
+                <span>${lesson.steps.length} krok&#x16F; + kv&iacute;z</span>
               </div>
               <button class="${buttonClass} start-lesson-btn" data-lesson-id="${lesson.id}" ${disabledAttr}>
                 ${buttonText}

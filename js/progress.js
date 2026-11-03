@@ -134,6 +134,7 @@ window.Progress = {
   },
 
   getXP() {
+    if (this.isGodMode()) return 12500;
     return this._getdata().totalXP;
   },
 
@@ -319,10 +320,14 @@ window.Progress = {
   },
 
   getCompletedLessons() {
+    if (this.isGodMode()) {
+      return Array.from({ length: 48 }, (_, i) => i + 1);
+    }
     return this._getdata().completedLessons || [];
   },
 
   isLessonCompleted(id) {
+    if (this.isGodMode()) return true;
     return this.getCompletedLessons().includes(Number(id));
   },
 
@@ -401,6 +406,9 @@ window.Progress = {
   },
 
   getBadges() {
+    if (this.isGodMode()) {
+      return BADGES.map(badge => ({ ...badge, earned: true }));
+    }
     const earnedIds = this._getdata().earnedBadges || [];
     return BADGES.map(badge => ({
       ...badge,
@@ -441,16 +449,17 @@ window.Progress = {
 
   initGodMode() {
     const data = this._getdata();
-    data.totalXP = Math.max(data.totalXP, 10000);
-    // Complete all 15 lessons
-    data.completedLessons = Array.from({ length: 15 }, (_, i) => i + 1);
+    data.totalXP = Math.max(data.totalXP, 12500);
+    // Complete all 48 lessons
+    data.completedLessons = Array.from({ length: 48 }, (_, i) => i + 1);
     // Unlock all badges
     data.earnedBadges = BADGES.map(b => b.id);
     data.isGod = true;
-    if (!data.streak || typeof data.streak !== 'object') {
-      data.streak = { current: 0, lastDate: null, best: 0 };
-    }
+    data.streak = { current: 1, lastDate: new Date().toISOString().split('T')[0], best: 1 };
     this._save(data);
+    localStorage.setItem('melodrio_xp', String(data.totalXP));
+    localStorage.setItem('melodrio_completed_lessons', JSON.stringify(data.completedLessons));
+    localStorage.setItem('melodrio_streak', JSON.stringify(data.streak));
     if (window.App && typeof window.App.renderSidebar === 'function') {
       window.App.renderSidebar();
     }
