@@ -492,7 +492,7 @@ window.Progress = {
       }
     });
 
-    const cards = document.querySelectorAll('.badge-card-v2');
+    const cards = document.querySelectorAll('.profile-badge-card, .badge-card-v2');
     cards.forEach(card => {
       const status = card.getAttribute('data-badge-status');
       if (filter === 'all' || status === filter) {
@@ -558,7 +558,7 @@ window.Progress = {
     const soundEnabled = localStorage.getItem('melodrio_sound_enabled') !== 'false';
 
     // 1. Skupina: Kytarový pokrok & Úroveň (pro Boha vše na max a hotovo)
-    const displayXP = isGod ? Math.max(10000, data.totalXP) : data.totalXP;
+    const displayXP = isGod ? Math.max(12500, data.totalXP) : data.totalXP;
     const displayLevel = isGod ? 100 : level;
     const displayLevelProgress = isGod ? 100 : levelProgress;
 
@@ -686,7 +686,254 @@ window.Progress = {
       return { cur, tgt, unit, pct, goalHint };
     };
 
+    const stagesData = [
+      { id: 1, name: '1. Gar&aacute;&#x17E;ov&aacute; zku&scaron;ebna', sub: 'Z&aacute;kladn&iacute; akordy, rytmus a spr&aacute;vn&eacute; dr&#x17E;en&iacute; t&#x11B;la', icon: '&#x1F3E0;', done: stage1Done, percent: stage1Percent, isCompleted: isGod || stage1Done >= 8, isUnlocked: true, statusText: (isGod || stage1Done >= 8) ? '&#x2713; Spln&#x11B;no' : `${stage1Done}/8` },
+      { id: 2, name: '2. Otev&#x159;en&aacute; sc&eacute;na', sub: 'Prvn&iacute; p&iacute;sni&#x10D;ky, barre akordy a z&aacute;klady vybrnk&aacute;v&aacute;n&iacute;', icon: '&#x1F3A4;', done: stage2Done, percent: stage2Percent, isCompleted: isGod || stage2Done >= 8, isUnlocked: isGod || stage1Done >= 8, statusText: (isGod || stage2Done >= 8) ? '&#x2713; Spln&#x11B;no' : (stage1Done >= 8 ? `${stage2Done}/8` : '&#x1F512; Zam&#x10D;eno') },
+      { id: 3, name: '3. Star&eacute; m&#x11B;sto &amp; Hospoda', sub: 'Spole&#x10D;n&aacute; jam session, zlidov&#x11B;l&eacute; p&iacute;sn&#x11B; a rytmick&eacute; variace', icon: '&#x1F37A;', done: stage3Done, percent: stage3Percent, isCompleted: isGod || stage3Done >= 8, isUnlocked: isGod || stage2Done >= 8, statusText: (isGod || stage3Done >= 8) ? '&#x2713; Spln&#x11B;no' : (stage2Done >= 8 ? `${stage3Done}/8` : '&#x1F512; Zam&#x10D;eno') },
+      { id: 4, name: '4. No&#x10D;n&iacute; rockov&yacute; klub', sub: 'Elektrick&aacute; kytara, bluesov&eacute; stupnice a power akordy', icon: '&#x1F3AA;', done: stage4Done, percent: stage4Percent, isCompleted: isGod || stage4Done >= 8, isUnlocked: isGod || stage3Done >= 8, statusText: (isGod || stage4Done >= 8) ? '&#x2713; Spln&#x11B;no' : (stage3Done >= 8 ? `${stage4Done}/8` : '&#x1F512; Zam&#x10D;eno') },
+      { id: 5, name: '5. Koncertn&iacute; filharmonie', sub: 'Klasick&aacute; hudba, akustick&aacute; preciznost a slo&#x17E;it&eacute; prstoklady', icon: '&#x1F3AD;', done: stage5Done, percent: stage5Percent, isCompleted: isGod || stage5Done >= 8, isUnlocked: isGod || stage4Done >= 8, statusText: (isGod || stage5Done >= 8) ? '&#x2713; Spln&#x11B;no' : (stage4Done >= 8 ? `${stage5Done}/8` : '&#x1F512; Zam&#x10D;eno') },
+      { id: 6, name: '6. Megastadion', sub: 'Kytarov&aacute; s&oacute;la, virtu&oacute;zn&iacute; techniky a velkolep&aacute; rockov&aacute; show', icon: '&#x1F3DF;&#xFE0F;', done: stage6Done, percent: stage6Percent, isCompleted: isGod || stage6Done >= 8, isUnlocked: isGod || stage5Done >= 8, statusText: (isGod || stage6Done >= 8) ? '&#x2713; Spln&#x11B;no' : (stage5Done >= 8 ? `${stage6Done}/8` : '&#x1F512; Zam&#x10D;eno') }
+    ];
+
     profileContainer.innerHTML = `
+      <div class="profile-page-container animate-fadeIn">
+        <!-- 1. Airy Hero Card -->
+        <div class="profile-hero-card-v2 ${isGod ? 'is-god' : ''}">
+          <div class="profile-hero-main">
+            <div class="profile-avatar-wrapper ${isGod ? 'god-avatar-wrap' : ''}">
+              <div class="profile-avatar-circle">
+                ${isGod ? '&#x1F451;' : ((userName && !userName.includes('đ') && userName.length <= 4) ? userName : '&#x1F3B8;')}
+              </div>
+            </div>
+
+            <div class="profile-identity">
+              <div class="profile-name-row">
+                <h1 class="profile-display-name">${userName}</h1>
+                <span class="profile-rank-tag ${isGod ? 'god-tag' : ''}">
+                  ${isGod ? '&#x1F451; Kytarov&yacute; B&#x16F;h (Olymp)' : `${rank.icon} ${rank.name}`}
+                </span>
+              </div>
+              <div class="profile-meta-row">
+                <span>&#x1F4C5; &#x10C;lenem od: <strong>${formattedJoinDate}</strong></span>
+                <span>&bull;</span>
+                <span>&#x1F4E7; ${userEmail}</span>
+                <span>&bull;</span>
+                <span>F&aacute;ze: <strong style="color: ${isGod ? '#fbbf24' : rank.color};">${isGod ? 'V&scaron;echny etapy spln&#x11B;ny' : rank.stage}</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="profile-hero-level-module">
+            <div class="level-badge-large">
+              <span class="level-num">&Uacute;rove&#x148; ${displayLevel}</span>
+              <span class="level-label">${isGod ? 'MAX LEVEL' : (rank.nextRank ? `Do &uacute;rovn&#x11B;: ${100 - displayLevelProgress} XP` : 'Mistrovsk&yacute; titul')}</span>
+            </div>
+            <div class="profile-xp-meter">
+              <div class="xp-labels-row">
+                <span><strong style="color: #fbbf24;">${displayXP.toLocaleString()} XP</strong> celkem</span>
+                <span style="color: #a78bfa;">${displayLevelProgress}%</span>
+              </div>
+              <div class="profile-xp-bar-track">
+                <div class="profile-xp-bar-fill ${isGod ? 'god-gold-bar' : ''}" style="width: ${displayLevelProgress}%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Primary Metrics Row (4 clean tiles) -->
+        <div class="profile-metrics-grid">
+          <div class="profile-metric-card">
+            <div class="metric-top">
+              <span>Celkov&eacute; zku&scaron;enosti</span>
+              <span class="metric-icon">&#x2B50;</span>
+            </div>
+            <div class="metric-value">${displayXP.toLocaleString()} XP</div>
+            <div class="metric-sub">${isGod ? 'Dosa&#x17E;eno bo&#x17E;sk&eacute; maximum' : 'Body z&iacute;skan&eacute; za lekce a tr&eacute;nink'}</div>
+          </div>
+
+          <div class="profile-metric-card">
+            <div class="metric-top">
+              <span>Denn&iacute; s&eacute;rie</span>
+              <span class="metric-icon">&#x1F525;</span>
+            </div>
+            <div class="metric-value" style="color: ${isGod ? '#fbbf24' : (streakActive ? '#f59e0b' : '#f8fafc')};">${streakDisplay}</div>
+            <div class="metric-sub">${isGod ? 'Nekone&#x10D;n&aacute; bo&#x17E;sk&aacute; vytrvalost' : (streakActive ? 'Dnes aktivn&iacute; (1 cvi&#x10D;en&iacute; spln&#x11B;no)' : 'Dnes zat&iacute;m neprocvi&#x10D;eno')}</div>
+          </div>
+
+          <div class="profile-metric-card">
+            <div class="metric-top">
+              <span>Lekce akademie</span>
+              <span class="metric-icon">&#x1F3B8;</span>
+            </div>
+            <div class="metric-value">${totalLessonsDone} / 48</div>
+            <div class="metric-sub">${totalCoursePercent}% celkov&eacute;ho kurzu dokon&#x10D;eno</div>
+          </div>
+
+          <div class="profile-metric-card">
+            <div class="metric-top">
+              <span>Kytarov&eacute; trofeje</span>
+              <span class="metric-icon">&#x1F3C6;</span>
+            </div>
+            <div class="metric-value" style="color: ${isGod ? '#fbbf24' : '#a78bfa'};">${earnedCount} / ${badges.length}</div>
+            <div class="metric-sub">${badgePercent}% odem&#x10D;en&yacute;ch ocen&#x11B;n&iacute;</div>
+          </div>
+        </div>
+
+        <!-- 3. Stage Mastery (6 Hudebních etap) -->
+        <div class="profile-section-card">
+          <div class="profile-section-header">
+            <div>
+              <h2 class="profile-section-title">
+                <span>&#x1F5FA;&#xFE0F;</span> Cesta kytaristy (6 Hudebn&iacute;ch etap)
+              </h2>
+              <p class="profile-section-desc">P&#x159;ehled tv&eacute;ho postupu nap&#x159;&iacute;&#x10D; v&scaron;emi 48 lekcemi od Gar&aacute;&#x17E;e a&#x17E; po Olymp.</p>
+            </div>
+            <div class="profile-section-badge">
+              ${isGod ? '&#x1F451; 48 / 48 lekc&iacute; hotovo' : `${totalLessonsDone} / 48 lekc&iacute; spln&#x11B;no`}
+            </div>
+          </div>
+
+          <div class="profile-overall-progress-wrap">
+            <div class="overall-progress-labels">
+              <span>Celkov&yacute; postup v&yacute;ukou</span>
+              <span style="color: ${isGod ? '#fbbf24' : '#34d399'}; font-weight: 700;">${totalCoursePercent}%</span>
+            </div>
+            <div class="overall-progress-track">
+              <div class="overall-progress-fill ${isGod ? 'god-gold-bar' : ''}" style="width: ${totalCoursePercent}%;"></div>
+            </div>
+          </div>
+
+          <div class="profile-stages-grid">
+            ${stagesData.map(st => `
+              <div class="profile-stage-box ${st.isCompleted ? 'is-complete' : (st.isUnlocked ? 'is-active' : 'is-locked')}">
+                <div class="stage-box-top">
+                  <span class="stage-box-icon">${st.icon}</span>
+                  <span class="stage-box-status-pill">${st.statusText}</span>
+                </div>
+                <div class="stage-box-name">${st.name}</div>
+                <div class="stage-box-sub">${st.sub}</div>
+                <div class="stage-box-progress-wrap">
+                  <div class="stage-box-progress-track">
+                    <div class="stage-box-progress-fill ${isGod ? 'god-gold-bar' : ''}" style="width: ${st.percent}%;"></div>
+                  </div>
+                  <div class="stage-box-progress-text">${st.done} / 8 lekc&iacute; (${st.percent}%)</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- 4. Badges & Trophies -->
+        <div class="profile-section-card">
+          <div class="profile-section-header">
+            <div>
+              <h2 class="profile-section-title">
+                <span>&#x1F396;&#xFE0F;</span> Kytarov&eacute; trofeje a odznaky
+              </h2>
+              <p class="profile-section-desc">Sleduj sv&eacute; miln&iacute;ky, odemykej ocen&#x11B;n&iacute; za rychlost, p&iacute;li a mistrovstv&iacute;.</p>
+            </div>
+            <div class="badge-filter-bar" style="margin: 0;">
+              <button class="badge-filter-btn active" data-filter="all" onclick="Progress.filterBadges('all')">
+                V&scaron;echny (${badges.length})
+              </button>
+              <button class="badge-filter-btn" data-filter="earned" onclick="Progress.filterBadges('earned')">
+                Z&iacute;skan&eacute; (${earnedCount})
+              </button>
+              <button class="badge-filter-btn" data-filter="locked" onclick="Progress.filterBadges('locked')">
+                K odem&#x10D;en&iacute; (${isGod ? 0 : badges.length - earnedCount})
+              </button>
+            </div>
+          </div>
+
+          <div class="profile-badges-air-grid">
+            ${badges.map(b => {
+              const isEarned = isGod || b.earned;
+              const info = getBadgeGoalInfo(b);
+              return `
+                <div class="profile-badge-card ${isEarned ? 'earned' : 'locked'} ${isGod ? 'is-god-badge' : ''}" data-badge-status="${isEarned ? 'earned' : 'locked'}" data-badge-id="${b.id}" title="${b.description}">
+                  <div class="profile-badge-icon-wrap">
+                    ${b.icon}
+                  </div>
+                  <div class="profile-badge-info">
+                    <div class="profile-badge-title-row">
+                      <span class="profile-badge-title">${b.name}</span>
+                      <span class="profile-badge-status-pill ${isEarned ? (isGod ? 'god-pill' : 'earned') : 'locked'}">
+                        ${isEarned ? (isGod ? '&#x1F451; Bo&#x17E;sk&eacute;' : '&#x2713; Z&iacute;sk&aacute;no') : '&#x1F3AF; K odem&#x10D;en&iacute;'}
+                      </span>
+                    </div>
+                    <div class="profile-badge-desc">${b.description}</div>
+                    ${!isEarned ? `
+                      <div style="margin-top: 0.45rem;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: #94A3B8; margin-bottom: 0.2rem;">
+                          <span>${info.goalHint}</span>
+                          <span style="font-weight: 700; color: #a78bfa;">${info.pct}%</span>
+                        </div>
+                        <div style="height: 5px; background: rgba(255,255,255,0.08); border-radius: 9999px; overflow: hidden;">
+                          <div style="width: ${info.pct}%; height: 100%; background: #8B5CF6; border-radius: 9999px;"></div>
+                        </div>
+                      </div>
+                    ` : ''}
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+
+        <!-- 5. App Settings & Account -->
+        <div class="profile-section-card">
+          <div class="profile-section-header">
+            <div>
+              <h2 class="profile-section-title">
+                <span>&#x2699;&#xFE0F;</span> Nastaven&iacute; aplikace
+              </h2>
+              <p class="profile-section-desc">Uprav hlasitost zvukov&yacute;ch efekt&#x16F; kytary nebo spravuj sv&#x16F;j &uacute;&#x10D;et.</p>
+            </div>
+          </div>
+
+          <div class="settings-grid grid grid-cols-1 md:grid-cols-2 gap-6 pb-6 border-b border-surface-border">
+            <div>
+              <label class="block text-sm font-bold text-white mb-2" for="setting-volume">
+                Hlasitost zvuk&#x16F; a kytarov&yacute;ch efekt&#x16F;: <span id="volume-val-display" class="text-accent">${savedVolume}%</span>
+              </label>
+              <input type="range" id="setting-volume" min="0" max="100" value="${savedVolume}" class="w-full cursor-pointer accent-primary">
+              <p class="text-xs text-muted mt-1">Nastavuje hlasitost p&#x159;ehr&aacute;v&aacute;n&iacute; akord&#x16F;, t&oacute;n&#x16F; a zvukov&yacute;ch efekt&#x16F;.</p>
+            </div>
+
+            <div class="flex flex-col justify-center">
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" id="setting-sound-toggle" ${soundEnabled ? 'checked' : ''} class="w-5 h-5 accent-primary cursor-pointer">
+                <span class="font-bold text-white text-sm">Povolit zvukov&eacute; efekty aplikace</span>
+              </label>
+              <p class="text-xs text-muted mt-2 ml-8">Povoluje zvuky kliknut&iacute;, &uacute;sp&#x11B;&scaron;n&eacute;ho kv&iacute;zu, postupu na nov&yacute; level a fanf&aacute;ry.</p>
+            </div>
+          </div>
+
+          <div class="danger-zone pt-6 flex flex-wrap justify-between items-center gap-4">
+            <div>
+              <h4 class="text-sm font-bold text-error mb-1">Nebezpe&#x10D;n&aacute; z&oacute;na: Resetov&aacute;n&iacute; postupu</h4>
+              <p class="text-xs text-muted mb-0">Chce&scaron; za&#x10D;&iacute;t svou kytarovou cestu znovu od nuly? M&#x16F;&#x17E;e&scaron; smazat ve&scaron;ker&yacute; postup.</p>
+            </div>
+            <button class="btn btn-ghost text-error border border-error/40 hover:bg-error/10" id="btn-reset-progress">
+              &#x26A0;&#xFE0F; Resetovat ve&scaron;ker&yacute; postup
+            </button>
+          </div>
+
+          <div class="pt-6 mt-6 border-t border-surface-border flex flex-wrap justify-between items-center gap-4">
+            <div>
+              <h4 class="text-sm font-bold text-white mb-1">Odhl&aacute;&scaron;en&iacute; z aplikace</h4>
+              <p class="text-xs text-muted mb-0">Odhl&aacute;s&iacute; aktu&aacute;ln&iacute;ho u&#x17E;ivatele na tomto po&#x10D;&iacute;ta&#x10D;i.</p>
+            </div>
+            <button class="btn btn-danger btn-sm" id="btn-profile-logout" style="border-radius: 8px; font-weight: 700;">
+              Odhl&aacute;sit se &#x1F6AA;
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    /* old layout removed */
+    const _unusedOldHtml = `
       <div class="view-header animate-fadeIn mb-6">
         <h1>Tvůj profil kytaristy</h1>
         <p class="text-muted">Přehled hudebních milníků, kytarových dovedností, získaných trofejí a nastavení.</p>

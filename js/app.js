@@ -439,6 +439,7 @@ window.App = {
    * Render Dashboard view: welcome header, stat cards, and story progression map.
    */
   renderDashboard() {
+    const isGod = this.isGod();
     const user = (window.Auth && window.Auth.getUser()) || { name: 'Kytarista', avatar: '🎸' };
     const { xp, streak, completed } = this.getProgressData();
     const rankInfo = this.getRankInfo(xp);
@@ -662,7 +663,7 @@ window.App = {
                   Administrátorská konzole (Režim Bůh)
                 </h3>
                 <p style="margin: 0.15rem 0 0 0; font-size: 0.85rem; color: #cbd5e1;">
-                  Máš plnou kontrolu nad všemi 15 lekcemi, statistikami, odznaky a moduly aplikace.
+                  Máš plnou kontrolu nad všemi 48 lekcemi, statistikami, odznaky a moduly aplikace.
                 </p>
               </div>
             </div>
@@ -688,13 +689,13 @@ window.App = {
             margin-bottom: 1.25rem;
           ">
             <button class="btn btn-secondary btn-sm" onclick="App.godUnlockAllLessons()" style="border-color: rgba(245, 158, 11, 0.5); color: #fde68a;">
-              🔓 Odemknout všech 15 lekcí
+              🔓 Odemknout všech 48 lekcí
             </button>
             <button class="btn btn-secondary btn-sm" onclick="App.godCompleteAllLessons()" style="border-color: rgba(16, 185, 129, 0.5); color: #a7f3d0;">
-              ✅ Dokončit všech 15 lekcí
+              ✅ Dokončit všech 48 lekcí
             </button>
             <button class="btn btn-secondary btn-sm" onclick="App.godSetMaxXP()" style="border-color: rgba(139, 92, 246, 0.5); color: #ddd6fe;">
-              ⭐ Nastavit 10 000 XP (Olymp)
+              ⭐ Nastavit 12 500 XP (Olymp)
             </button>
             <button class="btn btn-secondary btn-sm" onclick="App.godUnlockBadges()" style="border-color: rgba(59, 130, 246, 0.5); color: #bfdbfe;">
               🏆 Odemknout všech 16 odznaků
@@ -727,7 +728,7 @@ window.App = {
                 border-radius: 8px;
                 font-size: 0.85rem;
               ">
-                ${Array.from({ length: 15 }, (_, i) => i + 1).map(id => {
+                ${Array.from({ length: 48 }, (_, i) => i + 1).map(id => {
                   const lesson = window.Lessons && window.Lessons.getLesson(id);
                   const title = lesson ? lesson.title : `Lekce ${id}`;
                   return `<option value="${id}">Lekce ${id}: ${title}</option>`;
@@ -1537,6 +1538,7 @@ window.App = {
     if (!profileContainer) return;
 
     const user = (window.Auth && window.Auth.getUser()) || { name: 'Kytarista', avatar: '🎸', createdAt: new Date().toISOString() };
+    const isGod = this.isGod();
     const { xp, streak, completed } = this.getProgressData();
     const rankInfo = this.getRankInfo(xp);
 
@@ -2980,6 +2982,7 @@ window.App = {
   },
 
   showSongPlayerResults(result) {
+    this._lastSongResult = result;
     const resultsOverlay = document.getElementById('player-results-overlay');
     if (!resultsOverlay) return;
 
@@ -2993,7 +2996,89 @@ window.App = {
       window.Progress.addXP(totalEarnedXP);
     }
 
-    // Populate Results UI
+    // Populate Results UI Header & Song Name
+    const titleEl = document.getElementById('results-song-name');
+    if (titleEl) titleEl.textContent = `${result.song.title} (${result.song.artist})`;
+
+    // Circular Accuracy Gauge Update
+    const gaugePct = document.getElementById('results-accuracy-gauge-pct');
+    if (gaugePct) gaugePct.textContent = `${result.accuracy}%`;
+
+    const gaugeRing = document.getElementById('results-accuracy-ring');
+    if (gaugeRing) {
+      const circumference = 364.4;
+      const offset = circumference * (1 - result.accuracy / 100);
+      gaugeRing.style.strokeDashoffset = String(offset);
+
+      if (result.accuracy >= 90) gaugeRing.style.stroke = '#10B981';
+      else if (result.accuracy >= 75) gaugeRing.style.stroke = '#38BDF8';
+      else if (result.accuracy >= 50) gaugeRing.style.stroke = '#F59E0B';
+      else gaugeRing.style.stroke = '#EF4444';
+    }
+
+    const starsEl = document.getElementById('results-stars');
+    const gradeTitleEl = document.getElementById('results-grade-title');
+    const gradeDescEl = document.getElementById('results-grade-desc');
+
+    if (result.accuracy >= 90) {
+      if (starsEl) starsEl.textContent = '⭐⭐⭐';
+      if (gradeTitleEl) gradeTitleEl.textContent = 'Mistrovský výkon!';
+      if (gradeDescEl) gradeDescEl.textContent = 'Skladbu jsi zahrál s fantastickou lehkostí, rytmickou jistotou a čistotou.';
+    } else if (result.accuracy >= 75) {
+      if (starsEl) starsEl.textContent = '⭐⭐';
+      if (gradeTitleEl) gradeTitleEl.textContent = 'Skvělý rytmus & čistota!';
+      if (gradeDescEl) gradeDescEl.textContent = 'Pevné držení tempa i čisté akordy. Jen pár drobných zaváhání.';
+    } else if (result.accuracy >= 50) {
+      if (starsEl) starsEl.textContent = '⭐';
+      if (gradeTitleEl) gradeTitleEl.textContent = 'Dobrá práce, pokračuj!';
+      if (gradeDescEl) gradeDescEl.textContent = 'Základ máš v prstech, pravidelný trénink ti dodá větší plynulost.';
+    } else {
+      if (starsEl) starsEl.textContent = '🎯';
+      if (gradeTitleEl) gradeTitleEl.textContent = 'Trénink dělá mistra!';
+      if (gradeDescEl) gradeDescEl.textContent = 'Zpomal tempo na 0.75× a soustřeď se na včasný dopad prstů.';
+    }
+
+    // Detailed Performance Analysis: Co ti šlo skvěle vs. Kde zapracovat
+    const strengthsEl = document.getElementById('results-strengths-list');
+    const weaknessesEl = document.getElementById('results-weaknesses-list');
+
+    const breakdown = result.chordBreakdown || [];
+    const strongChords = breakdown.filter(c => c.accuracy >= 80);
+    const weakChords = breakdown.filter(c => c.accuracy < 80 || c.miss > 0);
+
+    if (strengthsEl) {
+      let sHtml = '';
+      if (strongChords.length > 0) {
+        sHtml += `<li><span style="color: #34d399; font-weight: 800;">✓</span> <div><strong>Zvládnuté akordy:</strong> ${strongChords.map(c => `<code>${c.chord}</code> (${c.accuracy} %)`).join(', ')}</div></li>`;
+      }
+      if (result.perfectCount > 0) {
+        sHtml += `<li><span style="color: #34d399; font-weight: 800;">✓</span> <div><strong>Perfektní načasování:</strong> ${result.perfectCount} úderů zahraných přímo na dobu.</div></li>`;
+      }
+      if (result.maxCombo >= 4) {
+        sHtml += `<li><span style="color: #34d399; font-weight: 800;">✓</span> <div><strong>Plynulost hry:</strong> Šňůra ${result.maxCombo} úderů v tempu bez přerušení.</div></li>`;
+      }
+      if (!sHtml) {
+        sHtml = `<li><span style="color: #34d399; font-weight: 800;">✓</span> <div><strong>Hudební odvaha:</strong> Dokončil jsi celou skladbu až do konce!</div></li>`;
+      }
+      strengthsEl.innerHTML = sHtml;
+    }
+
+    if (weaknessesEl) {
+      let wHtml = '';
+      if (weakChords.length > 0) {
+        wHtml += `<li><span style="color: #fbbf24; font-weight: 800;">⚠️</span> <div><strong>Problémové akordy:</strong> ${weakChords.map(c => `<code>${c.chord}</code> (${c.miss}× zmeškáno, ${c.accuracy} %)`).join(', ')}</div></li>`;
+      }
+      if (result.missCount > 0) {
+        wHtml += `<li><span style="color: #60a5fa; font-weight: 800;">💡</span> <div><strong>Uvolněné zápěstí:</strong> Hraj uvolněněji a drž prsty blízko pražců pro čistý zvuk.</div></li>`;
+      }
+      if (result.accuracy < 75) {
+        wHtml += `<li><span style="color: #a78bfa; font-weight: 800;">⏱️</span> <div><strong>Doporučené tempo:</strong> Vyzkoušej skladbu v tempu 0.75× a zrychli až po zažití přechodů.</div></li>`;
+      }
+      if (!wHtml) {
+        wHtml = `<li><span style="color: #34d399; font-weight: 800;">✨</span> <div><strong>Čistá hra bez chyb!</strong> Všechny akordy i údery byly zahrány naprosto čistě.</div></li>`;
+      }
+      weaknessesEl.innerHTML = wHtml;
+    }
     const titleEl = document.getElementById('results-song-name');
     if (titleEl) titleEl.textContent = `${result.song.title} (${result.song.artist})`;
 
@@ -3050,6 +3135,45 @@ window.App = {
     }
 
     resultsOverlay.style.display = 'flex';
+  },
+
+  /**
+   * Action: Open targeted workout in Practice tab for problematic chords from song results
+   */
+  practiceSongWeaknesses() {
+    this.closeSongPlayer();
+    const result = this._lastSongResult;
+    let targetChordA = 'C';
+    let targetChordB = 'G';
+
+    if (result && result.chordBreakdown && result.chordBreakdown.length > 0) {
+      const sorted = [...result.chordBreakdown].sort((a, b) => a.accuracy - b.accuracy);
+      if (sorted.length >= 2) {
+        targetChordA = sorted[0].chord;
+        targetChordB = sorted[1].chord;
+      } else if (sorted.length === 1) {
+        targetChordA = sorted[0].chord;
+        targetChordB = (targetChordA === 'G') ? 'C' : 'G';
+      }
+    }
+
+    this.navigate('#/practice');
+    setTimeout(() => {
+      if (window.Practice) {
+        if (typeof window.Practice.switchSubTab === 'function') {
+          window.Practice.switchSubTab('transitions');
+        }
+        if (typeof window.Practice.setTransChordA === 'function') {
+          window.Practice.setTransChordA(targetChordA);
+        }
+        if (typeof window.Practice.setTransChordB === 'function') {
+          window.Practice.setTransChordB(targetChordB);
+        }
+        if (window.UI) {
+          window.UI.showToast(`🎯 Připraven trénink přechodu: ${targetChordA} ⇄ ${targetChordB}`, 'info');
+        }
+      }
+    }, 150);
   },
 
 

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="cs">
 <head>
   <meta charset="UTF-8">
@@ -450,6 +450,25 @@
             <h2 id="results-title">Skladba dokončena!</h2>
             <div id="results-song-name" class="results-song-name">Název skladby</div>
 
+            <!-- Accuracy Gauge (Kruhový ukazatel přesnosti) -->
+            <div class="results-accuracy-gauge-wrap">
+              <div class="accuracy-circle-container">
+                <svg class="accuracy-circle-svg" viewBox="0 0 140 140">
+                  <circle class="accuracy-circle-bg" cx="70" cy="70" r="58" />
+                  <circle class="accuracy-circle-meter" id="results-accuracy-ring" cx="70" cy="70" r="58" stroke-dasharray="364.4" stroke-dashoffset="364.4" />
+                </svg>
+                <div class="accuracy-circle-content">
+                  <span class="accuracy-percent-val" id="results-accuracy-gauge-pct">0%</span>
+                  <span class="accuracy-percent-label">PŘESNOST</span>
+                </div>
+              </div>
+              <div class="accuracy-verdict-box">
+                <div class="accuracy-stars" id="results-stars">⭐⭐⭐</div>
+                <div class="accuracy-grade-title" id="results-grade-title">Mistrovský výkon!</div>
+                <p class="accuracy-grade-subtitle" id="results-grade-desc">Skvěle zvládnutý rytmus i akordové přechody.</p>
+              </div>
+            </div>
+
             <div class="results-stats-grid">
               <div class="results-stat-box">
                 <div class="stat-num" id="results-score">0</div>
@@ -473,18 +492,46 @@
               <!-- Perfect, Good, Miss counts -->
             </div>
 
-            <div id="results-mistakes-alert" style="display: none; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 12px; padding: 0.85rem; margin-bottom: 1.25rem; font-size: 0.9rem; color: #fca5a5;">
+            <!-- What went well vs What didn't (Co ti šlo a nešlo) -->
+            <div class="results-analysis-section">
+              <h3 class="analysis-section-title">📊 Rozbor kytarového výkonu</h3>
+              <div class="analysis-grid">
+                <!-- What went well -->
+                <div class="analysis-card success-card">
+                  <div class="analysis-card-header">
+                    <span class="analysis-icon">🟢</span>
+                    <span class="analysis-title">Co ti šlo skvěle</span>
+                  </div>
+                  <ul class="analysis-list" id="results-strengths-list">
+                    <!-- Dynamic strengths -->
+                  </ul>
+                </div>
+
+                <!-- What needs work / didn't go well -->
+                <div class="analysis-card warning-card">
+                  <div class="analysis-card-header">
+                    <span class="analysis-icon">🟠</span>
+                    <span class="analysis-title">Kde ještě zapracovat</span>
+                  </div>
+                  <ul class="analysis-list" id="results-weaknesses-list">
+                    <!-- Dynamic weaknesses / advice -->
+                  </ul>
+                </div>
+              </div>
             </div>
 
+
+
+            <div id="results-mistakes-alert" style="display: none;"></div>
             <div class="results-actions">
               <button type="button" class="btn btn-secondary" onclick="App.restartSongPlayer()">
                 🔄 Zahrát znovu
               </button>
-              <button type="button" class="btn btn-primary" onclick="App.closeSongPlayer(); App.navigate('#/practice'); Practice.switchSubTab('mistakes');">
-                🎯 Procvičit chyby
+              <button type="button" class="btn btn-primary" id="results-practice-btn" onclick="App.practiceSongWeaknesses()">
+                🎯 Procvičit problémové akordy
               </button>
               <button type="button" class="btn btn-ghost" onclick="App.closeSongPlayer()">
-                Zpět do knihovny
+                🏠 Zpět do akademie
               </button>
             </div>
           </div>

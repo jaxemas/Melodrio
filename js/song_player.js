@@ -1049,6 +1049,31 @@ const SongPlayer = (() => {
       patternId: _currentPatternId,
     };
 
+    // Detailed per-chord breakdown for feedback
+    const chordStats = {};
+    for (const note of _noteTrack) {
+      const c = note.chord || 'Základ';
+      if (!chordStats[c]) {
+        chordStats[c] = { chord: c, total: 0, hit: 0, perfect: 0, good: 0, miss: 0 };
+      }
+      chordStats[c].total++;
+      if (note.judgement === 'perfect') {
+        chordStats[c].perfect++;
+        chordStats[c].hit++;
+      } else if (note.judgement === 'good') {
+        chordStats[c].good++;
+        chordStats[c].hit++;
+      } else if (note.judgement === 'miss') {
+        chordStats[c].miss++;
+      }
+    }
+
+    const chordBreakdown = Object.values(chordStats).map(s => ({
+      ...s,
+      accuracy: s.total > 0 ? Math.round((s.hit / s.total) * 100) : 0
+    }));
+
+    result.chordBreakdown = chordBreakdown;
     saveMistakes(result.mistakes);
 
     if (_onFinish) _onFinish(result);

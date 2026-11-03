@@ -3033,6 +3033,191 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 .player-results-card {
+  max-width: 660px;
+  width: 100%;
+  background: rgba(22, 30, 49, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 2.25rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  text-align: center;
+  margin: auto;
+}
+
+/* --- Results Accuracy Gauge Wrap --- */
+.results-accuracy-gauge-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 1.25rem 1.75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.accuracy-circle-container {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  flex-shrink: 0;
+}
+
+.accuracy-circle-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.accuracy-circle-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 10;
+}
+
+.accuracy-circle-meter {
+  fill: none;
+  stroke: #10B981;
+  stroke-width: 10;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s ease-out, stroke 0.4s ease;
+}
+
+.accuracy-circle-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.accuracy-percent-val {
+  font-size: 1.75rem;
+  font-weight: 900;
+  color: #F8FAFC;
+  line-height: 1;
+}
+
+.accuracy-percent-label {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #94A3B8;
+  margin-top: 0.2rem;
+}
+
+.accuracy-verdict-box {
+  text-align: left;
+  flex: 1;
+  min-width: 200px;
+}
+
+.accuracy-stars {
+  font-size: 1.25rem;
+  margin-bottom: 0.25rem;
+  letter-spacing: 0.1em;
+}
+
+.accuracy-grade-title {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #F8FAFC;
+  margin-bottom: 0.25rem;
+}
+
+.accuracy-grade-subtitle {
+  font-size: 0.88rem;
+  color: #94A3B8;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.4;
+}
+
+/* --- Results Analysis Section (Co ti šlo a nešlo) --- */
+.results-analysis-section {
+  text-align: left;
+  margin-bottom: 1.75rem;
+}
+
+.analysis-section-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #F8FAFC;
+  margin-bottom: 0.85rem;
+}
+
+.analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 620px) {
+  .analysis-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.analysis-card {
+  border-radius: 16px;
+  padding: 1.1rem;
+  backdrop-filter: blur(8px);
+}
+
+.analysis-card.success-card {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.analysis-card.warning-card {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.analysis-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.65rem;
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+
+.analysis-card.success-card .analysis-title {
+  color: #34D399;
+}
+
+.analysis-card.warning-card .analysis-title {
+  color: #FBBF24;
+}
+
+.analysis-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.analysis-list li {
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: #CBD5E1;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
+.analysis-list li code {
+  background: rgba(255, 255, 255, 0.12);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  font-weight: 700;
+  color: #F8FAFC;
+}
   max-width: 520px;
   width: 100%;
   text-align: center;
@@ -3658,6 +3843,515 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 .olymp-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  font-weight: 800;
+  font-size: 0.95rem;
+  padding: 0.5rem 1.5rem;
+  border-radius: 9999px;
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.25);
+}
+
+/* ==========================================================================
+   MELODRIO PHASE 2 - REDESIGNED BREATHABLE USER PROFILE (HERO + STAGES + BADGES)
+   ========================================================================== */
+
+.profile-page-container {
+  max-width: 980px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2.25rem;
+  padding: 1.5rem 1rem 5rem 1rem;
+}
+
+.profile-hero-card-v2 {
+  background: rgba(30, 41, 59, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 2.5rem;
+  backdrop-filter: blur(16px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  transition: all 0.25s ease;
+}
+
+.profile-hero-card-v2.is-god {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.85) 0%, rgba(245, 158, 11, 0.12) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  box-shadow: 0 12px 36px -8px rgba(245, 158, 11, 0.25);
+}
+
+.profile-hero-main {
+  display: flex;
+  align-items: center;
+  gap: 1.75rem;
+  flex-wrap: wrap;
+}
+
+.profile-avatar-circle {
+  width: 84px;
+  height: 84px;
+  border-radius: 22px;
+  font-size: 2.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(139, 92, 246, 0.2);
+  border: 2px solid rgba(139, 92, 246, 0.4);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+  flex-shrink: 0;
+}
+
+.god-avatar-wrap .profile-avatar-circle {
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  border-color: #FBBF24;
+  box-shadow: 0 0 25px rgba(245, 158, 11, 0.5);
+}
+
+.profile-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.profile-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.profile-display-name {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: #F8FAFC;
+  margin: 0;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.profile-rank-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.9rem;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  background: rgba(139, 92, 246, 0.2);
+  color: #c4b5fd;
+  border: 1px solid rgba(139, 92, 246, 0.4);
+}
+
+.profile-rank-tag.god-tag {
+  background: rgba(245, 158, 11, 0.2);
+  color: #FBBF24;
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.3);
+}
+
+.profile-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  color: #94A3B8;
+  margin-top: 0.25rem;
+}
+
+.profile-hero-level-module {
+  min-width: 250px;
+  flex: 1;
+  max-width: 330px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.level-badge-large {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.level-badge-large .level-num {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #F8FAFC;
+}
+
+.level-badge-large .level-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #94A3B8;
+}
+
+.profile-xp-meter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.xp-labels-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #CBD5E1;
+}
+
+.profile-xp-bar-track {
+  width: 100%;
+  height: 10px;
+  background: rgba(15, 23, 42, 0.7);
+  border-radius: 9999px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.profile-xp-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #8B5CF6, #3B82F6);
+  border-radius: 9999px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Metrics Grid */
+.profile-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 1.25rem;
+}
+
+.profile-metric-card {
+  background: rgba(30, 41, 59, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 1.5rem;
+  backdrop-filter: blur(12px);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.profile-metric-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.profile-metric-card .metric-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #94A3B8;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.4rem;
+}
+
+.profile-metric-card .metric-icon {
+  font-size: 1.35rem;
+}
+
+.profile-metric-card .metric-value {
+  font-size: 1.75rem;
+  font-weight: 900;
+  color: #F8FAFC;
+  line-height: 1.15;
+  margin-bottom: 0.35rem;
+}
+
+.profile-metric-card .metric-sub {
+  font-size: 0.78rem;
+  color: #94A3B8;
+}
+
+/* Section Card */
+.profile-section-card {
+  background: rgba(30, 41, 59, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 22px;
+  padding: 2.25rem;
+  backdrop-filter: blur(12px);
+}
+
+.profile-section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.profile-section-title {
+  font-size: 1.45rem;
+  font-weight: 900;
+  color: #F8FAFC;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0 0 0.35rem 0;
+  letter-spacing: -0.01em;
+}
+
+.profile-section-desc {
+  font-size: 0.9rem;
+  color: #94A3B8;
+  margin: 0;
+}
+
+.profile-section-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #E2E8F0;
+}
+
+/* Overall Progress */
+.profile-overall-progress-wrap {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 1.15rem 1.4rem;
+  margin-bottom: 1.5rem;
+}
+
+.overall-progress-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #E2E8F0;
+  margin-bottom: 0.5rem;
+}
+
+.overall-progress-track {
+  width: 100%;
+  height: 10px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.overall-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10B981, #059669);
+  border-radius: 9999px;
+  transition: width 0.6s ease;
+}
+
+/* 6 Stages Grid */
+.profile-stages-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 1.15rem;
+}
+
+.profile-stage-box {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 18px;
+  padding: 1.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  transition: all 0.2s ease;
+}
+
+.profile-stage-box.is-complete {
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.profile-stage-box.is-active {
+  border-color: rgba(139, 92, 246, 0.4);
+  box-shadow: 0 0 16px rgba(139, 92, 246, 0.15);
+}
+
+.profile-stage-box.is-locked {
+  opacity: 0.65;
+}
+
+.stage-box-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+
+.stage-box-icon {
+  font-size: 1.6rem;
+}
+
+.stage-box-status-pill {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #94A3B8;
+}
+
+.profile-stage-box.is-complete .stage-box-status-pill {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34D399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.stage-box-name {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #F8FAFC;
+}
+
+.stage-box-sub {
+  font-size: 0.78rem;
+  color: #94A3B8;
+  line-height: 1.35;
+  margin-bottom: 0.35rem;
+}
+
+.stage-box-progress-wrap {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.stage-box-progress-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.stage-box-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #8B5CF6, #3B82F6);
+  border-radius: 9999px;
+}
+
+.stage-box-progress-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #CBD5E1;
+}
+
+/* Badges Grid (Airy & spacious) */
+.profile-badges-air-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.15rem;
+}
+
+.profile-badge-card {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 18px;
+  padding: 1.25rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  transition: all 0.2s ease;
+}
+
+.profile-badge-card.earned {
+  border-color: rgba(16, 185, 129, 0.25);
+  background: rgba(15, 23, 42, 0.75);
+}
+
+.profile-badge-card.is-god-badge {
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.profile-badge-icon-wrap {
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.7rem;
+  background: rgba(255, 255, 255, 0.05);
+  flex-shrink: 0;
+}
+
+.profile-badge-card.earned .profile-badge-icon-wrap {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.profile-badge-card.is-god-badge .profile-badge-icon-wrap {
+  background: rgba(245, 158, 11, 0.18);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
+}
+
+.profile-badge-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.profile-badge-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.profile-badge-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #F8FAFC;
+}
+
+.profile-badge-desc {
+  font-size: 0.78rem;
+  color: #94A3B8;
+  line-height: 1.35;
+}
+
+.profile-badge-status-pill {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+.profile-badge-status-pill.earned {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34D399;
+}
+
+.profile-badge-status-pill.locked {
+  background: rgba(255, 255, 255, 0.06);
+  color: #94A3B8;
+}
+
+.profile-badge-status-pill.god-pill {
+  background: rgba(245, 158, 11, 0.2);
+  color: #FBBF24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
