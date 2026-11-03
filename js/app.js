@@ -3079,8 +3079,6 @@ window.App = {
       }
       weaknessesEl.innerHTML = wHtml;
     }
-    const titleEl = document.getElementById('results-song-name');
-    if (titleEl) titleEl.textContent = `${result.song.title} (${result.song.artist})`;
 
     const scoreEl = document.getElementById('results-score');
     if (scoreEl) scoreEl.textContent = result.score.toLocaleString();
@@ -3218,9 +3216,21 @@ window.App = {
       mainApp.style.display = 'flex';
     }
 
-    this.renderSidebar();
-    this.renderDashboard();
-    this.navigate(window.location.hash || '#/dashboard');
+    try {
+      this.renderSidebar();
+    } catch (e) {
+      console.error('Chyba v renderSidebar:', e);
+    }
+    try {
+      this.renderDashboard();
+    } catch (e) {
+      console.error('Chyba v renderDashboard:', e);
+    }
+    try {
+      this.navigate(window.location.hash || '#/dashboard');
+    } catch (e) {
+      console.error('Chyba v navigaci:', e);
+    }
   }
 };
 

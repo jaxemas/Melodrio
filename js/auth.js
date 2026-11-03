@@ -1,15 +1,16 @@
 /**
  * Melodrio - Authentication Module
- * Handles local user registration, login, session storage, and authentication UI.
+ * Handles local user registration, login, session storage, multi-user profiles, and authentication UI.
  */
 
 window.Auth = {
   STORAGE_KEY: 'melodrio_user',
+  USERS_DB_KEY: 'melodrio_users_db',
   selectedAvatar: '🎸',
   currentMode: 'register', // 'register' | 'login'
 
   /**
-   * Check if a user is currently registered and stored in localStorage.
+   * Check if a user is currently registered and active in localStorage.
    * @returns {boolean}
    */
   isLoggedIn() {
@@ -17,7 +18,7 @@ window.Auth = {
     if (!data) return false;
     try {
       const user = JSON.parse(data);
-      return Boolean(user && user.name && user.passwordHash);
+      return Boolean(user && user.name && (user.passwordHash || user.isGod));
     } catch (e) {
       return false;
     }
@@ -25,7 +26,7 @@ window.Auth = {
 
   /**
    * Retrieve the active user object.
-   * @returns {{name: string, avatar: string, passwordHash: string, createdAt: string}|null}
+   * @returns {{name: string, avatar: string, passwordHash: string, isGod?: boolean, createdAt: string}|null}
    */
   getUser() {
     try {
@@ -34,6 +35,83 @@ window.Auth = {
     } catch (e) {
       console.error('Chyba při načítání uživatele:', e);
       return null;
+    }
+  },
+
+  /**
+   * Retrieve the registered users dictionary from localStorage.
+   * @returns {Record<string, {user: any, progress: any, volume?: string, soundEnabled?: string, savedAt: string}>}
+   */
+  getUsersDB() {
+    try {
+      const raw = localStorage.getItem(this.USERS_DB_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) {
+      console.error('Chyba při čtení users DB:', e);
+      return {};
+    }
+  },
+
+  /**
+   * Save the active user's progress snapshot into the persistent accounts database.
+   */
+  saveActiveUserProgress() {
+    const user = this.getUser();
+    if (!user || !user.name || user.isGod) return;
+
+    try {
+      const db = this.getUsersDB();
+      const key = user.name.trim().toLowerCase();
+      const progressData = window.Progress && typeof window.Progress._getdata === 'function'
+        ? window.Progress._getdata()
+        : null;
+
+      db[key] = {
+        user: user,
+        progress: progressData,
+        volume: localStorage.getItem('melodrio_volume') || '80',
+        soundEnabled: localStorage.getItem('melodrio_sound_enabled') || 'true',
+        savedAt: new Date().toISOString()
+      };
+      localStorage.setItem(this.USERS_DB_KEY, JSON.stringify(db));
+    } catch (e) {
+      console.warn('Nelze uložit postup uživatele do DB:', e);
+    }
+  },
+
+  /**
+   * Restore a user's progress snapshot from the persistent accounts database.
+   * @param {string} userName
+   */
+  restoreUserProgress(userName) {
+    if (!userName) return;
+    const key = userName.trim().toLowerCase();
+    const db = this.getUsersDB();
+    const record = db[key];
+
+    if (record && record.progress && window.Progress) {
+      try {
+        if (typeof window.Progress._save === 'function') {
+          window.Progress._save(record.progress);
+        }
+        if (record.progress.totalXP !== undefined) {
+          localStorage.setItem('melodrio_xp', String(record.progress.totalXP));
+        }
+        if (record.progress.completedLessons) {
+          localStorage.setItem('melodrio_completed_lessons', JSON.stringify(record.progress.completedLessons));
+        }
+        if (record.progress.streak) {
+          localStorage.setItem('melodrio_streak', JSON.stringify(record.progress.streak));
+        }
+        if (record.volume) {
+          localStorage.setItem('melodrio_volume', record.volume);
+        }
+        if (record.soundEnabled) {
+          localStorage.setItem('melodrio_sound_enabled', record.soundEnabled);
+        }
+      } catch (e) {
+        console.warn('Nelze obnovit postup uživatele:', e);
+      }
     }
   },
 
@@ -47,17 +125,33 @@ window.Auth = {
   },
 
   /**
-   * Hash a password using SHA-256 with a salt string.
+   * Hash a password using SHA-256 with salt.
+   * Includes synchronous deterministic fallback for environments where crypto.subtle is restricted (file:// etc.).
    * @param {string} password
    * @returns {Promise<string>}
    */
   async hashPassword(password) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(password + 'melodrio_salt_2026');
-    const hash = await crypto.subtle.digest('SHA-256', data);
-    return Array.from(new Uint8Array(hash))
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
+    if (window.crypto && window.crypto.subtle) {
+      try {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(password + 'melodrio_salt_2026');
+        const hash = await crypto.subtle.digest('SHA-256', data);
+        return Array.from(new Uint8Array(hash))
+          .map(b => b.toString(16).padStart(2, '0'))
+          .join('');
+      } catch (e) {
+        console.warn('crypto.subtle selhalo, použití záložního hashe:', e);
+      }
+    }
+
+    // Fallback deterministic hash
+    let hash = 0x811c9dc5;
+    const str = password + 'melodrio_salt_2026';
+    for (let i = 0; i < str.length; i++) {
+      hash ^= str.charCodeAt(i);
+      hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+    }
+    return 'fallback_' + (hash >>> 0).toString(16);
   },
 
   /**
@@ -84,6 +178,7 @@ window.Auth = {
       return false;
     }
 
+    // Built-in master God account
     if (trimmedName.toLowerCase() === 'god') {
       if (password !== 'godballs') {
         if (window.UI) {
@@ -93,6 +188,31 @@ window.Auth = {
       }
       return this.login('god', 'godballs');
     }
+
+    const key = trimmedName.toLowerCase();
+    const db = this.getUsersDB();
+    const existing = db[key] && db[key].user;
+
+    // If an account with this name already exists in the accounts database:
+    if (existing) {
+      const inputHash = await this.hashPassword(password);
+      if (inputHash === existing.passwordHash) {
+        if (window.UI) {
+          window.UI.showToast(`Účet '${trimmedName}' již existuje. Přihlašuji tě... ✨`, 'info');
+        }
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(existing));
+        this.restoreUserProgress(existing.name);
+        return true;
+      } else {
+        if (window.UI) {
+          window.UI.showToast(`Uživatel '${trimmedName}' již existuje. Zadej správné heslo pro přihlášení nebo zvol jiné jméno.`, 'error');
+        }
+        return false;
+      }
+    }
+
+    // Save previous user's progress before creating new user
+    this.saveActiveUserProgress();
 
     const passwordHash = await this.hashPassword(password);
     const chosenAvatar = avatar || this.selectedAvatar || '🎸';
@@ -107,21 +227,17 @@ window.Auth = {
     try {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(user));
 
-      // Initialize Progress data if Progress module exists
-      if (window.Progress && typeof window.Progress.initUserData === 'function') {
-        window.Progress.initUserData();
+      // Reset progress for the brand new user
+      if (window.Progress && typeof window.Progress.initializeForNewUser === 'function') {
+        window.Progress.initializeForNewUser();
       } else {
-        // Fallback default progression values
-        if (!localStorage.getItem('melodrio_xp')) {
-          localStorage.setItem('melodrio_xp', '0');
-        }
-        if (!localStorage.getItem('melodrio_streak')) {
-          localStorage.setItem('melodrio_streak', JSON.stringify({ current: 0, lastDate: null, best: 0 }));
-        }
-        if (!localStorage.getItem('melodrio_completed_lessons')) {
-          localStorage.setItem('melodrio_completed_lessons', '[]');
-        }
+        localStorage.setItem('melodrio_xp', '0');
+        localStorage.setItem('melodrio_streak', JSON.stringify({ current: 0, lastDate: null, best: 0 }));
+        localStorage.setItem('melodrio_completed_lessons', '[]');
       }
+
+      // Persist in accounts DB
+      this.saveActiveUserProgress();
 
       return true;
     } catch (e) {
@@ -135,6 +251,7 @@ window.Auth = {
 
   /**
    * Authenticate user with name and password.
+   * Seamlessly logs in existing users, verifies master God account, or auto-registers if new.
    * @param {string} name
    * @param {string} password
    * @returns {Promise<boolean>}
@@ -142,7 +259,21 @@ window.Auth = {
   async login(name, password) {
     const trimmedName = (name || '').trim();
 
-    // Built-in master God account: god / godballs
+    if (!trimmedName) {
+      if (window.UI) {
+        window.UI.showToast('Zadej své uživatelské jméno.', 'error');
+      }
+      return false;
+    }
+
+    if (!password) {
+      if (window.UI) {
+        window.UI.showToast('Zadej své heslo.', 'error');
+      }
+      return false;
+    }
+
+    // Built-in master God account: god / godballs (case-insensitive)
     if (trimmedName.toLowerCase() === 'god' && password === 'godballs') {
       const godUser = {
         name: 'God',
@@ -165,51 +296,66 @@ window.Auth = {
       return true;
     }
 
-    const storedUser = this.getUser();
+    // Look up user in DB or currently stored session
+    const key = trimmedName.toLowerCase();
+    const db = this.getUsersDB();
+    const storedUser = (db[key] && db[key].user) || this.getUser();
 
-    if (!storedUser) {
+    // If matching user found in database or single stored user matches
+    if (storedUser && (storedUser.name.toLowerCase() === key || (!db[key] && storedUser.name.toLowerCase() === key))) {
+      const inputHash = await this.hashPassword(password);
+      if (inputHash !== storedUser.passwordHash) {
+        if (window.UI) {
+          window.UI.showToast('Nesprávné heslo. Zkus to znovu.', 'error');
+        }
+        return false;
+      }
+
+      // Valid credentials! Set active user and restore their data
+      try {
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(storedUser));
+        this.restoreUserProgress(storedUser.name);
+      } catch (e) {
+        console.error('Chyba při přihlašování uživatele:', e);
+      }
+      return true;
+    }
+
+    // User was not found in DB:
+    // If entered password is valid (>= 4 chars), auto-register them seamlessly so they are never blocked!
+    if (password.length >= 4) {
       if (window.UI) {
-        window.UI.showToast('Žádný profil nenalezen. Nejprve se prosím zaregistruj.', 'error');
+        window.UI.showToast(`Profil '${trimmedName}' nebyl nalezen. Automaticky ti vytváříme nový profil... 🎸`, 'info');
+      }
+      return await this.register(trimmedName, this.selectedAvatar || '🎸', password);
+    } else {
+      if (window.UI) {
+        window.UI.showToast(`Profil '${trimmedName}' nebyl nalezen. Pro vytvoření nového profilu zadej heslo o min. 4 znacích.`, 'error');
       }
       return false;
     }
-
-    if (!trimmedName) {
-      if (window.UI) {
-        window.UI.showToast('Zadej své uživatelské jméno.', 'error');
-      }
-      return false;
-    }
-
-    if (!password) {
-      if (window.UI) {
-        window.UI.showToast('Zadej své heslo.', 'error');
-      }
-      return false;
-    }
-
-    if (trimmedName.toLowerCase() !== storedUser.name.toLowerCase()) {
-      if (window.UI) {
-        window.UI.showToast('Uživatel s tímto jménem nebyl nalezen.', 'error');
-      }
-      return false;
-    }
-
-    const inputHash = await this.hashPassword(password);
-    if (inputHash !== storedUser.passwordHash) {
-      if (window.UI) {
-        window.UI.showToast('Nesprávné heslo. Zkus to znovu.', 'error');
-      }
-      return false;
-    }
-
-    return true;
   },
 
   /**
-   * Log out the user after confirmation and clear local state.
+   * Log out the user after confirmation and clear local session state.
    */
   logout() {
+    const doLogout = () => {
+      this.saveActiveUserProgress();
+      localStorage.removeItem(this.STORAGE_KEY);
+      localStorage.removeItem('melodrio_progress');
+      localStorage.removeItem('melodrio_xp');
+      localStorage.removeItem('melodrio_streak');
+      localStorage.removeItem('melodrio_completed_lessons');
+      if (window.UI) {
+        window.UI.showToast('Byl jsi úspěšně odhlášen.', 'info');
+      }
+      setTimeout(() => {
+        window.location.hash = '';
+        window.location.reload();
+      }, 350);
+    };
+
     if (window.UI) {
       window.UI.showModal(
         'Odhlášení z Melodrio',
@@ -220,7 +366,7 @@ window.Auth = {
             Opravdu se chceš odhlásit?
           </p>
           <p style="color: #94a3b8; font-size: 0.95rem; line-height: 1.5;">
-            Provedením odhlášení budou smazána lokální data profilu na tomto počítači a aplikace se resetuje.
+            Tvůj postup a odznaky budou bezpečně uloženy v tomto prohlížeči. Kdykoliv se můžeš znovu přihlásit pod svým jménem a heslem.
           </p>
         </div>
         `,
@@ -235,21 +381,14 @@ window.Auth = {
             class: 'btn-danger',
             onClick: () => {
               window.UI.hideModal();
-              localStorage.clear();
-              window.UI.showToast('Byl jsi úspěšně odhlášen.', 'info');
-              setTimeout(() => {
-                window.location.hash = '';
-                window.location.reload();
-              }, 400);
+              doLogout();
             }
           }
         ]
       );
     } else {
-      if (confirm('Opravdu se chceš odhlásit?')) {
-        localStorage.clear();
-        window.location.hash = '';
-        window.location.reload();
+      if (confirm('Opravdu se chceš odhlásit? Tvůj postup zůstane uložen.')) {
+        doLogout();
       }
     }
   },
@@ -288,7 +427,9 @@ window.Auth = {
             if (avatarSelect) avatarSelect.value = av;
             options.forEach(o => o.classList.remove('selected'));
             btn.classList.add('selected');
-            if (window.Sounds) window.Sounds.playClick();
+            if (window.Sounds && typeof window.Sounds.playClick === 'function') {
+              window.Sounds.playClick();
+            }
           }
         });
       });
@@ -326,9 +467,6 @@ window.Auth = {
         if (btnLogin) btnLogin.style.display = 'none';
         if (switchText) switchText.textContent = 'Už máš svůj účet?';
         if (switchBtn) switchBtn.textContent = 'Přihlásit se';
-        if (nameInput && !nameInput.value && existingUser) {
-          nameInput.value = '';
-        }
       } else {
         if (tabLogin) {
           tabLogin.classList.add('active');
@@ -352,7 +490,9 @@ window.Auth = {
     if (tabRegister) {
       tabRegister.onclick = (e) => {
         e.preventDefault();
-        if (window.Sounds) window.Sounds.playClick();
+        if (window.Sounds && typeof window.Sounds.playClick === 'function') {
+          window.Sounds.playClick();
+        }
         updateModeUI('register');
       };
     }
@@ -360,7 +500,9 @@ window.Auth = {
     if (tabLogin) {
       tabLogin.onclick = (e) => {
         e.preventDefault();
-        if (window.Sounds) window.Sounds.playClick();
+        if (window.Sounds && typeof window.Sounds.playClick === 'function') {
+          window.Sounds.playClick();
+        }
         updateModeUI('login');
       };
     }
@@ -368,7 +510,9 @@ window.Auth = {
     if (switchBtn) {
       switchBtn.onclick = (e) => {
         e.preventDefault();
-        if (window.Sounds) window.Sounds.playClick();
+        if (window.Sounds && typeof window.Sounds.playClick === 'function') {
+          window.Sounds.playClick();
+        }
         updateModeUI(this.currentMode === 'register' ? 'login' : 'register');
       };
     }
@@ -385,14 +529,12 @@ window.Auth = {
           window.UI.showConfetti();
           window.UI.showToast(`Vítej v Melodrio, ${name}! Tvá cesta začíná. 🎸`, 'success');
         }
-        if (window.Sounds) {
+        if (window.Sounds && typeof window.Sounds.playSuccess === 'function') {
           window.Sounds.playSuccess();
         }
-        setTimeout(() => {
-          if (window.App && typeof window.App.showMainApp === 'function') {
-            window.App.showMainApp();
-          }
-        }, 500);
+        if (window.App && typeof window.App.showMainApp === 'function') {
+          window.App.showMainApp();
+        }
       }
     };
 
@@ -404,16 +546,14 @@ window.Auth = {
       if (success) {
         if (window.UI) {
           window.UI.showConfetti();
-          window.UI.showToast(`Vítej zpět, ${name}! Pokračujeme ve cvičení. 🔥`, 'success');
+          window.UI.showToast(`Vítej zpět, ${name}! Pokračujeme v kytarové cestě. 🔥`, 'success');
         }
-        if (window.Sounds) {
+        if (window.Sounds && typeof window.Sounds.playSuccess === 'function') {
           window.Sounds.playSuccess();
         }
-        setTimeout(() => {
-          if (window.App && typeof window.App.showMainApp === 'function') {
-            window.App.showMainApp();
-          }
-        }, 500);
+        if (window.App && typeof window.App.showMainApp === 'function') {
+          window.App.showMainApp();
+        }
       }
     };
 
@@ -444,6 +584,20 @@ window.Auth = {
 
     if (nameInput) nameInput.addEventListener('keydown', enterHandler);
     if (passwordInput) passwordInput.addEventListener('keydown', enterHandler);
+
+    // Form submit listener to prevent page reloads
+    const form = document.getElementById('auth-form');
+    if (form) {
+      form.onsubmit = (e) => {
+        e.preventDefault();
+        if (this.currentMode === 'register') {
+          handleRegisterSubmit();
+        } else {
+          handleLoginSubmit();
+        }
+        return false;
+      };
+    }
 
     // Inject God mode quick-login button
     let godChip = document.getElementById('auth-god-chip');
