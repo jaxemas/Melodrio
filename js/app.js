@@ -1003,21 +1003,15 @@ window.App = {
     } else if (window.Practice && typeof window.Practice.playChordSound === 'function') {
       window.Practice.playChordSound(chordName);
     }
-    if (window.UI) {
-      window.UI.showToast(`&#x1F50A; Hraje akord ${chordName}`, 'info');
-    }
   },
 
   /**
-   * Action: Arpeggiate chord of the day using synthesizer
+   * Action: Arpeggiate chord of the day using synthesizer (full chord arpeggio)
    * @param {string} chordName
    */
   arpeggiateChordOfTheDay(chordName) {
     if (typeof AudioSynth !== 'undefined' && typeof AudioSynth.arpeggiateChord === 'function') {
-      AudioSynth.arpeggiateChord(chordName, { pattern: 'pima' });
-    }
-    if (window.UI) {
-      window.UI.showToast(`&#x1F3B6; Vybrnk&aacute;v&aacute;n&iacute; akordu dne: ${chordName} (P-I-M-A)`, 'info');
+      AudioSynth.arpeggiateChord(chordName, { pattern: 'full' });
     }
   },
 

@@ -9,7 +9,7 @@ window.UI = {
    * @param {string} message - Message text in Czech
    * @param {'success'|'error'|'info'} [type='info'] - Toast category
    */
-  showToast(message, type = 'info') {
+  showToast(message, type = 'info', silent = false) {
     let container = document.getElementById('toast-container');
     if (!container) {
       container = document.createElement('div');
@@ -46,8 +46,8 @@ window.UI = {
 
     container.appendChild(toast);
 
-    // Audio feedback
-    if (window.Sounds) {
+    // Audio feedback (omitted when silent is true)
+    if (window.Sounds && !silent) {
       if (type === 'success') {
         window.Sounds.playSuccess();
       } else if (type === 'error') {

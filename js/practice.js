@@ -535,7 +535,7 @@ const Practice = (() => {
   let _strummingMode = 'strumming'; // 'strumming' | 'fingerpicking'
   let _selectedCategory = 'all';
   let _chordSearchQuery = '';
-  let _currentArpPattern = 'pima';
+  let _currentArpPattern = 'full'; // Default: complete arpeggio through all chord strings
 
   // ── Render View Entry ────────────────────────────────────────────────
   function renderPracticeView(container) {
@@ -558,7 +558,7 @@ const Practice = (() => {
                 <span class="finger-badge-pill" style="margin-left: 0.5rem;">27 akordů &bull; P-I-M-A vzory</span>
               </div>
               <p class="view-subtitle" style="color: #94a3b8; margin: 0; font-size: 0.95rem;">
-                Kompletní atlas 27 kytarových akordů, vybrnkávání jednotlivých strun, P-I-M-A arpeggia a cílené procvičování slabých míst
+                Kompletní atlas 27 kytarových akordů, vybrnkávání jednotlivých strun, P-I-M-A arpeggia a opakování všech 48 lekcí
               </p>
             </div>
             <div style="display: flex; gap: 0.5rem;">
@@ -658,11 +658,9 @@ const Practice = (() => {
   // ── Filtered Chords Helper ───────────────────────────────────────────
   function getFilteredChords() {
     return CHORD_LIBRARY.filter(c => {
-      // Category filter
       if (_selectedCategory !== 'all' && c.catKey !== _selectedCategory) {
         return false;
       }
-      // Search query filter
       if (_chordSearchQuery.trim()) {
         const q = _chordSearchQuery.trim().toLowerCase();
         const matchesName = c.name.toLowerCase().includes(q);
@@ -676,8 +674,12 @@ const Practice = (() => {
 
   function setCategoryFilter(cat) {
     _selectedCategory = cat;
+    const listEl = document.getElementById('practice-chord-list');
+    const savedTop = listEl ? listEl.scrollTop : 0;
     const content = document.getElementById('practice-tab-content');
     if (content) renderAtlasTab(content);
+    const newListEl = document.getElementById('practice-chord-list');
+    if (newListEl) newListEl.scrollTop = savedTop;
   }
 
   function searchChords(query) {
@@ -698,32 +700,32 @@ const Practice = (() => {
       `;
     }
 
-    return filtered.map(c => `
-      <button
-        type="button"
-        onclick="Practice.selectChord('${c.name}')"
-        style="display: flex; justify-content: space-between; align-items: center; padding: 0.65rem 0.85rem; border-radius: 10px; border: 1px solid ${c.name === _selectedChord.name ? '#6366F1' : 'transparent'}; background: ${c.name === _selectedChord.name ? 'rgba(99, 102, 241, 0.25)' : 'rgba(15, 23, 42, 0.5)'}; color: #f8fafc; cursor: pointer; text-align: left; transition: all 0.15s ease;"
-      >
-        <div>
-          <span style="font-size: 1.1rem; font-weight: 800; color: ${c.name === _selectedChord.name ? '#818CF8' : '#cbd5e1'};">
-            ${c.name}
+    return filtered.map(c => {
+      const isSelected = c.name === _selectedChord.name;
+      return `
+        <button
+          type="button"
+          data-chord-name="${c.name}"
+          onclick="Practice.selectChord('${c.name}')"
+          style="display: flex; justify-content: space-between; align-items: center; padding: 0.65rem 0.85rem; border-radius: 10px; border: 1px solid ${isSelected ? '#6366F1' : 'transparent'}; background: ${isSelected ? 'rgba(99, 102, 241, 0.25)' : 'rgba(15, 23, 42, 0.5)'}; color: #f8fafc; cursor: pointer; text-align: left; transition: background 0.15s ease, border-color 0.15s ease;"
+        >
+          <div>
+            <span class="chord-btn-name" style="font-size: 1.1rem; font-weight: 800; color: ${isSelected ? '#818CF8' : '#cbd5e1'};">
+              ${c.name}
+            </span>
+            <div style="font-size: 0.72rem; color: #94a3b8;">${c.fullName || c.category}</div>
+          </div>
+          <span style="font-size: 0.7rem; font-weight: 700; color: ${c.difficulty === 'Lehká' ? '#34d399' : (c.difficulty === 'Střední' ? '#fbbf24' : '#f87171')}; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;">
+            ${c.difficulty}
           </span>
-          <div style="font-size: 0.72rem; color: #94a3b8;">${c.fullName || c.category}</div>
-        </div>
-        <span style="font-size: 0.7rem; font-weight: 700; color: ${c.difficulty === 'Lehká' ? '#34d399' : (c.difficulty === 'Střední' ? '#fbbf24' : '#f87171')}; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;">
-          ${c.difficulty}
-        </span>
-      </button>
-    `).join('');
+        </button>
+      `;
+    }).join('');
   }
 
   // ── 1. Atlas akordů, Hmatník & Vybrnkávání strun ──────────────────────
   function renderAtlasTab(container) {
     const chord = _selectedChord;
-    const chordNotes = (typeof AudioSynth !== 'undefined' && AudioSynth.getChordNoteNames)
-      ? AudioSynth.getChordNoteNames(chord.name)
-      : [];
-
     const categories = [
       { key: 'all', label: 'Všechny (27)' },
       { key: 'durove', label: 'Základní durové' },
@@ -735,7 +737,7 @@ const Practice = (() => {
 
     container.innerHTML = `
       <div style="display: grid; grid-template-columns: 290px 1fr; gap: 1.5rem; align-items: start;">
-        <!-- Left Column: Search & Chord Selection -->
+        <!-- Left Column: Search & Chord Selection (Scroll Position Preserved) -->
         <div class="card" style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 1.1rem;">
           <div style="font-size: 0.85rem; font-weight: 800; color: #a78bfa; text-transform: uppercase; margin-bottom: 0.65rem; display: flex; justify-content: space-between; align-items: center;">
             <span>Knihovna akordů</span>
@@ -773,157 +775,175 @@ const Practice = (() => {
           </div>
         </div>
 
-        <!-- Right Column: Interactive Fretboard, String Plucking Deck & Arpeggio -->
-        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
-          <!-- Chord Showcase Card -->
-          <div class="card" style="background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(139, 92, 246, 0.35); border-radius: 20px; padding: 1.5rem;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
-              <div>
-                <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
-                  <h2 style="font-size: 2.2rem; font-weight: 900; color: #f8fafc; margin: 0;">
-                    Akord ${chord.name}
-                  </h2>
-                  <span style="font-size: 1.05rem; font-weight: 700; color: #fbbf24;">
-                    (${chord.fullName || chord.name})
-                  </span>
-                  <span style="font-size: 0.8rem; font-weight: 700; color: #a78bfa; background: rgba(139, 92, 246, 0.2); padding: 0.2rem 0.65rem; border-radius: 6px;">
-                    ${chord.category}
-                  </span>
-                  <span style="font-size: 0.75rem; font-weight: 700; color: ${chord.difficulty === 'Lehká' ? '#34d399' : (chord.difficulty === 'Střední' ? '#fbbf24' : '#f87171')}; background: rgba(0,0,0,0.3); padding: 0.2rem 0.55rem; border-radius: 6px;">
-                    Obtížnost: ${chord.difficulty}
-                  </span>
-                </div>
-                <div style="font-size: 0.92rem; color: #cbd5e1; margin-top: 0.35rem; max-width: 650px; line-height: 1.45;">
-                  💡 <strong>Tip pro čistý tón:</strong> ${chord.tip}
-                </div>
-              </div>
-
-              <!-- Top Sound Actions (Strum & Arpeggio) -->
-              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
-                <button
-                  class="btn btn-primary"
-                  onclick="Practice.playChordSound('${chord.name}')"
-                  style="border-radius: 10px; font-weight: 700; display: flex; align-items: center; gap: 0.4rem; padding: 0.6rem 1rem;"
-                >
-                  🔊 Zahrát akord
-                </button>
-                <div style="display: flex; align-items: center; gap: 0.3rem; background: #0f172a; padding: 3px 6px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12);">
-                  <select
-                    id="arp-pattern-select"
-                    onchange="Practice.setArpPattern(this.value)"
-                    style="background: transparent; color: #cbd5e1; border: none; font-size: 0.82rem; font-weight: 700; padding: 0.25rem 0.4rem; cursor: pointer; outline: none;"
-                  >
-                    <option value="pima" ${_currentArpPattern === 'pima' ? 'selected' : ''}>P-I-M-A (Vzestupně)</option>
-                    <option value="camp" ${_currentArpPattern === 'camp' ? 'selected' : ''}>Táborový valčík (6/8)</option>
-                    <option value="ballad" ${_currentArpPattern === 'ballad' ? 'selected' : ''}>Akustická balada</option>
-                    <option value="pinch" ${_currentArpPattern === 'pinch' ? 'selected' : ''}>Travis Pinch (Souzvuk)</option>
-                  </select>
-                  <button
-                    class="btn btn-secondary btn-sm"
-                    onclick="Practice.playArpeggio('${chord.name}')"
-                    style="border-radius: 8px; font-weight: 700; display: flex; align-items: center; gap: 0.35rem; padding: 0.4rem 0.75rem;"
-                  >
-                    🎶 Vybrnkat
-                  </button>
-                </div>
-                <button
-                  class="btn btn-ghost btn-sm"
-                  onclick="Practice.checkCleanliness('${chord.name}')"
-                  style="border-radius: 10px; font-weight: 700; border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; display: flex; align-items: center; gap: 0.35rem; padding: 0.5rem 0.85rem;"
-                  title="Postupně vybrnká všechny struny akordu, abys mohl zkontrolovat čistotu každého tónu"
-                >
-                  🔍 Test čistoty strun
-                </button>
-              </div>
-            </div>
-
-            <!-- Fretboard Diagram SVG (Interactive) -->
-            <div style="background: #0A0F1D; border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 1.25rem; display: flex; justify-content: center; overflow-x: auto; position: relative;">
-              ${renderFretboardSvg(chord)}
-            </div>
-
-            <!-- Finger legend & Click tip -->
-            <div style="display: flex; gap: 1.25rem; justify-content: center; margin-top: 0.9rem; flex-wrap: wrap; font-size: 0.82rem; color: #94a3b8; align-items: center;">
-              <span style="display: flex; align-items: center; gap: 0.35rem;">
-                <span style="width: 14px; height: 14px; border-radius: 50%; background: #6366F1; display: inline-block;"></span>
-                Stisknutý pražec (číslo prstu 1–4)
-              </span>
-              <span style="display: flex; align-items: center; gap: 0.35rem;">
-                <span style="width: 12px; height: 12px; border-radius: 50%; border: 2px solid #10B981; display: inline-block;"></span>
-                O (otevřená znějící struna)
-              </span>
-              <span style="display: flex; align-items: center; gap: 0.35rem;">
-                <span style="color: #ef4444; font-weight: 900;">✕</span>
-                X (tlumená / nehraná struna)
-              </span>
-              <span style="color: #38bdf8; font-weight: 700;">
-                ✨ Tip: Klikni na strunu v diagramu nebo níže v panelu pro samostatné vybrnknutí!
-              </span>
-            </div>
-
-            <!-- ── INTERACTIVE STRING PLUCKING DECK ──────────────────────── -->
-            <div style="margin-top: 1.4rem; padding-top: 1.25rem; border-top: 1px solid rgba(255,255,255,0.08);">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem; flex-wrap: wrap; gap: 0.5rem;">
-                <div>
-                  <div style="font-size: 0.95rem; font-weight: 800; color: #f8fafc; display: flex; align-items: center; gap: 0.4rem;">
-                    <span>🖐️ Vybrnkávání jednotlivých strun (String Plucking Deck)</span>
-                  </div>
-                  <div style="font-size: 0.78rem; color: #94a3b8;">
-                    Klikni na kteroukoliv strunu a poslechni si přesný tón a rezonanci v akordu ${chord.name}:
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  class="btn btn-xs btn-ghost"
-                  onclick="Practice.checkCleanliness('${chord.name}')"
-                  style="border-radius: 6px; font-weight: 700; color: #a78bfa;"
-                >
-                  ▶ Přehrát všechny postupně (Test čistoty)
-                </button>
-              </div>
-
-              <!-- 6 Pluck Buttons Deck -->
-              <div class="string-plucking-deck" id="string-plucking-deck">
-                ${chordNotes.map(n => {
-                  const isBass = n.stringNum === chord.rootString;
-                  return `
-                    <button
-                      type="button"
-                      id="str-pluck-btn-${n.stringNum}"
-                      class="string-pluck-btn ${n.isMuted ? 'is-muted' : ''}"
-                      onclick="Practice.pluckSingleString('${chord.name}', ${n.stringNum})"
-                      title="${n.isMuted ? 'Tlumená struna — v tomto akordu nezní' : `Zahrát strunu ${n.stringNum} (${n.noteName})`}"
-                      style="${isBass ? 'border-color: rgba(245, 158, 11, 0.6); box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);' : ''}"
-                    >
-                      <span class="str-badge">${n.stringNum}. (${n.stringName})</span>
-                      <span class="str-note">${n.noteName}</span>
-                      <span class="str-fret">${n.fretLabel}</span>
-                      ${isBass ? `<span style="font-size: 0.65rem; font-weight: 800; color: #fbbf24; margin-top: 3px;">👑 Bas (P)</span>` : ''}
-                    </button>
-                  `;
-                }).join('')}
-              </div>
-            </div>
+        <!-- Right Column: Interactive Fretboard, String Plucking Deck & Arpeggio Showcase -->
+        <div id="practice-chord-showcase-container">
+          <div id="practice-chord-showcase">
+            ${renderChordShowcase(chord)}
           </div>
+        </div>
+      </div>
+    `;
+  }
 
-          <!-- Quick Practice Workout Callout -->
-          <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(16, 185, 129, 0.15)); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 16px; padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+  /**
+   * Render only the right showcase card. Updating this does NOT touch or scroll the left chord list!
+   */
+  function renderChordShowcase(chord) {
+    const chordNotes = (typeof AudioSynth !== 'undefined' && AudioSynth.getChordNoteNames)
+      ? AudioSynth.getChordNoteNames(chord.name)
+      : [];
+
+    return `
+      <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+        <!-- Chord Showcase Card -->
+        <div class="card" style="background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(139, 92, 246, 0.35); border-radius: 20px; padding: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
             <div>
-              <div style="font-size: 1.05rem; font-weight: 800; color: #f8fafc; margin-bottom: 0.2rem;">
-                Chceš procvičit akord ${chord.name} přímo na běžící herní dráze?
+              <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
+                <h2 style="font-size: 2.2rem; font-weight: 900; color: #f8fafc; margin: 0;">
+                  Akord ${chord.name}
+                </h2>
+                <span style="font-size: 1.05rem; font-weight: 700; color: #fbbf24;">
+                  (${chord.fullName || chord.name})
+                </span>
+                <span style="font-size: 0.8rem; font-weight: 700; color: #a78bfa; background: rgba(139, 92, 246, 0.2); padding: 0.2rem 0.65rem; border-radius: 6px;">
+                  ${chord.category}
+                </span>
+                <span style="font-size: 0.75rem; font-weight: 700; color: ${chord.difficulty === 'Lehká' ? '#34d399' : (chord.difficulty === 'Střední' ? '#fbbf24' : '#f87171')}; background: rgba(0,0,0,0.3); padding: 0.2rem 0.55rem; border-radius: 6px;">
+                  Obtížnost: ${chord.difficulty}
+                </span>
               </div>
-              <div style="font-size: 0.85rem; color: #cbd5e1;">
-                Spusť tréninkovou smyčku a vyzkoušej si přesné přehmátnutí a rytmiku v tempu!
+              <div style="font-size: 0.92rem; color: #cbd5e1; margin-top: 0.35rem; max-width: 650px; line-height: 1.45;">
+                💡 <strong>Tip pro čistý tón:</strong> ${chord.tip}
               </div>
             </div>
-            <button
-              class="btn btn-primary"
-              onclick="Practice.startChordWorkout('${chord.name}')"
-              style="border-radius: 10px; font-weight: 700;"
-            >
-              🎯 Spustit trénink akordu ▶
-            </button>
+
+            <!-- Top Sound Actions (Strum & Arpeggio) -->
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+              <button
+                class="btn btn-primary"
+                onclick="Practice.playChordSound('${chord.name}')"
+                style="border-radius: 10px; font-weight: 700; display: flex; align-items: center; gap: 0.4rem; padding: 0.6rem 1rem;"
+              >
+                🔊 Zahrát akord
+              </button>
+              <div style="display: flex; align-items: center; gap: 0.3rem; background: #0f172a; padding: 3px 6px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12);">
+                <select
+                  id="arp-pattern-select"
+                  onchange="Practice.setArpPattern(this.value)"
+                  style="background: transparent; color: #cbd5e1; border: none; font-size: 0.82rem; font-weight: 700; padding: 0.25rem 0.4rem; cursor: pointer; outline: none;"
+                >
+                  <option value="full" ${_currentArpPattern === 'full' ? 'selected' : ''}>Plné arpeggio (všechny struny)</option>
+                  <option value="pima" ${_currentArpPattern === 'pima' ? 'selected' : ''}>P-I-M-A (Vzestupně)</option>
+                  <option value="camp" ${_currentArpPattern === 'camp' ? 'selected' : ''}>Táborový valčík (6/8)</option>
+                  <option value="ballad" ${_currentArpPattern === 'ballad' ? 'selected' : ''}>Akustická balada</option>
+                  <option value="pinch" ${_currentArpPattern === 'pinch' ? 'selected' : ''}>Travis Pinch (Souzvuk)</option>
+                </select>
+                <button
+                  class="btn btn-secondary btn-sm"
+                  onclick="Practice.playArpeggio('${chord.name}')"
+                  style="border-radius: 8px; font-weight: 700; display: flex; align-items: center; gap: 0.35rem; padding: 0.4rem 0.75rem;"
+                >
+                  🎶 Vybrnkat
+                </button>
+              </div>
+              <button
+                class="btn btn-ghost btn-sm"
+                onclick="Practice.checkCleanliness('${chord.name}')"
+                style="border-radius: 10px; font-weight: 700; border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; display: flex; align-items: center; gap: 0.35rem; padding: 0.5rem 0.85rem;"
+                title="Postupně vybrnká všechny znějící struny akordu pro ověření čistoty každého tónu"
+              >
+                🔍 Test čistoty strun
+              </button>
+            </div>
           </div>
+
+          <!-- Fretboard Diagram SVG (Interactive) -->
+          <div style="background: #0A0F1D; border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 1.25rem; display: flex; justify-content: center; overflow-x: auto; position: relative;">
+            ${renderFretboardSvg(chord)}
+          </div>
+
+          <!-- Finger legend & Click tip -->
+          <div style="display: flex; gap: 1.25rem; justify-content: center; margin-top: 0.9rem; flex-wrap: wrap; font-size: 0.82rem; color: #94a3b8; align-items: center;">
+            <span style="display: flex; align-items: center; gap: 0.35rem;">
+              <span style="width: 14px; height: 14px; border-radius: 50%; background: #6366F1; display: inline-block;"></span>
+              Stisknutý pražec (číslo prstu 1–4)
+            </span>
+            <span style="display: flex; align-items: center; gap: 0.35rem;">
+              <span style="width: 12px; height: 12px; border-radius: 50%; border: 2px solid #10B981; display: inline-block;"></span>
+              O (otevřená znějící struna)
+            </span>
+            <span style="display: flex; align-items: center; gap: 0.35rem;">
+              <span style="color: #ef4444; font-weight: 900;">✕</span>
+              X (tlumená / nehraná struna)
+            </span>
+            <span style="color: #38bdf8; font-weight: 700;">
+              ✨ Tip: Klikni na strunu v diagramu nebo níže v panelu pro samostatné vybrnknutí!
+            </span>
+          </div>
+
+          <!-- ── INTERACTIVE STRING PLUCKING DECK ──────────────────────── -->
+          <div style="margin-top: 1.4rem; padding-top: 1.25rem; border-top: 1px solid rgba(255,255,255,0.08);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem; flex-wrap: wrap; gap: 0.5rem;">
+              <div>
+                <div style="font-size: 0.95rem; font-weight: 800; color: #f8fafc; display: flex; align-items: center; gap: 0.4rem;">
+                  <span>🖐️ Vybrnkávání jednotlivých strun (String Plucking Deck)</span>
+                </div>
+                <div style="font-size: 0.78rem; color: #94a3b8;">
+                  Klikni na kteroukoliv strunu a poslechni si přesný tón a rezonanci v akordu ${chord.name}:
+                </div>
+              </div>
+              <button
+                type="button"
+                class="btn btn-xs btn-ghost"
+                onclick="Practice.checkCleanliness('${chord.name}')"
+                style="border-radius: 6px; font-weight: 700; color: #a78bfa;"
+              >
+                ▶ Přehrát všechny postupně (Test čistoty)
+              </button>
+            </div>
+
+            <!-- 6 Pluck Buttons Deck in 6-column grid -->
+            <div class="string-plucking-deck" id="string-plucking-deck">
+              ${chordNotes.map(n => {
+                const isBass = n.stringNum === chord.rootString;
+                return `
+                  <button
+                    type="button"
+                    id="str-pluck-btn-${n.stringNum}"
+                    class="string-pluck-btn ${n.isMuted ? 'is-muted' : ''}"
+                    onclick="Practice.pluckSingleString('${chord.name}', ${n.stringNum})"
+                    title="${n.isMuted ? 'Tlumená struna — v tomto akordu nezní' : `Zahrát strunu ${n.stringNum} (${n.noteName})`}"
+                    style="${isBass ? 'border-color: rgba(245, 158, 11, 0.6); box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);' : ''}"
+                  >
+                    <span class="str-badge">${n.stringNum}. (${n.stringName})</span>
+                    <span class="str-note">${n.noteName}</span>
+                    <span class="str-fret">${n.fretLabel}</span>
+                    ${isBass ? `<span style="font-size: 0.65rem; font-weight: 800; color: #fbbf24; margin-top: 3px;">👑 Bas (P)</span>` : ''}
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Practice Workout Callout -->
+        <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(16, 185, 129, 0.15)); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 16px; padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <div style="font-size: 1.05rem; font-weight: 800; color: #f8fafc; margin-bottom: 0.2rem;">
+              Chceš procvičit akord ${chord.name} přímo na běžící herní dráze?
+            </div>
+            <div style="font-size: 0.85rem; color: #cbd5e1;">
+              Spusť tréninkovou smyčku a vyzkoušej si přesné přehmátnutí a rytmiku v tempu!
+            </div>
+          </div>
+          <button
+            class="btn btn-primary"
+            onclick="Practice.startChordWorkout('${chord.name}')"
+            style="border-radius: 10px; font-weight: 700;"
+          >
+            🎯 Spustit trénink akordu ▶
+          </button>
         </div>
       </div>
     `;
@@ -931,12 +951,33 @@ const Practice = (() => {
 
   function selectChord(chordName) {
     const found = CHORD_LIBRARY.find(c => c.name === chordName || (c.aliases && c.aliases.includes(chordName)));
-    if (found) {
-      _selectedChord = found;
+    if (!found) return;
+
+    _selectedChord = found;
+
+    // Check if showcase already exists in DOM
+    const showcase = document.getElementById('practice-chord-showcase');
+    const listEl = document.getElementById('practice-chord-list');
+
+    if (showcase && listEl) {
+      // Update ONLY the showcase card so the list NEVER scrolls back to top!
+      showcase.innerHTML = renderChordShowcase(found);
+
+      // Update active state on list buttons smoothly without touching list's scrollTop
+      const btns = listEl.querySelectorAll('[data-chord-name]');
+      btns.forEach(b => {
+        const isSel = b.getAttribute('data-chord-name') === found.name;
+        b.style.borderColor = isSel ? '#6366F1' : 'transparent';
+        b.style.background = isSel ? 'rgba(99, 102, 241, 0.25)' : 'rgba(15, 23, 42, 0.5)';
+        const nameSpan = b.querySelector('.chord-btn-name');
+        if (nameSpan) nameSpan.style.color = isSel ? '#818CF8' : '#cbd5e1';
+      });
+    } else {
       const content = document.getElementById('practice-tab-content');
       if (content) renderAtlasTab(content);
-      playChordSound(found.name);
     }
+
+    playChordSound(found.name);
   }
 
   function playChordSound(chordName) {
@@ -951,17 +992,14 @@ const Practice = (() => {
 
   function playArpeggio(chordName) {
     if (typeof AudioSynth === 'undefined') return;
-    const pat = _currentArpPattern || 'pima';
+    const pat = _currentArpPattern || 'full';
     AudioSynth.arpeggiateChord(chordName, {
       pattern: pat,
       onPluck: (strNum, finger) => {
         flashPluckingString(strNum);
       }
     });
-
-    if (window.UI && typeof window.UI.showToast === 'function') {
-      window.UI.showToast(`🎶 Vybrnkávám akord ${chordName} (${pat.toUpperCase()})`, 'info');
-    }
+    // Silent execution: NO notification sound / chime interfering with strings!
   }
 
   function checkCleanliness(chordName) {
@@ -973,10 +1011,7 @@ const Practice = (() => {
         flashPluckingString(strNum);
       }
     });
-
-    if (window.UI && typeof window.UI.showToast === 'function') {
-      window.UI.showToast(`🔍 Test čistoty strun: kontroluj čistotu tónů od 6. do 1. struny!`, 'info');
-    }
+    // Silent execution: pure acoustic guitar tones only!
   }
 
   function pluckSingleString(chordName, stringNum) {
@@ -986,14 +1021,12 @@ const Practice = (() => {
   }
 
   function flashPluckingString(stringNum) {
-    // 1. Flash the button in the plucking deck
     const btn = document.getElementById(`str-pluck-btn-${stringNum}`);
     if (btn) {
       btn.classList.add('is-plucking');
       setTimeout(() => btn.classList.remove('is-plucking'), 400);
     }
 
-    // 2. Flash SVG string line in fretboard
     const svgLine = document.getElementById(`fret-str-line-${stringNum}`);
     if (svgLine) {
       svgLine.setAttribute('stroke', '#38bdf8');
@@ -1022,32 +1055,30 @@ const Practice = (() => {
 
     const fretWidth = (width - leftMargin - rightMargin) / frets;
     const stringHeight = (height - topMargin - bottomMargin) / 5;
-
-    const stringNames = ['E', 'A', 'D', 'G', 'B', 'e']; // 6 to 1 (top to bottom on horizontal neck)
+    const stringNames = ['E', 'A', 'D', 'G', 'B', 'e'];
 
     let svg = `<svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" style="max-width: 100%; height: auto; font-family: 'Segoe UI', system-ui, sans-serif; user-select: none;">`;
 
     // Fretboard wood background
     svg += `<rect x="${leftMargin}" y="${topMargin - 6}" width="${width - leftMargin - rightMargin}" height="${height - topMargin - bottomMargin + 12}" fill="#1E293B" rx="8" stroke="#334155" stroke-width="1.5" />`;
 
-    // Nut (nultý pražec - thick white/cream bar at left)
+    // Nut (nultý pražec)
     svg += `<rect x="${leftMargin - 6}" y="${topMargin - 7}" width="8" height="${height - topMargin - bottomMargin + 14}" fill="#E2E8F0" rx="3" />`;
 
     // Frets (vertical metal lines)
     for (let f = 1; f <= frets; f++) {
       const x = leftMargin + f * fretWidth;
       svg += `<line x1="${x}" y1="${topMargin - 6}" x2="${x}" y2="${topMargin + 5 * stringHeight + 6}" stroke="#475569" stroke-width="2.5" />`;
-      // Larger, bolder fret number at bottom
       svg += `<text x="${x - fretWidth / 2}" y="${height - 8}" fill="#CBD5E1" font-size="12" font-weight="800" text-anchor="middle">${f}. pražec</text>`;
     }
 
     // Strings (horizontal lines, strings 6 to 1)
     for (let s = 0; s < 6; s++) {
       const y = topMargin + s * stringHeight;
-      const thickness = 1.2 + (5 - s) * 0.45; // 6th string thickest (at top)
-      const stringNum = 6 - s; // 1-6
+      const thickness = 1.2 + (5 - s) * 0.45;
+      const stringNum = 6 - s;
 
-      // Clickable transparent hit box for easy plucking on SVG
+      // Clickable transparent hit box
       svg += `<rect x="${leftMargin}" y="${y - 12}" width="${width - leftMargin - rightMargin}" height="24" fill="transparent" style="cursor: pointer;" onclick="Practice.pluckSingleString('${chord.name}', ${stringNum})" />`;
 
       // Visual string line
@@ -1066,15 +1097,12 @@ const Practice = (() => {
 
     // Finger dots on frets
     for (const f of chord.fingers) {
-      const sIdx = 6 - f.string; // convert string 1-6 to row 0-5
+      const sIdx = 6 - f.string;
       const y = topMargin + sIdx * stringHeight;
       const x = leftMargin + (f.fret - 0.5) * fretWidth;
 
-      // Glow shadow
       svg += `<circle cx="${x}" cy="${y}" r="16" fill="rgba(99, 102, 241, 0.4)" />`;
-      // Main finger dot (Clickable to pluck!)
       svg += `<circle cx="${x}" cy="${y}" r="12.5" fill="#6366F1" stroke="#FFFFFF" stroke-width="2.5" style="cursor: pointer;" onclick="Practice.pluckSingleString('${chord.name}', ${f.string})" />`;
-      // Large bold finger number
       svg += `<text x="${x}" y="${y + 5}" fill="#FFFFFF" font-size="13" font-weight="900" text-anchor="middle" style="cursor: pointer;" onclick="Practice.pluckSingleString('${chord.name}', ${f.string})">${f.finger}</text>`;
     }
 
@@ -1240,7 +1268,7 @@ const Practice = (() => {
           </div>
         </div>
 
-        <!-- Workout Options (Pattern, Frequency, Tempo) -->
+        <!-- Workout Options -->
         <div class="card" style="background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 1.25rem; display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: space-between; align-items: center;">
           <div style="display: flex; align-items: center; gap: 0.75rem;">
             <span style="font-size: 0.82rem; font-weight: 800; color: #94A3B8;">🎸 Rytmus úderů:</span>
@@ -1439,7 +1467,6 @@ const Practice = (() => {
 
   function renderStrummingPatternsView(patternList) {
     return `
-      <!-- Strumming Banner -->
       <div class="card" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(16, 185, 129, 0.15)); border: 1px solid rgba(99, 102, 241, 0.35); border-radius: 20px; padding: 1.5rem 1.75rem;">
         <div>
           <div style="font-size: 0.8rem; font-weight: 800; color: #a78bfa; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">
@@ -1455,7 +1482,6 @@ const Practice = (() => {
         </div>
       </div>
 
-      <!-- Patterns Grid -->
       <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 1.25rem;">
         ${patternList.map(p => `
           <div class="card" style="background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; padding: 1.4rem; display: flex; flex-direction: column; justify-content: space-between; gap: 1rem;">
@@ -1472,7 +1498,6 @@ const Practice = (() => {
                 ${p.description}
               </p>
 
-              <!-- Strum Slot Visualization -->
               <div style="display: flex; gap: 4px; justify-content: space-between; background: #0F172A; padding: 0.6rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); margin-bottom: 1rem;">
                 ${p.slots.map(s => `
                   <div style="flex: 1; text-align: center; display: flex; flex-direction: column; align-items: center;">
@@ -1513,36 +1538,33 @@ const Practice = (() => {
     return `
       <!-- Fingerpicking Hero Guide -->
       <div class="card" style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(139, 92, 246, 0.2)); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 20px; padding: 1.75rem;">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1.25rem;">
-          <div>
-            <div style="font-size: 0.8rem; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">
-              🖐️ Kytarová škola vybrnkávání
-            </div>
-            <h2 style="font-size: 1.65rem; font-weight: 900; color: #f8fafc; margin: 0 0 0.45rem 0;">
-              Škola vybrnkávání prsty (Fingerpicking & P-I-M-A)
-            </h2>
-            <p style="font-size: 0.92rem; color: #cbd5e1; max-width: 720px; margin: 0 0 1rem 0; line-height: 1.5;">
-              Při vybrnkávání nepoužíváme trsátko, ale prsty pravé ruky. Každý prst má své <strong>přesné poslání a domovské struny</strong> podle mezinárodní španělské notace:
-            </p>
+        <div>
+          <div style="font-size: 0.8rem; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">
+            🖐️ Kytarová škola vybrnkávání
+          </div>
+          <h2 style="font-size: 1.65rem; font-weight: 900; color: #f8fafc; margin: 0 0 0.45rem 0;">
+            Škola vybrnkávání prsty (Fingerpicking & P-I-M-A)
+          </h2>
+          <p style="font-size: 0.92rem; color: #cbd5e1; max-width: 720px; margin: 0 0 1rem 0; line-height: 1.5;">
+            Při vybrnkávání nepoužíváme trsátko, ale prsty pravé ruky. Každý prst má své <strong>přesné poslání a domovské struny</strong> podle mezinárodní španělské notace:
+          </p>
 
-            <!-- P-I-M-A Rule Cards -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem;">
-              <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 0.75rem 0.9rem;">
-                <div style="font-size: 1.1rem; font-weight: 900; color: #fbbf24; margin-bottom: 0.2rem;">P = Palec (Pulgar)</div>
-                <div style="font-size: 0.8rem; color: #94a3b8; line-height: 1.35;">Hraje basové struny <strong>6 (E), 5 (A) a 4 (D)</strong>. Úder směřuje dolů.</div>
-              </div>
-              <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 0.75rem 0.9rem;">
-                <div style="font-size: 1.1rem; font-weight: 900; color: #38bdf8; margin-bottom: 0.2rem;">i = Ukazovák (Índice)</div>
-                <div style="font-size: 0.8rem; color: #94a3b8; line-height: 1.35;">Trvalý domov na <strong>3. struně (G)</strong>. Přitahuje strunu nahoru do dlaně.</div>
-              </div>
-              <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 0.75rem 0.9rem;">
-                <div style="font-size: 1.1rem; font-weight: 900; color: #a78bfa; margin-bottom: 0.2rem;">m = Prostředník (Medio)</div>
-                <div style="font-size: 0.8rem; color: #94a3b8; line-height: 1.35;">Trvalý domov na <strong>2. struně (B/H)</strong>. Hraje jemně a čistě nahoru.</div>
-              </div>
-              <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 0.75rem 0.9rem;">
-                <div style="font-size: 1.1rem; font-weight: 900; color: #34d399; margin-bottom: 0.2rem;">a = Prsteník (Anular)</div>
-                <div style="font-size: 0.8rem; color: #94a3b8; line-height: 1.35;">Trvalý domov na <strong>1. struně (tenké e)</strong>. Dodává jiskru melodiím.</div>
-              </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem;">
+            <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 0.75rem 0.9rem;">
+              <div style="font-size: 1.1rem; font-weight: 900; color: #fbbf24; margin-bottom: 0.2rem;">P = Palec (Pulgar)</div>
+              <div style="font-size: 0.8rem; color: #94a3b8; line-height: 1.35;">Hraje basové struny <strong>6 (E), 5 (A) a 4 (D)</strong>. Úder směřuje dolů.</div>
+            </div>
+            <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 0.75rem 0.9rem;">
+              <div style="font-size: 1.1rem; font-weight: 900; color: #38bdf8; margin-bottom: 0.2rem;">i = Ukazovák (Índice)</div>
+              <div style="font-size: 0.8rem; color: #94a3b8; line-height: 1.35;">Trvalý domov na <strong>3. struně (G)</strong>. Přitahuje strunu nahoru do dlaně.</div>
+            </div>
+            <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 0.75rem 0.9rem;">
+              <div style="font-size: 1.1rem; font-weight: 900; color: #a78bfa; margin-bottom: 0.2rem;">m = Prostředník (Medio)</div>
+              <div style="font-size: 0.8rem; color: #94a3b8; line-height: 1.35;">Trvalý domov na <strong>2. struně (B/H)</strong>. Hraje jemně a čistě nahoru.</div>
+            </div>
+            <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 0.75rem 0.9rem;">
+              <div style="font-size: 1.1rem; font-weight: 900; color: #34d399; margin-bottom: 0.2rem;">a = Prsteník (Anular)</div>
+              <div style="font-size: 0.8rem; color: #94a3b8; line-height: 1.35;">Trvalý domov na <strong>1. struně (tenké e)</strong>. Dodává jiskru melodiím.</div>
             </div>
           </div>
         </div>
@@ -1570,7 +1592,7 @@ const Practice = (() => {
                 ${p.steps.map((st, i) => `
                   <div class="finger-step-chip">
                     <span class="f-name">${st.finger}</span>
-                    <span class="f-str">${st.stringType === 'bass' ? 'Bas' : (st.stringNum ? `${st.stringNum}. str` : st.stringType)}</span>
+                    <span class="f-str">${st.stringType === 'bass' ? 'Bas' : (st.stringNum ? `${st.stringNum}. str` : st.label)}</span>
                   </div>
                 `).join('')}
               </div>
@@ -1610,12 +1632,9 @@ const Practice = (() => {
       setTimeout(() => {
         AudioSynth.arpeggiateChord(chord, { pattern: patternId, tempo: 1.0 });
       }, delay * 1000);
-      delay += (patternId === 'camp' ? 1.4 : 1.1);
+      delay += (patternId === 'camp' ? 1.4 : 1.15);
     });
-
-    if (window.UI && typeof window.UI.showToast === 'function') {
-      window.UI.showToast(`🎶 Přehrávám vybrnkávací vzor [${patternId.toUpperCase()}] přes Em → C → G → D`, 'info');
-    }
+    // Silent execution: pure guitar tones only!
   }
 
   function startFingerpickingWorkout(patternId) {
@@ -1667,10 +1686,6 @@ const Practice = (() => {
           });
         }, delayMs);
       });
-    }
-
-    if (window.UI && typeof window.UI.showToast === 'function') {
-      window.UI.showToast(`Přehrávám rytmus: ${pattern.shortName}`, 'info');
     }
   }
 
@@ -1725,7 +1740,6 @@ const Practice = (() => {
 
     container.innerHTML = `
       <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-        <!-- Workout Launcher Banner -->
         <div class="card" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(30, 41, 59, 0.9)); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 20px; padding: 1.75rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.25rem;">
           <div>
             <div style="font-size: 0.8rem; font-weight: 800; color: #f87171; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">
@@ -1758,7 +1772,6 @@ const Practice = (() => {
           </div>
         </div>
 
-        <!-- Breakdown Grid -->
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">
           ${sorted.map(m => `
             <div class="card" style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 1.15rem; display: flex; justify-content: space-between; align-items: center;">
@@ -1806,9 +1819,6 @@ const Practice = (() => {
       }
       const content = document.getElementById('practice-tab-content');
       if (content) renderMistakesTab(content);
-      if (window.UI && typeof window.UI.showToast === 'function') {
-        window.UI.showToast('Historie chyb byla vyčištěna.', 'info');
-      }
     }
   }
 
@@ -1852,7 +1862,7 @@ const Practice = (() => {
     }
   }
 
-  // ── 5. Opakování lekcí (1–48) ─────────────────────────────────────────
+  // ── 5. Opakování lekcí (1–48) — Spacious & Beautiful Redesign ────────
   let _reviewStage = 1;
   let _reviewLessonId = 1;
 
@@ -1874,14 +1884,15 @@ const Practice = (() => {
 
   function renderReviewTab(container) {
     const allStages = [
-      { id: 1, name: 'Garáž', emoji: '🏠', range: '1–8' },
-      { id: 2, name: 'Otevřená scéna', emoji: '🎤', range: '9–16' },
-      { id: 3, name: 'Hospoda', emoji: '🍺', range: '17–24' },
-      { id: 4, name: 'Klub', emoji: '🎪', range: '25–32' },
-      { id: 5, name: 'Koncertní sál', emoji: '🎭', range: '33–40' },
-      { id: 6, name: 'Stadion', emoji: '🏟️', range: '41–48' }
+      { id: 1, name: 'Garáž', emoji: '🏠', range: 'Lekce 1–8', desc: 'Základy kytary, držení trsátka, akordy Em, Am, C a první písně' },
+      { id: 2, name: 'Otevřená scéna', emoji: '🎤', range: 'Lekce 9–16', desc: 'První vystoupení v parku, akordy G, D a táborákový rytmus' },
+      { id: 3, name: 'Hospoda', emoji: '🍺', range: 'Lekce 17–24', desc: 'Živý hospodský jam, folk, blues, akordy E, A a rychlé přechody' },
+      { id: 4, name: 'Klub', emoji: '🎪', range: 'Lekce 25–32', desc: 'Světla neonů, rockový tah, septakordy A7, D7, E7 a dynamika' },
+      { id: 5, name: 'Koncertní sál', emoji: '🎭', range: 'Lekce 33–40', desc: 'Akustická elegance, pokročilá arpeggia, Cadd9, Dsus4 a balady' },
+      { id: 6, name: 'Stadion', emoji: '🏟️', range: 'Lekce 41–48', desc: 'Vyprodaná aréna, královské barré F, Hm, Gm a finální mistrovství' }
     ];
 
+    const currentStage = allStages.find(s => s.id === _reviewStage) || allStages[0];
     const lessonsInStage = window.Lessons ? window.Lessons.getLessonsByStage(_reviewStage) : [];
     const activeLesson = window.Lessons ? (window.Lessons.getLesson(_reviewLessonId) || lessonsInStage[0]) : null;
 
@@ -1893,122 +1904,281 @@ const Practice = (() => {
     const isTheory = activeLesson ? activeLesson.type === 'theory' : false;
 
     container.innerHTML = `
-      <div class="animate-fadeIn">
-        <div style="margin-bottom: 1.5rem;">
-          <h3 style="font-size: 1.35rem; font-weight: 800; color: #f8fafc; margin-bottom: 0.25rem;">
-            📚 Opakování a procvičování podle lekcí (1–48)
-          </h3>
-          <p style="color: #94a3b8; font-size: 0.9rem; margin: 0;">
-            Vyber si etapu a konkrétní lekci a okamžitě si zopakuj teorii, hmatník nebo herní cvičení v dálnici.
-          </p>
+      <div class="animate-fadeIn" style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <!-- Top Title & Description Header -->
+        <div class="card" style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95)); border: 1px solid rgba(139, 92, 246, 0.35); border-radius: 20px; padding: 1.5rem 1.75rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+              <div style="font-size: 0.8rem; font-weight: 800; color: #a78bfa; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">
+                📚 Kytarová akademie & Osnova kurzu
+              </div>
+              <h2 style="font-size: 1.65rem; font-weight: 900; color: #f8fafc; margin: 0 0 0.4rem 0;">
+                Opakování lekcí (1–48)
+              </h2>
+              <p style="font-size: 0.92rem; color: #cbd5e1; max-width: 720px; margin: 0; line-height: 1.5;">
+                Zde máš na jednom místě přehledně seřazené všechny etapy. Můžeš se kdykoliv vrátit k libovolné lekci, zopakovat si její teoretické principy, spustit herní nácvik v dálnici nebo si zahrát odemčenou píseň.
+              </p>
+            </div>
+            <span class="finger-badge-pill" style="font-size: 0.85rem; padding: 0.4rem 0.9rem;">
+              6 etap &bull; 48 kompletních lekcí
+            </span>
+          </div>
         </div>
 
-        <!-- Stage selector buttons -->
-        <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem; flex-wrap: wrap;">
-          ${allStages.map(st => `
-            <button
-              class="btn btn-sm ${st.id === _reviewStage ? 'btn-primary' : 'btn-secondary'}"
-              onclick="Practice.setReviewStage(${st.id})"
-              style="border-radius: 8px; font-weight: 700;"
-            >
-              ${st.emoji} ${st.id}. ${st.name} (${st.range})
-            </button>
-          `).join('')}
+        <!-- 6 Stages Selector Tabs Grid -->
+        <div>
+          <div style="font-size: 0.82rem; font-weight: 800; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem;">
+            Vyber etapu kytarové cesty:
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.75rem;">
+            ${allStages.map(st => {
+              const isActive = st.id === _reviewStage;
+              return `
+                <button
+                  type="button"
+                  class="review-stage-btn ${isActive ? 'active' : ''}"
+                  onclick="Practice.setReviewStage(${st.id})"
+                  style="
+                    display: flex; flex-direction: column; align-items: flex-start; gap: 0.25rem;
+                    padding: 0.85rem 1rem; border-radius: 14px; text-align: left; cursor: pointer;
+                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                    border: 2px solid ${isActive ? '#818CF8' : 'rgba(255, 255, 255, 0.08)'};
+                    background: ${isActive ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.28), rgba(139, 92, 246, 0.15))' : 'rgba(30, 41, 59, 0.6)'};
+                    box-shadow: ${isActive ? '0 0 16px rgba(99, 102, 241, 0.35)' : 'none'};
+                  "
+                >
+                  <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <span style="font-size: 1.4rem;">${st.emoji}</span>
+                    <span style="font-size: 0.68rem; font-weight: 800; color: ${isActive ? '#a5b4fc' : '#94a3b8'}; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;">
+                      8 lekcí
+                    </span>
+                  </div>
+                  <div style="font-size: 0.95rem; font-weight: 800; color: ${isActive ? '#FFFFFF' : '#E2E8F0'}; margin-top: 2px;">
+                    ${st.id}. ${st.name}
+                  </div>
+                  <div style="font-size: 0.72rem; color: ${isActive ? '#c7d2fe' : '#94a3b8'}; font-weight: 600;">
+                    ${st.range}
+                  </div>
+                </button>
+              `;
+            }).join('')}
+          </div>
         </div>
 
-        <!-- Lesson chips -->
-        <div style="display: flex; gap: 0.4rem; margin-bottom: 1.75rem; flex-wrap: wrap;">
-          ${lessonsInStage.map(les => {
-            const isSelected = activeLesson && les.id === activeLesson.id;
-            return `
-              <button
-                class="btn btn-sm ${isSelected ? 'btn-primary' : 'btn-ghost'}"
-                onclick="Practice.setReviewLesson(${les.id})"
-                style="border-radius: 8px; font-size: 0.85rem; font-weight: 700; ${isSelected ? 'box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);' : 'border: 1px solid rgba(255, 255, 255, 0.08);'}"
-              >
-                ${les.id}. ${les.title.length > 22 ? les.title.substring(0, 20) + '…' : les.title}
-              </button>
-            `;
-          }).join('')}
+        <!-- 8 Lessons Deck of Current Stage (Spacious Grid) -->
+        <div class="card" style="background: rgba(30, 41, 59, 0.65); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 1.4rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <div style="font-size: 1.15rem; font-weight: 900; color: #f8fafc; display: flex; align-items: center; gap: 0.5rem;">
+                <span>${currentStage.emoji}</span>
+                <span>Etapa ${currentStage.id}: ${currentStage.name} – Přehled 8 lekcí</span>
+              </div>
+              <div style="font-size: 0.82rem; color: #94a3b8; margin-top: 0.15rem;">
+                ${currentStage.desc}
+              </div>
+            </div>
+            <span style="font-size: 0.78rem; font-weight: 700; color: #cbd5e1;">
+              Vyber lekci pro zobrazení detailu a tréninku:
+            </span>
+          </div>
+
+          <!-- 8 Lesson Cards Grid -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.85rem;">
+            ${lessonsInStage.map(les => {
+              const isSelected = activeLesson && les.id === activeLesson.id;
+              const isLesTheory = les.type === 'theory';
+              const hasSong = Boolean(les.unlockedSongId);
+
+              return `
+                <div
+                  class="review-lesson-card ${isSelected ? 'selected' : ''}"
+                  onclick="Practice.setReviewLesson(${les.id})"
+                  style="
+                    display: flex; flex-direction: column; justify-content: space-between;
+                    padding: 0.95rem 1.1rem; border-radius: 14px; cursor: pointer; min-height: 105px;
+                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                    border: 2px solid ${isSelected ? '#818CF8' : 'rgba(255, 255, 255, 0.08)'};
+                    background: ${isSelected ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(15, 23, 42, 0.85))' : 'rgba(15, 23, 42, 0.65)'};
+                    box-shadow: ${isSelected ? '0 0 16px rgba(99, 102, 241, 0.4)' : 'none'};
+                  "
+                >
+                  <!-- Card Header: Number & Badge -->
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                    <span style="font-size: 0.82rem; font-weight: 900; color: ${isSelected ? '#c7d2fe' : '#94a3b8'};">
+                      Lekce ${les.id}
+                    </span>
+                    <span style="
+                      font-size: 0.7rem; font-weight: 700; padding: 2px 7px; border-radius: 6px;
+                      background: ${isLesTheory ? 'rgba(139, 92, 246, 0.2)' : 'rgba(16, 185, 129, 0.2)'};
+                      color: ${isLesTheory ? '#c4b5fd' : '#6ee7b7'};
+                      border: 1px solid ${isLesTheory ? 'rgba(139, 92, 246, 0.35)' : 'rgba(16, 185, 129, 0.35)'};
+                    ">
+                      ${isLesTheory ? '📘 Teorie' : '🎸 Praxe'}
+                    </span>
+                  </div>
+
+                  <!-- Card Title -->
+                  <div style="font-size: 0.96rem; font-weight: 800; color: #FFFFFF; line-height: 1.35; margin-bottom: 0.65rem;">
+                    ${les.title}
+                  </div>
+
+                  <!-- Card Footer: Reward & Song Flag -->
+                  <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; color: #94a3b8;">
+                    <span style="color: #fbbf24; font-weight: 700;">⭐ +${les.xpReward} XP</span>
+                    ${hasSong ? `
+                      <span style="color: #38bdf8; font-weight: 700; background: rgba(56, 189, 248, 0.12); padding: 1px 6px; border-radius: 4px;">
+                        🎵 Píseň
+                      </span>
+                    ` : ''}
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
         </div>
 
-        <!-- Active Lesson Detail Card -->
+        <!-- Active Lesson Detail Showcase Card (Breathable & Spacious) -->
         ${activeLesson ? `
-          <div class="card p-6 bg-surface-2 border border-surface-border rounded-2xl" style="background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px);">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem;">
+          <div class="card" style="background: rgba(30, 41, 59, 0.85); border: 2px solid rgba(99, 102, 241, 0.4); border-radius: 20px; padding: 1.75rem; box-shadow: 0 8px 24px rgba(0,0,0,0.3);">
+            <!-- Top Row: Lesson Title, Badges, and Open Full Lesson Action -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1.25rem; margin-bottom: 1.5rem; padding-bottom: 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.08);">
               <div>
-                <span class="badge" style="background: ${isTheory ? 'rgba(139, 92, 246, 0.2)' : 'rgba(16, 185, 129, 0.2)'}; color: ${isTheory ? '#c4b5fd' : '#6ee7b7'}; border: 1px solid ${isTheory ? 'rgba(139, 92, 246, 0.4)' : 'rgba(16, 185, 129, 0.4)'}; font-weight: 700;">
-                  ${isTheory ? '📘 Teoretická lekce' : '🎸 Praktická lekce'}
-                </span>
-                <span class="badge" style="margin-left: 0.5rem; background: rgba(245, 158, 11, 0.15); color: #fbbf24;">
-                  ⭐ +${activeLesson.xpReward} XP
-                </span>
-                <h2 style="font-size: 1.5rem; font-weight: 800; color: #ffffff; margin-top: 0.5rem; margin-bottom: 0.35rem;">
-                  ${activeLesson.id}. ${activeLesson.title}
-                </h2>
-                <p style="color: #94a3b8; font-size: 0.95rem; margin: 0;">
+                <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.4rem;">
+                  <span style="font-size: 0.85rem; font-weight: 900; color: #818CF8; background: rgba(99, 102, 241, 0.15); padding: 0.25rem 0.75rem; border-radius: 8px; border: 1px solid rgba(99, 102, 241, 0.35);">
+                    ${currentStage.name} &bull; Lekce ${activeLesson.id}
+                  </span>
+                  <span style="
+                    font-size: 0.78rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: 8px;
+                    background: ${isTheory ? 'rgba(139, 92, 246, 0.2)' : 'rgba(16, 185, 129, 0.2)'};
+                    color: ${isTheory ? '#c4b5fd' : '#6ee7b7'};
+                    border: 1px solid ${isTheory ? 'rgba(139, 92, 246, 0.4)' : 'rgba(16, 185, 129, 0.4)'};
+                  ">
+                    ${isTheory ? '📘 Teoretická výuka' : '🎸 Praktický trénink'}
+                  </span>
+                  <span style="font-size: 0.78rem; font-weight: 800; color: #fbbf24; background: rgba(245, 158, 11, 0.15); padding: 0.25rem 0.65rem; border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.35);">
+                    ⭐ +${activeLesson.xpReward} XP Odměna
+                  </span>
+                </div>
+                <h3 style="font-size: 1.65rem; font-weight: 900; color: #FFFFFF; margin: 0.35rem 0 0.5rem 0;">
+                  ${activeLesson.title}
+                </h3>
+                <p style="color: #cbd5e1; font-size: 0.95rem; margin: 0; max-width: 780px; line-height: 1.55;">
                   ${activeLesson.description}
                 </p>
               </div>
 
-              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                <button class="btn btn-secondary" onclick="window.location.hash = '#/lesson/${activeLesson.id}'" style="border-radius: 10px; font-weight: 700;">
-                  📖 Otevřít celou lekci
+              <div>
+                <button
+                  class="btn btn-secondary"
+                  onclick="window.location.hash = '#/lesson/${activeLesson.id}'"
+                  style="border-radius: 12px; font-weight: 800; padding: 0.75rem 1.4rem; display: inline-flex; align-items: center; gap: 0.5rem;"
+                >
+                  <span>📖 Otevřít celou výuku lekce</span>
                 </button>
               </div>
             </div>
 
-            <!-- Content preview & Action box -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin-top: 1.5rem;">
+            <!-- Two-Column Interactive Action Deck -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem;">
+              <!-- Left Card: Workout or Quiz -->
               ${activeLesson.practiceWorkout ? `
-                <div class="card p-4 bg-surface-3 rounded-xl border border-primary" style="border-left: 4px solid #3b82f6;">
-                  <h4 style="font-weight: 800; color: #60a5fa; font-size: 1.05rem; margin-bottom: 0.35rem;">
-                    🎯 Cvičení v herní dálnici
-                  </h4>
-                  <p style="color: #cbd5e1; font-size: 0.85rem; margin-bottom: 0.75rem;">
-                    ${activeLesson.practiceWorkout.title || 'Procvičení látky lekce'}<br>
-                    Akordy: <strong>${(activeLesson.practiceWorkout.chords || []).join(' – ')}</strong> &bull; Rytmus: <strong>${activeLesson.practiceWorkout.strummingPattern || '4/4'}</strong> &bull; Tempo: <strong>${activeLesson.practiceWorkout.bpm || 80} BPM</strong>
-                  </p>
-                  <p style="color: #f59e0b; font-size: 0.75rem; margin-bottom: 1rem;">
-                    💡 <em>Připraveno pro 3. fázi: Zde se ve 3. fázi zapne kontrola mikrofonem!</em>
-                  </p>
-                  <button class="btn btn-primary" onclick="Lessons.startLessonWorkout(Lessons.getLesson(${activeLesson.id}))" style="font-weight: 700; width: 100%; border-radius: 8px;">
-                    🚀 Spustit trénink v dálnici
+                <div style="background: rgba(15, 23, 42, 0.75); border: 2px solid rgba(59, 130, 246, 0.4); border-radius: 16px; padding: 1.35rem; display: flex; flex-direction: column; justify-content: space-between; gap: 1rem;">
+                  <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                      <h4 style="font-weight: 900; color: #60a5fa; font-size: 1.15rem; margin: 0;">
+                        🎯 Herní trénink v dálnici
+                      </h4>
+                      <span style="font-size: 0.72rem; font-weight: 800; color: #38bdf8; background: rgba(56, 189, 248, 0.15); padding: 2px 8px; border-radius: 6px;">
+                        ${activeLesson.practiceWorkout.bpm || 80} BPM
+                      </span>
+                    </div>
+                    <p style="color: #cbd5e1; font-size: 0.88rem; margin: 0 0 0.85rem 0; line-height: 1.45;">
+                      ${activeLesson.practiceWorkout.title || 'Procvičení akordů a rytmu lekce'}
+                    </p>
+
+                    <!-- Chords Chips -->
+                    <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem;">
+                      <span style="font-size: 0.75rem; font-weight: 800; color: #94a3b8;">Akordy:</span>
+                      ${(activeLesson.practiceWorkout.chords || []).map(ch => `
+                        <span style="font-size: 0.88rem; font-weight: 900; color: #f8fafc; background: rgba(99, 102, 241, 0.35); border: 1px solid #6366F1; padding: 3px 10px; border-radius: 8px;">
+                          ${ch}
+                        </span>
+                      `).join('')}
+                    </div>
+
+                    <div style="font-size: 0.78rem; color: #94a3b8;">
+                      Rytmický vzor: <strong style="color: #cbd5e1;">${activeLesson.practiceWorkout.strummingPattern || '4/4'}</strong>
+                    </div>
+                  </div>
+
+                  <button
+                    class="btn btn-primary"
+                    onclick="Lessons.startLessonWorkout(Lessons.getLesson(${activeLesson.id}))"
+                    style="font-weight: 800; width: 100%; border-radius: 10px; padding: 0.7rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;"
+                  >
+                    <span>🚀 Spustit trénink v dálnici</span>
                   </button>
                 </div>
               ` : `
-                <div class="card p-4 bg-surface-3 rounded-xl border border-surface-border">
-                  <h4 style="font-weight: 800; color: #c4b5fd; font-size: 1.05rem; margin-bottom: 0.35rem;">
-                    📝 Teoretický kvíz & pojmy
-                  </h4>
-                  <p style="color: #cbd5e1; font-size: 0.85rem; margin-bottom: 1rem;">
-                    Tato lekce obsahuje ${(activeLesson.steps || []).length} výukových kroků a ${(activeLesson.quiz || []).length} ověřovacích kvízových otázek.
-                  </p>
-                  <button class="btn btn-primary" onclick="window.location.hash = '#/lesson/${activeLesson.id}'" style="font-weight: 700; width: 100%; border-radius: 8px;">
-                    ✍️ Spustit kvíz k lekci
+                <div style="background: rgba(15, 23, 42, 0.75); border: 2px solid rgba(139, 92, 246, 0.4); border-radius: 16px; padding: 1.35rem; display: flex; flex-direction: column; justify-content: space-between; gap: 1rem;">
+                  <div>
+                    <h4 style="font-weight: 900; color: #c4b5fd; font-size: 1.15rem; margin: 0 0 0.5rem 0;">
+                      📝 Teoretický kvíz & pojmy
+                    </h4>
+                    <p style="color: #cbd5e1; font-size: 0.88rem; margin: 0 0 1rem 0; line-height: 1.45;">
+                      Tato lekce obsahuje ${(activeLesson.steps || []).length} výukových kroků a ${(activeLesson.quiz || []).length} ověřovacích kvízových otázek pro pochopení hudební teorie.
+                    </p>
+                  </div>
+
+                  <button
+                    class="btn btn-primary"
+                    onclick="window.location.hash = '#/lesson/${activeLesson.id}'"
+                    style="font-weight: 800; width: 100%; border-radius: 10px; padding: 0.7rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;"
+                  >
+                    <span>✍️ Otevřít teorii a kvíz</span>
                   </button>
                 </div>
               `}
 
+              <!-- Right Card: Unlocked Song or Guitar Practice Tip -->
               ${lessonSong ? `
-                <div class="card p-4 bg-surface-3 rounded-xl border border-accent" style="border-left: 4px solid #f59e0b;">
-                  <h4 style="font-weight: 800; color: #fbbf24; font-size: 1.05rem; margin-bottom: 0.35rem;">
-                    🎉 Odemčená píseň k lekci
-                  </h4>
-                  <p style="color: #ffffff; font-weight: 700; font-size: 0.95rem; margin-bottom: 0.2rem;">
-                    „${lessonSong.title}“
-                  </p>
-                  <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 1rem;">
-                    ${lessonSong.artist} &bull; Obtížnost: ${lessonSong.difficulty} &bull; Akordy: ${(lessonSong.chords || []).join(' – ')}
-                  </p>
-                  <button class="btn btn-secondary" onclick="App.launchSongPlayer(App.SONGS_25.find(s => s.id === ${lessonSong.id}))" style="font-weight: 700; width: 100%; border-radius: 8px;">
-                    ▶️ Zahrát odemčenou píseň
+                <div style="background: rgba(15, 23, 42, 0.75); border: 2px solid rgba(245, 158, 11, 0.4); border-radius: 16px; padding: 1.35rem; display: flex; flex-direction: column; justify-content: space-between; gap: 1rem;">
+                  <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                      <h4 style="font-weight: 900; color: #fbbf24; font-size: 1.15rem; margin: 0;">
+                        🎉 Odemčená píseň k lekci
+                      </h4>
+                      <span style="font-size: 0.72rem; font-weight: 800; color: #f59e0b; background: rgba(245, 158, 11, 0.15); padding: 2px 8px; border-radius: 6px;">
+                        ${lessonSong.difficulty || 'Začátečník'}
+                      </span>
+                    </div>
+                    <div style="color: #ffffff; font-weight: 900; font-size: 1.2rem; margin-bottom: 0.2rem;">
+                      „${lessonSong.title}“
+                    </div>
+                    <div style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 0.75rem;">
+                      ${lessonSong.artist} &bull; ${(lessonSong.chords || []).join(' – ')}
+                    </div>
+                    <div style="font-size: 0.8rem; color: #cbd5e1; line-height: 1.4;">
+                      Zahraj si plnohodnotnou píseň z kytarového zpěvníku a otestuj své nové dovednosti!
+                    </div>
+                  </div>
+
+                  <button
+                    class="btn btn-secondary"
+                    onclick="App.launchSongPlayer(App.SONGS_25.find(s => s.id === ${lessonSong.id}))"
+                    style="font-weight: 800; width: 100%; border-radius: 10px; padding: 0.7rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;"
+                  >
+                    <span>▶️ Zahrát odemčenou píseň</span>
                   </button>
                 </div>
               ` : `
-                <div class="card p-4 bg-surface-3 rounded-xl border border-surface-border flex items-center justify-center text-center">
-                  <p style="color: #64748b; font-size: 0.85rem; margin: 0;">
-                    Tip: Postupuj dál kurzem pro odemčení dalších písní ze zpěvníku!
+                <div style="background: rgba(15, 23, 42, 0.5); border: 1px dashed rgba(255, 255, 255, 0.15); border-radius: 16px; padding: 1.35rem; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 0.5rem;">
+                  <span style="font-size: 2rem;">🎸</span>
+                  <div style="color: #f8fafc; font-weight: 800; font-size: 1rem;">
+                    Tip pro cvičení ${currentStage.name}
+                  </div>
+                  <p style="color: #94a3b8; font-size: 0.85rem; margin: 0; line-height: 1.45; max-width: 380px;">
+                    Každá dokončená lekce tě posouvá blíž k odemčení písní v následujících etapách. Pokračuj dál v kurzu!
                   </p>
                 </div>
               `}
