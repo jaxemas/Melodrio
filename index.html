@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/story.css">
 </head>
 <body>
   <div id="app">
@@ -545,6 +546,53 @@
       </div>
     </div>
 
+    <!-- STORY INTRO OVERLAY (fullscreen pixel-art prologue) -->
+    <div id="story-overlay" class="story-overlay" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="story-title">
+      <canvas id="story-canvas" class="story-canvas" width="320" height="180" aria-hidden="true"></canvas>
+      <div class="story-scanlines" aria-hidden="true"></div>
+      <div class="story-vignette" aria-hidden="true"></div>
+
+      <header class="story-hud">
+        <div class="story-brand">
+          <span class="story-brand-icon" aria-hidden="true">🎸</span>
+          <span class="story-brand-name">Melodrio</span>
+          <span class="story-brand-label">Příběh</span>
+        </div>
+        <span class="story-counter" id="story-counter">1 / 10</span>
+      </header>
+
+      <div class="story-stage">
+        <section class="story-card" id="story-card" aria-live="polite">
+          <p class="story-act" id="story-act">Část I · Probuzení</p>
+          <h2 class="story-title" id="story-title">Údolí Akordov</h2>
+          <p class="story-text" id="story-text"></p>
+        </section>
+      </div>
+
+      <footer class="story-bar">
+        <button type="button" class="story-btn story-btn-ghost story-skip" id="story-skip">
+          <span class="story-btn-icon" aria-hidden="true">✕</span>
+          <span>Přeskočit</span>
+        </button>
+
+        <div class="story-bar-center">
+          <button type="button" class="story-btn story-btn-arrow" id="story-prev" aria-label="Předchozí snímek" disabled>
+            <span aria-hidden="true">←</span>
+            <span>Zpět</span>
+          </button>
+          <div class="story-dots" id="story-dots" role="tablist" aria-label="Snímky příběhu"></div>
+          <button type="button" class="story-btn story-btn-primary" id="story-next" aria-label="Další snímek">
+            <span id="story-next-label">Další</span>
+            <span class="story-btn-icon" id="story-next-icon" aria-hidden="true">→</span>
+          </button>
+        </div>
+
+        <div class="story-hint" aria-hidden="true">
+          <kbd>Mezerník</kbd><kbd>Enter</kbd>
+        </div>
+      </footer>
+    </div>
+
     <!-- TOAST CONTAINER -->
     <div id="toast-container" aria-live="polite"></div>
     
@@ -574,6 +622,8 @@
     <script src="js/audio_synth.js"></script>
   <script src="js/song_player.js"></script>
   <script src="js/practice.js"></script>
+  <script src="js/pixel_story.js"></script>
+  <script src="js/story.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

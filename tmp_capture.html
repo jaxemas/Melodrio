@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Story capture</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #07060f; overflow: hidden; }
+    iframe { display: block; width: 100%; height: 100%; border: 0; }
+  </style>
+</head>
+<body>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const requested = params.get('slide');
+
+    localStorage.setItem('melodrio_user', JSON.stringify({
+      name: 'Capture',
+      avatar: '🎸',
+      passwordHash: 'x',
+      createdAt: new Date().toISOString()
+    }));
+
+    const frame = document.createElement('iframe');
+    frame.src = 'index.html';
+    document.body.appendChild(frame);
+
+    frame.addEventListener('load', () => {
+      const win = frame.contentWindow;
+      const timer = setInterval(() => {
+        if (!win.Story || !win.Story.isOpen) return;
+        clearInterval(timer);
+        if (requested !== null && requested !== 'auto') {
+          win.Story.showSlide(Math.max(0, Math.min(9, Number(requested) || 0)));
+        }
+        setTimeout(() => { document.title = 'story-ready'; }, 500);
+      }, 80);
+    });
+  </script>
+</body>
+</html>

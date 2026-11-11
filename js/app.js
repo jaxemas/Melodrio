@@ -498,18 +498,31 @@ window.App = {
               </p>
             </div>
 
-            <button class="btn btn-primary" onclick="App.continueCurrentLesson()" style="
-              display: inline-flex;
-              align-items: center;
-              gap: 0.5rem;
-              padding: 0.75rem 1.4rem;
-              font-weight: 700;
-              border-radius: 12px;
-              box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4);
-            ">
-              <span>Pokra&#x10D;ovat ve v&yacute;uce</span>
-              <span style="font-size: 1.2rem;">&#x25B6;</span>
-            </button>
+            <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
+              <button class="btn btn-secondary" onclick="App.replayStory()" title="P&#345;ehr&aacute;t &uacute;vodn&iacute; p&#345;&iacute;b&#283;h" style="
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.75rem 1.1rem;
+                font-weight: 700;
+                border-radius: 12px;
+              ">
+                <span>&#x1F4D6;</span>
+                <span>P&#345;&iacute;b&#283;h</span>
+              </button>
+              <button class="btn btn-primary" onclick="App.continueCurrentLesson()" style="
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.75rem 1.4rem;
+                font-weight: 700;
+                border-radius: 12px;
+                box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4);
+              ">
+                <span>Pokra&#x10D;ovat ve v&yacute;uce</span>
+                <span style="font-size: 1.2rem;">&#x25B6;</span>
+              </button>
+            </div>
           </div>
 
           <!-- XP Progress Bar -->
@@ -4072,6 +4085,24 @@ window.App = {
       this.navigate(window.location.hash || '#/dashboard');
     } catch (e) {
       console.error('Chyba v navigaci:', e);
+    }
+
+    // Auto-play the ten-slide story prologue after login / app start.
+    // It runs once per page load; the dashboard "Příběh" button can replay it anytime.
+    if (window.Story && typeof window.Story.playOnce === 'function') {
+      clearTimeout(this._storyTimer);
+      this._storyTimer = setTimeout(() => {
+        window.Story.playOnce();
+      }, 600);
+    }
+  },
+
+  /**
+   * Replay the story prologue from the beginning.
+   */
+  replayStory() {
+    if (window.Story && typeof window.Story.play === 'function') {
+      window.Story.play();
     }
   }
 };
